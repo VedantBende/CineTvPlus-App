@@ -1,0 +1,303 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { fetchMovieDetails } from '../utils/tmdbApi';
+import { formatRating } from '../utils/formatters';
+import Loader from '../components/ui/Loader';
+import ErrorMessage from '../components/ui/ErrorMessage';
+import axios from 'axios';
+import { useAuth, useUser } from '@clerk/clerk-react';
+
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+
+function MovieDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const { isSignedIn } = useUser();
+  
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
+
+
+  useEffect(() => {
+    loadMovieDetails();
+  }, [id]);
+
+
+  useEffect(() => {
+    if (isSignedIn && id) {
+      checkWatchlist();
+    }
+  }, [isSignedIn, id]);
+
+
+  const loadMovieDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const movieData = await fetchMovieDetails(id);
+      if (!movieData) {
+        throw new Error('Movie not found');
+      }
+      setMovie(movieData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const checkWatchlist = async () => {
+    try {
+      const token = await getToken();
+      const response = await axios.get(`${API_URL}/watchlist/check/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setIsInWatchlist(response.data.isInWatchlist);
+    } catch (error) {
+      console.error('Failed to check watchlist:', error);
+    }
+  };
+
+
+  const toggleWatchlist = async () => {
+    if (!isSignedIn) {
+      navigate('/login');
+      return;
+    }
+
+
+    setWatchlistLoading(true);
+    
+    try {
+      const token = await getToken();
+      
+      if (!token) {
+        alert('Authentication failed. Please sign in again.');
+        navigate('/login');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
+
+      if (isInWatchlist) {
+        await axios.delete(`${API_URL}/watchlist/remove/${id}`, config);
+        setIsInWatchlist(false);
+      } else {
+        await axios.post(`${API_URL}/watchlist/add`, {
+          mediaId: id,
+          title: movie.title,
+          poster: movie.url,
+          rating: movie.rating,
+          year: movie.year,
+          type: 'movie'
+        }, config);
+        setIsInWatchlist(true);
+      }
+    } catch (error) {
+      console.error('Watchlist error:', error);
+      const errorMsg = error.response?.data?.error || 'Failed to update My List';
+      alert(errorMsg);
+    } finally {
+      setWatchlistLoading(false);
+    }
+  };
+
+
+  const handleWatch = () => {
+    navigate(`/watch?id=${id}&type=movie`);
+  };
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+        <Loader text="Loading movie details..." />
+      </div>
+    );
+  }
+
+
+  if (error || !movie) {
+    return (
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+        <ErrorMessage message={error || 'Movie not found'} onRetry={loadMovieDetails} />
+      </div>
+    );
+  }
+
+
+  return (
+    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
+      <div className="relative h-[50vh] sm:h-[60vh] md:h-[65vh] lg:h-[70vh]">
+        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/70 sm:via-netflix-black/40 to-transparent z-10" />
+        
+        {movie.backdrop && (
+          <img
+            src={movie.backdrop}
+            alt={movie.title}
+            className="w-full h-full object-cover opacity-40 sm:opacity-50"
+          />
+        )}
+
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
+            {movie.title} {movie.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({movie.year})</span>}
+          </h1>
+
+
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
+            {movie.rating && (
+              <div className="flex items-center space-x-1 sm:space-x-2 bg-yellow-500 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-white font-bold">{formatRating(movie.rating)}</span>
+              </div>
+            )}
+            {movie.runtime && (
+              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm">{movie.runtime} min</span>
+            )}
+            {movie.genres && movie.genres.length > 0 && (
+              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1">
+                {movie.genres.slice(0, 3).map(g => g.name).join(', ')}
+              </span>
+            )}
+          </div>
+
+
+          <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
+            <button
+              onClick={handleWatch}
+              className="bg-white text-black px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-gray-200 transition-all flex items-center space-x-1.5 sm:space-x-2 shadow-lg transform hover:scale-105 touch-target"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Play</span>
+            </button>
+
+
+            {isSignedIn && (
+              <button
+                onClick={toggleWatchlist}
+                disabled={watchlistLoading}
+                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm disabled:opacity-50 touch-target"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                <span className="hidden xs:inline">{isInWatchlist ? 'Remove from List' : 'Add to My List'}</span>
+                <span className="xs:hidden">{isInWatchlist ? 'Remove' : 'Add'}</span>
+              </button>
+            )}
+
+
+            {movie.trailer && (
+              <a
+                href={`https://www.youtube.com/watch?v=${movie.trailer}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm touch-target"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+                </svg>
+                <span>Trailer</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+
+
+      <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <h2 className="text-white text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Overview</h2>
+            <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8">
+              {movie.overview}
+            </p>
+
+
+            {movie.cast && movie.cast.length > 0 && (
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Cast</h3>
+                <div className="flex flex-wrap gap-2">
+                  {movie.cast.map((actor, index) => (
+                    <span key={index} className="bg-gray-700 text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm">
+                      {actor}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+            {movie.director && (
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-white text-lg sm:text-xl font-bold mb-2">Director</h3>
+                <p className="text-gray-300 text-sm sm:text-base">{movie.director}</p>
+              </div>
+            )}
+          </div>
+
+
+          <div className="order-1 lg:order-2">
+            {movie.url && (
+              <div className="mb-4 sm:mb-6">
+                <img
+                  src={movie.url}
+                  alt={movie.title}
+                  className="w-full max-w-xs mx-auto lg:max-w-full lg:mx-0 rounded-lg shadow-lg"
+                />
+              </div>
+            )}
+
+
+            <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
+              <h3 className="text-white text-base sm:text-lg font-bold mb-3 sm:mb-4">Details</h3>
+              <div className="space-y-2 sm:space-y-3">
+                {movie.year && (
+                  <div>
+                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Release Year</span>
+                    <p className="text-white text-sm sm:text-base">{movie.year}</p>
+                  </div>
+                )}
+                {movie.runtime && (
+                  <div>
+                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Runtime</span>
+                    <p className="text-white text-sm sm:text-base">{movie.runtime} minutes</p>
+                  </div>
+                )}
+                {movie.rating && (
+                  <div>
+                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Rating</span>
+                    <p className="text-white text-sm sm:text-base">{movie.rating}/10</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+export default MovieDetails;
