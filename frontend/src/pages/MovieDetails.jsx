@@ -7,9 +7,7 @@ import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
-
 const API_URL = import.meta.env.VITE_API_URL;
-
 
 function MovieDetails() {
   const { id } = useParams();
@@ -22,19 +20,22 @@ function MovieDetails() {
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [toast, setToast] = useState(null); // NEW
 
+  const showToast = (message, type = 'error') => { // NEW
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     loadMovieDetails();
   }, [id]);
-
 
   useEffect(() => {
     if (isSignedIn && id) {
       checkWatchlist();
     }
   }, [isSignedIn, id]);
-
 
   const loadMovieDetails = async () => {
     try {
@@ -52,7 +53,6 @@ function MovieDetails() {
     }
   };
 
-
   const checkWatchlist = async () => {
     try {
       const token = await getToken();
@@ -67,13 +67,11 @@ function MovieDetails() {
     }
   };
 
-
   const toggleWatchlist = async () => {
     if (!isSignedIn) {
       navigate('/login');
       return;
     }
-
 
     setWatchlistLoading(true);
     
@@ -81,7 +79,7 @@ function MovieDetails() {
       const token = await getToken();
       
       if (!token) {
-        alert('Authentication failed. Please sign in again.');
+        showToast('Authentication failed. Please sign in again.'); // CHANGED
         navigate('/login');
         return;
       }
@@ -109,18 +107,16 @@ function MovieDetails() {
       }
     } catch (error) {
       console.error('Watchlist error:', error);
-      const errorMsg = error.response?.data?.error || 'Failed to update My List';
-      alert(errorMsg);
+      const errorMsg = error.response?.data?.error || 'Under Development. Coming Soon !!!'; // CHANGED
+      showToast(errorMsg); // CHANGED
     } finally {
       setWatchlistLoading(false);
     }
   };
 
-
   const handleWatch = () => {
     navigate(`/watch?id=${id}&type=movie`);
   };
-
 
   if (loading) {
     return (
@@ -130,7 +126,6 @@ function MovieDetails() {
     );
   }
 
-
   if (error || !movie) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
@@ -139,9 +134,17 @@ function MovieDetails() {
     );
   }
 
-
   return (
     <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
+      {/* NEW: Toast */}
+      {toast && (
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md shadow-lg text-base sm:text-lg md:text-xl ${
+          toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'
+        } text-white`}>
+          {toast.message}
+        </div>
+      )}
+
       <div className="relative h-[50vh] sm:h-[60vh] md:h-[65vh] lg:h-[70vh]">
         <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/70 sm:via-netflix-black/40 to-transparent z-10" />
         
@@ -153,12 +156,10 @@ function MovieDetails() {
           />
         )}
 
-
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
             {movie.title} {movie.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({movie.year})</span>}
           </h1>
-
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
             {movie.rating && (
@@ -179,7 +180,6 @@ function MovieDetails() {
             )}
           </div>
 
-
           <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
             <button
               onClick={handleWatch}
@@ -190,7 +190,6 @@ function MovieDetails() {
               </svg>
               <span>Play</span>
             </button>
-
 
             {isSignedIn && (
               <button
@@ -205,7 +204,6 @@ function MovieDetails() {
                 <span className="xs:hidden">{isInWatchlist ? 'Remove' : 'Add'}</span>
               </button>
             )}
-
 
             {movie.trailer && (
               <a
@@ -224,7 +222,6 @@ function MovieDetails() {
         </div>
       </div>
 
-
       <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
           <div className="lg:col-span-2 order-2 lg:order-1">
@@ -232,7 +229,6 @@ function MovieDetails() {
             <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8">
               {movie.overview}
             </p>
-
 
             {movie.cast && movie.cast.length > 0 && (
               <div className="mb-6 sm:mb-8">
@@ -247,7 +243,6 @@ function MovieDetails() {
               </div>
             )}
 
-
             {movie.director && (
               <div className="mb-6 sm:mb-8">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-2">Director</h3>
@@ -255,7 +250,6 @@ function MovieDetails() {
               </div>
             )}
           </div>
-
 
           <div className="order-1 lg:order-2">
             {movie.url && (
@@ -267,7 +261,6 @@ function MovieDetails() {
                 />
               </div>
             )}
-
 
             <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
               <h3 className="text-white text-base sm:text-lg font-bold mb-3 sm:mb-4">Details</h3>
@@ -298,6 +291,5 @@ function MovieDetails() {
     </div>
   );
 }
-
 
 export default MovieDetails;

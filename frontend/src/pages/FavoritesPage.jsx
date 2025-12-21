@@ -6,9 +6,7 @@ import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 
-
 const API_URL = import.meta.env.VITE_API_URL;
-
 
 function FavoritesPage() {
   const { getToken } = useAuth();
@@ -19,7 +17,6 @@ function FavoritesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
   useEffect(() => {
     if (!isSignedIn) {
       navigate('/login');
@@ -28,7 +25,6 @@ function FavoritesPage() {
     
     loadWatchlist();
   }, [isSignedIn, navigate]);
-
 
   const loadWatchlist = async () => {
     try {
@@ -46,12 +42,14 @@ function FavoritesPage() {
       setWatchlist(response.data || []);
     } catch (err) {
       console.error('Error loading watchlist:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to load watchlist');
+      // CHANGED: Don't set error state, just set empty array
+      setWatchlist([]);
+      // Optional: You can keep a console warning but don't block the UI
+      // setError(err.response?.data?.error || err.message || 'Failed to load watchlist');
     } finally {
       setLoading(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -61,7 +59,6 @@ function FavoritesPage() {
     );
   }
 
-
   if (error) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
@@ -69,7 +66,6 @@ function FavoritesPage() {
       </div>
     );
   }
-
 
   return (
     <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
@@ -83,7 +79,6 @@ function FavoritesPage() {
             {watchlist.length} {watchlist.length === 1 ? 'item' : 'items'} saved
           </p>
         </div>
-
 
         {/* Empty State */}
         {watchlist.length === 0 ? (
@@ -135,6 +130,5 @@ function FavoritesPage() {
     </div>
   );
 }
-
 
 export default FavoritesPage;

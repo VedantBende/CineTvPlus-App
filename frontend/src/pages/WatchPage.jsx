@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getLocalProgress } from '../utils/progressTracker';
 import PlayerFrame from '../components/media/PlayerFrame';
 import Loader from '../components/ui/Loader';
@@ -7,7 +7,6 @@ import Loader from '../components/ui/Loader';
 function WatchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
   
   const tmdbId = searchParams.get('id');
   const mediaType = searchParams.get('type');
@@ -29,41 +28,6 @@ function WatchPage() {
 
     loadProgress();
   }, [tmdbId, mediaType, season, episode]);
-
-  // Prevent navigation away from page
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = 'Are you sure you want to leave? Your progress will be saved.';
-      return e.returnValue;
-    };
-
-    const handlePopState = (e) => {
-      const confirmLeave = window.confirm('Are you sure you want to stop watching?');
-      if (!confirmLeave) {
-        window.history.pushState(null, '', location.pathname + location.search);
-      } else {
-        navigate(-1);
-      }
-    };
-
-    window.history.pushState(null, '', location.pathname + location.search);
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-
-    const originalOpen = window.open;
-    window.open = function(...args) {
-      console.warn('⛔ Popup blocked:', args);
-      return null;
-    };
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-      window.open = originalOpen;
-    };
-  }, [location, navigate]);
 
   // Detect fullscreen changes
   useEffect(() => {
@@ -173,11 +137,7 @@ function WatchPage() {
   };
 
   const handleBack = () => {
-    const confirmLeave = window.confirm('Are you sure you want to stop watching? Your progress has been saved.');
-    if (confirmLeave) {
-      window.onbeforeunload = null;
-      navigate(-1);
-    }
+    navigate(-1);
   };
 
   if (loading) {
@@ -227,6 +187,7 @@ function WatchPage() {
             episode={episode ? parseInt(episode) : null}
             resumeTime={resumeTime}
             autoplay={true}
+            quality="auto"
           />
         </div>
       </div>
@@ -260,10 +221,13 @@ function WatchPage() {
                 <span className="text-gray-400">•</span> <strong className="text-white">Avoid clicking ads</strong> - they may redirect you
               </p>
               <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Use fullscreen</strong> for best experience
+                <span className="text-gray-400">•</span> <strong className="text-white">Use fullscreen</strong> - for best experience
               </p>
               <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Video not loading?</strong> Try changing server after 30s
+                <span className="text-gray-400">•</span> <strong className="text-white">Low Video Quality</strong> - Try changing server
+              </p>
+              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
+                <span className="text-gray-400">•</span> <strong className="text-white">Video not loading?</strong> - Try changing server after 30s
               </p>
               <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
                 <span className="text-gray-400">•</span> <strong className="text-white">Progress auto-saves</strong> - resume anytime
