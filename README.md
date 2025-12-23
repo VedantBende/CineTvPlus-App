@@ -93,35 +93,85 @@ cinetv-plus/
 │  │  └─ dbConnection.js
 │  ├─ .env
 │  ├─ .gitignore
+│  ├─ package-lock.json
 │  ├─ package.json
+│  ├─ README.md
 │  ├─ server.js
 │  └─ vercel.json
-│
 ├─ frontend/
 │  ├─ public/
 │  │  ├─ CineLogo.svg
 │  │  └─ manifest.json
 │  ├─ src/
 │  │  ├─ assets/
+│  │  │  └─ react.svg
 │  │  ├─ components/
 │  │  │  ├─ common/
+│  │  │  │  ├─ Footer.jsx
+│  │  │  │  ├─ Navbar.jsx
+│  │  │  │  ├─ Sidebar.jsx
+│  │  │  │  └─ ThemeToggle.jsx
 │  │  │  ├─ media/
+│  │  │  │  ├─ ContinueWatching.jsx
+│  │  │  │  ├─ EpisodeList.jsx
+│  │  │  │  ├─ FavoriteButton.jsx
+│  │  │  │  ├─ MovieCard.jsx
+│  │  │  │  └─ PlayerFrame.jsx
 │  │  │  └─ ui/
+│  │  │     ├─ ErrorMessage.jsx
+│  │  │     ├─ Loader.jsx
+│  │  │     └─ OptimizedImage.jsx
 │  │  ├─ context/
+│  │  │  └─ ThemeContext.jsx
 │  │  ├─ hooks/
+│  │  │  └─ useClickProtection.js
 │  │  ├─ layouts/
+│  │  │  └─ MainLayout.jsx
 │  │  ├─ pages/
+│  │  │  ├─ FavoritesPage.jsx
+│  │  │  ├─ HomePage.jsx
+│  │  │  ├─ Login.jsx
+│  │  │  ├─ MovieDetails.jsx
+│  │  │  ├─ MoviesPage.jsx
+│  │  │  ├─ Register.jsx
+│  │  │  ├─ SearchPage.jsx
+│  │  │  ├─ SettingsPage.jsx
+│  │  │  ├─ TVDetails.jsx
+│  │  │  ├─ TVShowsPage.jsx
+│  │  │  └─ WatchPage.jsx
 │  │  ├─ router/
+│  │  │  └─ index.jsx
 │  │  ├─ store/
+│  │  │  ├─ authStore.js
+│  │  │  └─ mediaStore.js
 │  │  ├─ styles/
+│  │  │  ├─ globals.css
+│  │  │  ├─ tailwind.css
+│  │  │  ├─ themes.css
+│  │  │  └─ variables.css
 │  │  ├─ utils/
+│  │  │  ├─ api.js
+│  │  │  ├─ formatters.js
+│  │  │  ├─ googleCseApi.js
+│  │  │  ├─ progressTracker.js
+│  │  │  └─ tmdbApi.js
+│  │  ├─ App.css
 │  │  ├─ App.jsx
+│  │  ├─ index.css
 │  │  └─ main.jsx
+│  ├─ .env
+│  ├─ .gitignore
+│  ├─ eslint.config.js
 │  ├─ index.html
+│  ├─ package-lock.json
 │  ├─ package.json
+│  ├─ postcss.config.cjs
+│  ├─ README.md
+│  ├─ tailwind.config.js
 │  └─ vite.config.js
 ├─ package.json
 └─ README.md
+
 ```
 
 ---
