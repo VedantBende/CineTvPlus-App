@@ -8,7 +8,12 @@ import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
 
+
+
 const API_URL = import.meta.env.VITE_API_URL;
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w185';
+
+
 
 
 function TVDetails() {
@@ -24,7 +29,10 @@ function TVDetails() {
   const [watchlistLoading, setWatchlistLoading] = useState(false);
 
 
+
+
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadShowDetails();
     if (isSignedIn) {
       checkWatchlist();
@@ -32,10 +40,14 @@ function TVDetails() {
   }, [id, isSignedIn]);
 
 
+
+
   const loadShowDetails = async () => {
     try {
       setLoading(true);
       setError(null);
+
+
 
 
       const showData = await fetchTVShowDetails(id);
@@ -45,6 +57,8 @@ function TVDetails() {
       }
 
 
+
+
       setShow(showData);
     } catch (err) {
       setError(err.message);
@@ -52,6 +66,8 @@ function TVDetails() {
       setLoading(false);
     }
   };
+
+
 
 
   const checkWatchlist = async () => {
@@ -69,11 +85,15 @@ function TVDetails() {
   };
 
 
+
+
   const toggleWatchlist = async () => {
     if (!isSignedIn) {
       navigate('/login');
       return;
     }
+
+
 
 
     setWatchlistLoading(true);
@@ -87,12 +107,16 @@ function TVDetails() {
         return;
       }
 
+
+
       const config = {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       };
+
+
 
       if (isInWatchlist) {
         await axios.delete(`${API_URL}/watchlist/remove/${id}`, config);
@@ -118,10 +142,14 @@ function TVDetails() {
   };
 
 
+
+
   const handleWatchFirstEpisode = () => {
     // Start with Season 1, Episode 1
     navigate(`/watch?id=${id}&type=tv&season=1&episode=1`);
   };
+
+
 
 
   if (loading) {
@@ -133,6 +161,8 @@ function TVDetails() {
   }
 
 
+
+
   if (error || !show) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
@@ -142,19 +172,23 @@ function TVDetails() {
   }
 
 
+
+
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
+    <div className="min-h-screen bg-netflix-black">
       {/* Hero Section - Responsive */}
-      <div className="relative h-[50vh] sm:h-[60vh] md:h-[65vh] lg:h-[70vh]">
+      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16">
         <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/70 sm:via-netflix-black/40 to-transparent z-10" />
         
         {show.backdrop && (
           <img
             src={show.backdrop}
             alt={show.title}
-            className="w-full h-full object-cover opacity-40 sm:opacity-50"
+            className="w-full h-full object-cover opacity-80 sm:opacity-70"
           />
         )}
+
+
 
 
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
@@ -162,6 +196,8 @@ function TVDetails() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
             {show.title} {show.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({show.year})</span>}
           </h1>
+
+
 
 
           {/* Metadata - Responsive */}
@@ -192,10 +228,14 @@ function TVDetails() {
           </div>
 
 
+
+
           {/* Overview - Responsive */}
           <p className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mb-3 sm:mb-4 md:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed hidden sm:block">
             {show.overview}
           </p>
+
+
 
 
           {/* Action Buttons - Responsive */}
@@ -212,6 +252,8 @@ function TVDetails() {
             </button>
 
 
+
+
             {isSignedIn && (
               <button
                 onClick={toggleWatchlist}
@@ -221,10 +263,12 @@ function TVDetails() {
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <span className="hidden sm:inline">{isInWatchlist ? 'Remove from List' : 'Add to List'}</span>
+                <span className="hidden sm:inline">{isInWatchlist ? 'Remove' : 'Add'}</span>
                 <span className="sm:hidden">{isInWatchlist ? 'Remove' : 'Add'}</span>
               </button>
             )}
+
+
 
 
             {show.trailer && (
@@ -245,6 +289,8 @@ function TVDetails() {
       </div>
 
 
+
+
       {/* Content Section - Responsive */}
       <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
@@ -257,6 +303,8 @@ function TVDetails() {
                 {show.overview}
               </p>
             </div>
+
+
 
 
             {/* Episodes Section - Responsive */}
@@ -283,29 +331,71 @@ function TVDetails() {
             </div>
 
 
+
+
             {/* Cast - Responsive */}
             {show.cast && show.cast.length > 0 && (
               <div className="mb-6 sm:mb-8">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Cast</h3>
-                <div className="flex flex-wrap gap-2">
-                  {show.cast.map((actor, index) => (
-                    <span key={index} className="bg-gray-700 text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm">
-                      {actor}
-                    </span>
+                <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 sm:gap-4">
+                  {show.cast.map((member, index) => (
+                    <div key={index} className="flex flex-col items-center text-center group">
+                      <div className="w-full aspect-square rounded-full overflow-hidden bg-gray-700 mb-2 ring-2 ring-transparent group-hover:ring-netflix-red transition-all">
+                        {member.profile_path ? (
+                          <img
+                            src={`${TMDB_IMAGE_BASE}${member.profile_path}`}
+                            alt={member.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-xs sm:text-sm font-medium line-clamp-2">
+                        {member.name}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
 
+
+
             {/* Creator - Responsive */}
             {show.creator && (
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-2">Creator</h3>
-                <p className="text-gray-300 text-sm sm:text-base">{show.creator}</p>
+                <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Creator</h3>
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 ring-2 ring-gray-600">
+                    {show.creator.profile_path ? (
+                      <img
+                        src={`${TMDB_IMAGE_BASE}${show.creator.profile_path}`}
+                        alt={show.creator.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-gray-300 text-sm sm:text-base font-medium">{show.creator.name}</p>
+                </div>
               </div>
             )}
           </div>
+
+
 
 
           {/* Sidebar - Responsive */}
@@ -319,6 +409,8 @@ function TVDetails() {
                 />
               </div>
             )}
+
+
 
 
             <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
@@ -356,6 +448,8 @@ function TVDetails() {
     </div>
   );
 }
+
+
 
 
 export default TVDetails;

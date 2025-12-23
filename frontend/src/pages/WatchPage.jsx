@@ -4,6 +4,7 @@ import { getLocalProgress } from '../utils/progressTracker';
 import PlayerFrame from '../components/media/PlayerFrame';
 import Loader from '../components/ui/Loader';
 
+
 function WatchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -14,20 +15,26 @@ function WatchPage() {
   const episode = searchParams.get('episode');
   const resume = searchParams.get('resume');
 
+
   const [resumeTime, setResumeTime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTips, setShowTips] = useState(true);
   const [showServerTip, setShowServerTip] = useState(false);
 
+
   useEffect(() => {
+    window.scrollTo(0, 0);
+    
     if (!tmdbId || !mediaType) {
       navigate('/');
       return;
     }
 
+
     loadProgress();
   }, [tmdbId, mediaType, season, episode]);
+
 
   // Detect fullscreen changes
   useEffect(() => {
@@ -41,10 +48,12 @@ function WatchPage() {
       setIsFullscreen(isNowFullscreen);
     };
 
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -54,14 +63,17 @@ function WatchPage() {
     };
   }, []);
 
+
   // Show server tip after 30 seconds
   useEffect(() => {
     const showTimer = setTimeout(() => {
       setShowServerTip(true);
     }, 30000);
 
+
     return () => clearTimeout(showTimer);
   }, []);
+
 
   // Auto-hide server tip after 7 seconds of being shown
   useEffect(() => {
@@ -70,9 +82,11 @@ function WatchPage() {
         setShowServerTip(false);
       }, 7000);
 
+
       return () => clearTimeout(hideTimer);
     }
   }, [showServerTip]);
+
 
   // Hide tips after 12 seconds
   useEffect(() => {
@@ -80,14 +94,18 @@ function WatchPage() {
       setShowTips(false);
     }, 12000);
 
+
     return () => clearTimeout(timer);
   }, []);
+
 
   const loadProgress = async () => {
     try {
       setLoading(true);
 
+
       let timeToResume = 0;
+
 
       if (resume) {
         const resumeValue = parseFloat(resume);
@@ -102,6 +120,7 @@ function WatchPage() {
           const currentTime = parseFloat(progress.currentTime) || 0;
           const duration = parseFloat(progress.duration) || 0;
 
+
           if (currentTime > 0 && duration > 0) {
             const percentWatched = (currentTime / duration) * 100;
             
@@ -110,6 +129,7 @@ function WatchPage() {
               duration: duration.toFixed(2),
               percentWatched: percentWatched.toFixed(2) + '%'
             });
+
 
             if (currentTime > 10 && percentWatched < 95) {
               timeToResume = currentTime;
@@ -127,6 +147,7 @@ function WatchPage() {
         }
       }
 
+
       setResumeTime(timeToResume);
     } catch (error) {
       console.error('❌ Failed to load progress:', error);
@@ -136,9 +157,11 @@ function WatchPage() {
     }
   };
 
+
   const handleBack = () => {
     navigate(-1);
   };
+
 
   if (loading) {
     return (
@@ -148,13 +171,14 @@ function WatchPage() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-black overflow-hidden safe-area-top safe-area-bottom">
       {/* Back Button - Responsive */}
       {!isFullscreen && (
         <button
           onClick={handleBack}
-          className="fixed top-2 left-2 sm:top-3 sm:left-3 md:top-4 md:left-4 z-50 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
+          className="fixed top-14 left-2 sm:top-3 sm:left-3 md:top-16 md:left-4 z-50 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
           title="Exit player"
           aria-label="Go back"
         >
@@ -164,9 +188,10 @@ function WatchPage() {
         </button>
       )}
 
+
       {/* Info Banner - Responsive */}
       {!isFullscreen && (
-        <div className="fixed top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 z-50 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
+        <div className="fixed top-14 right-2 sm:top-3 sm:right-3 md:top-16 md:right-4 z-50 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
           <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
             {mediaType === 'tv' && season && episode ? (
               <span>S{season} E{episode}</span>
@@ -176,6 +201,7 @@ function WatchPage() {
           </p>
         </div>
       )}
+
 
       {/* Player Container - Fully Responsive */}
       <div className="flex items-center justify-center min-h-screen w-full p-0 sm:p-2 md:p-3 lg:p-4">
@@ -191,6 +217,7 @@ function WatchPage() {
           />
         </div>
       </div>
+
 
       {/* Minimal Tips Card - Responsive */}
       {showTips && !isFullscreen && (
@@ -215,6 +242,7 @@ function WatchPage() {
               </button>
             </div>
 
+
             {/* Compact Tips */}
             <div className="px-3 py-2 sm:px-4 sm:py-3 space-y-1.5 sm:space-y-2">
               <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
@@ -234,6 +262,7 @@ function WatchPage() {
               </p>
             </div>
 
+
             {/* Minimal Footer */}
             <div className="px-3 py-1 sm:px-4 sm:py-1.5 bg-gray-900 bg-opacity-50 text-center">
               <p className="text-gray-500 text-[0.6rem] sm:text-xs">Auto-hide in a few seconds</p>
@@ -241,6 +270,7 @@ function WatchPage() {
           </div>
         </div>
       )}
+
 
       {/* Minimal Server Tip - Responsive */}
       {showServerTip && !isFullscreen && !showTips && (
@@ -269,5 +299,6 @@ function WatchPage() {
     </div>
   );
 }
+
 
 export default WatchPage;

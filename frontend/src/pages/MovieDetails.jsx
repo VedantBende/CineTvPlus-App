@@ -7,7 +7,12 @@ import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
+
+
 const API_URL = import.meta.env.VITE_API_URL;
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w185';
+
+
 
 function MovieDetails() {
   const { id } = useParams();
@@ -20,22 +25,31 @@ function MovieDetails() {
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
-  const [toast, setToast] = useState(null); // NEW
+  const [toast, setToast] = useState(null);
 
-  const showToast = (message, type = 'error') => { // NEW
+
+
+  const showToast = (message, type = 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+
+
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadMovieDetails();
   }, [id]);
+
+
 
   useEffect(() => {
     if (isSignedIn && id) {
       checkWatchlist();
     }
   }, [isSignedIn, id]);
+
+
 
   const loadMovieDetails = async () => {
     try {
@@ -53,6 +67,8 @@ function MovieDetails() {
     }
   };
 
+
+
   const checkWatchlist = async () => {
     try {
       const token = await getToken();
@@ -67,11 +83,15 @@ function MovieDetails() {
     }
   };
 
+
+
   const toggleWatchlist = async () => {
     if (!isSignedIn) {
       navigate('/login');
       return;
     }
+
+
 
     setWatchlistLoading(true);
     
@@ -79,10 +99,12 @@ function MovieDetails() {
       const token = await getToken();
       
       if (!token) {
-        showToast('Authentication failed. Please sign in again.'); // CHANGED
+        showToast('Authentication failed. Please sign in again.');
         navigate('/login');
         return;
       }
+
+
 
       const config = {
         headers: {
@@ -90,6 +112,8 @@ function MovieDetails() {
           'Content-Type': 'application/json'
         }
       };
+
+
 
       if (isInWatchlist) {
         await axios.delete(`${API_URL}/watchlist/remove/${id}`, config);
@@ -107,16 +131,20 @@ function MovieDetails() {
       }
     } catch (error) {
       console.error('Watchlist error:', error);
-      const errorMsg = error.response?.data?.error || 'Under Development. Coming Soon !!!'; // CHANGED
-      showToast(errorMsg); // CHANGED
+      const errorMsg = error.response?.data?.error || 'Under Development. Coming Soon !!!';
+      showToast(errorMsg);
     } finally {
       setWatchlistLoading(false);
     }
   };
 
+
+
   const handleWatch = () => {
     navigate(`/watch?id=${id}&type=movie`);
   };
+
+
 
   if (loading) {
     return (
@@ -126,6 +154,8 @@ function MovieDetails() {
     );
   }
 
+
+
   if (error || !movie) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
@@ -134,9 +164,10 @@ function MovieDetails() {
     );
   }
 
+
+
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
-      {/* NEW: Toast */}
+    <div className="min-h-screen bg-netflix-black">
       {toast && (
         <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md shadow-lg text-base sm:text-lg md:text-xl ${
           toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'
@@ -145,21 +176,27 @@ function MovieDetails() {
         </div>
       )}
 
-      <div className="relative h-[50vh] sm:h-[60vh] md:h-[65vh] lg:h-[70vh]">
-        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/70 sm:via-netflix-black/40 to-transparent z-10" />
+
+
+      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16">
+        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/10 sm:via-netflix-black/10 to-transparent z-10" />
         
         {movie.backdrop && (
           <img
             src={movie.backdrop}
             alt={movie.title}
-            className="w-full h-full object-cover opacity-40 sm:opacity-50"
+            className="w-full h-full object-cover opacity-80 sm:opacity-70"
           />
         )}
+
+
 
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
             {movie.title} {movie.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({movie.year})</span>}
           </h1>
+
+
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
             {movie.rating && (
@@ -180,6 +217,8 @@ function MovieDetails() {
             )}
           </div>
 
+
+
           <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
             <button
               onClick={handleWatch}
@@ -190,6 +229,8 @@ function MovieDetails() {
               </svg>
               <span>Play</span>
             </button>
+
+
 
             {isSignedIn && (
               <button
@@ -204,6 +245,8 @@ function MovieDetails() {
                 <span className="xs:hidden">{isInWatchlist ? 'Remove' : 'Add'}</span>
               </button>
             )}
+
+
 
             {movie.trailer && (
               <a
@@ -222,6 +265,8 @@ function MovieDetails() {
         </div>
       </div>
 
+
+
       <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
           <div className="lg:col-span-2 order-2 lg:order-1">
@@ -230,26 +275,68 @@ function MovieDetails() {
               {movie.overview}
             </p>
 
+
+
             {movie.cast && movie.cast.length > 0 && (
               <div className="mb-6 sm:mb-8">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Cast</h3>
-                <div className="flex flex-wrap gap-2">
-                  {movie.cast.map((actor, index) => (
-                    <span key={index} className="bg-gray-700 text-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm">
-                      {actor}
-                    </span>
+                <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 sm:gap-4">
+                  {movie.cast.map((member, index) => (
+                    <div key={index} className="flex flex-col items-center text-center group">
+                      <div className="w-full aspect-square rounded-full overflow-hidden bg-gray-700 mb-2 ring-2 ring-transparent group-hover:ring-netflix-red transition-all">
+                        {member.profile_path ? (
+                          <img
+                            src={`${TMDB_IMAGE_BASE}${member.profile_path}`}
+                            alt={member.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-300 text-xs sm:text-sm font-medium line-clamp-2">
+                        {member.name}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
+
+
             {movie.director && (
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-2">Director</h3>
-                <p className="text-gray-300 text-sm sm:text-base">{movie.director}</p>
+                <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Director</h3>
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 ring-2 ring-gray-600">
+                    {movie.director.profile_path ? (
+                      <img
+                        src={`${TMDB_IMAGE_BASE}${movie.director.profile_path}`}
+                        alt={movie.director.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-gray-300 text-sm sm:text-base font-medium">{movie.director.name}</p>
+                </div>
               </div>
             )}
           </div>
+
+
 
           <div className="order-1 lg:order-2">
             {movie.url && (
@@ -261,6 +348,8 @@ function MovieDetails() {
                 />
               </div>
             )}
+
+
 
             <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
               <h3 className="text-white text-base sm:text-lg font-bold mb-3 sm:mb-4">Details</h3>
@@ -291,5 +380,7 @@ function MovieDetails() {
     </div>
   );
 }
+
+
 
 export default MovieDetails;

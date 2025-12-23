@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { 
   fetchTrendingMovies, 
   fetchTrendingTVShows,
@@ -11,6 +11,8 @@ import ContinueWatching from '../components/media/ContinueWatching';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { useUser } from '@clerk/clerk-react';
+
+
 
 function HomePage() {
   const { isSignedIn } = useUser();
@@ -26,13 +28,25 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
+  // Touch/swipe state
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+
+
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadContent();
   }, []);
+
+
 
   // Auto-rotate hero carousel
   useEffect(() => {
     if (heroMovies.length === 0) return;
+
+
 
     const interval = setInterval(() => {
       setCurrentHeroIndex((prevIndex) => 
@@ -40,19 +54,29 @@ function HomePage() {
       );
     }, 5000); // Change slide every 5 seconds
 
+
+
     return () => clearInterval(interval);
   }, [heroMovies.length]);
+
+
 
   const loadContent = async () => {
     try {
       setLoading(true);
       setError(null);
 
+
+
       const hasApiKey = import.meta.env.VITE_TMDB_API_KEY;
+
+
 
       if (!hasApiKey) {
         throw new Error('TMDB API key not configured. Please add VITE_TMDB_API_KEY to your .env file');
       }
+
+
 
       const [trending, trendingShows, popular, nowPlaying, topRated] = await Promise.all([
         fetchTrendingMovies(),
@@ -62,17 +86,23 @@ function HomePage() {
         fetchTopRatedMovies()
       ]);
 
+
+
       setTrendingMovies(trending);
       setTrendingTV(trendingShows);
       setPopularMovies(popular);
       setNowPlayingMovies(nowPlaying);
       setTopRatedMovies(topRated);
 
+
+
       // Set hero movies (top 5 trending movies with backdrops)
       const heroMoviesData = trending
         .filter(movie => movie.backdrop)
         .slice(0, 5);
       setHeroMovies(heroMoviesData);
+
+
 
     } catch (err) {
       console.error('Error loading content:', err);
@@ -82,9 +112,13 @@ function HomePage() {
     }
   };
 
+
+
   const goToSlide = useCallback((index) => {
     setCurrentHeroIndex(index);
   }, []);
+
+
 
   const nextSlide = useCallback(() => {
     setCurrentHeroIndex((prevIndex) => 
@@ -92,11 +126,40 @@ function HomePage() {
     );
   }, [heroMovies.length]);
 
+
+
   const prevSlide = useCallback(() => {
     setCurrentHeroIndex((prevIndex) => 
       prevIndex === 0 ? heroMovies.length - 1 : prevIndex - 1
     );
   }, [heroMovies.length]);
+
+
+  // Touch handlers for swipe
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 75) {
+      // Swiped left
+      nextSlide();
+    }
+
+
+    if (touchStartX.current - touchEndX.current < -75) {
+      // Swiped right
+      prevSlide();
+    }
+  };
+
+
 
   if (loading) {
     return (
@@ -106,6 +169,8 @@ function HomePage() {
     );
   }
 
+
+
   if (error) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
@@ -114,10 +179,17 @@ function HomePage() {
     );
   }
 
+
+
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
+    <div className="min-h-screen bg-netflix-black">
       {/* Hero Carousel Section - Fixed Dots Position */}
-      <div className="relative h-[55vh] xs:h-[60vh] sm:h-[65vh] md:h-[70vh] lg:h-[80vh] xl:h-[85vh] bg-gradient-to-b from-black to-netflix-black overflow-hidden">
+      <div 
+        className="relative h-[75vh] xs:h-[60vh] sm:h-[65vh] md:h-[70vh] lg:h-[80vh] xl:h-[110vh] bg-gradient-to-b from-black to-netflix-black overflow-hidden -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Carousel Slides - Background Images with Ease In/Out */}
         <div className="relative w-full h-full">
           {heroMovies.map((movie, index) => (
@@ -130,7 +202,7 @@ function HomePage() {
               }`}
             >
               {/* Gradient Overlays - Responsive */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 sm:via-black/70 md:via-black/50 to-transparent z-10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/5 sm:via-black/70 md:via-black/50 to-transparent z-10" />
               <div className="absolute bottom-0 left-0 right-0 h-24 xs:h-28 sm:h-32 md:h-40 lg:h-48 bg-gradient-to-t from-netflix-black via-netflix-black/90 to-transparent z-10" />
               
               {/* Hero Background Image */}
@@ -148,30 +220,36 @@ function HomePage() {
           ))}
         </div>
 
-        {/* Navigation Arrows - Responsive Hover Zones */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 flex items-center justify-start opacity-0 hover:opacity-100 transition-opacity duration-300">
+
+
+        {/* Navigation Arrows - Desktop Only (hidden on touch devices) */}
+        <div className="hidden lg:flex absolute left-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-start opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={prevSlide}
             className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Previous slide"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         </div>
 
-        <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 flex items-center justify-end opacity-0 hover:opacity-100 transition-opacity duration-300">
+
+
+        <div className="hidden lg:flex absolute right-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-end opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={nextSlide}
             className="mr-1.5 sm:mr-2 md:mr-3 lg:mr-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Next slide"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
+
+
 
         {/* Hero Content - Ease In/Out Transition */}
         <div className="absolute bottom-0 left-0 right-0 pb-12 xs:pb-14 sm:pb-16 md:pb-20 lg:pb-24 p-3 xs:p-4 sm:p-6 md:p-8 lg:p-10 xl:p-16 container-custom z-20">
@@ -190,6 +268,8 @@ function HomePage() {
                   {movie.title}
                 </h1>
 
+
+
                 {/* Rating & Year - Responsive */}
                 <div className="flex items-center flex-wrap gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 mb-2 xs:mb-3 sm:mb-4 md:mb-5 lg:mb-6">
                   {movie.rating && (
@@ -207,12 +287,16 @@ function HomePage() {
                   )}
                 </div>
 
+
+
                 {/* Overview - Responsive */}
                 {movie.overview && (
                   <p className="text-white text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl mb-3 xs:mb-4 sm:mb-5 md:mb-6 lg:mb-8 line-clamp-2 md:line-clamp-3 drop-shadow-lg leading-relaxed text-shadow max-w-xl md:max-w-2xl">
                     {movie.overview}
                   </p>
                 )}
+
+
 
                 {/* Action Buttons - Fully Responsive */}
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
@@ -241,6 +325,8 @@ function HomePage() {
           </div>
         </div>
 
+
+
         {/* Carousel Indicators/Dots - Fixed Position Above Buttons */}
         <div className="absolute bottom-2 xs:bottom-3 sm:bottom-4 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-30 flex space-x-1.5">
           {heroMovies.map((_, index) => (
@@ -258,10 +344,14 @@ function HomePage() {
         </div>
       </div>
 
+
+
       {/* Content Sections - Fully Responsive */}
       <div className="container-custom py-4 xs:py-5 sm:py-6 md:py-8 lg:py-10 xl:py-12 space-y-6 xs:space-y-7 sm:space-y-8 md:space-y-10 lg:space-y-12">
         {/* Continue Watching */}
         {isSignedIn && <ContinueWatching />}
+
+
 
         {/* Trending Movies */}
         {trendingMovies.length > 0 && (
@@ -286,6 +376,8 @@ function HomePage() {
           </section>
         )}
 
+
+
         {/* Trending TV Shows */}
         {trendingTV.length > 0 && (
           <section className="space-y-2.5 xs:space-y-3 sm:space-y-4">
@@ -308,6 +400,8 @@ function HomePage() {
             </div>
           </section>
         )}
+
+
 
         {/* Now Playing */}
         {nowPlayingMovies.length > 0 && (
@@ -332,6 +426,8 @@ function HomePage() {
           </section>
         )}
 
+
+
         {/* Popular Movies */}
         {popularMovies.length > 0 && (
           <section className="space-y-2.5 xs:space-y-3 sm:space-y-4">
@@ -354,6 +450,8 @@ function HomePage() {
             </div>
           </section>
         )}
+
+
 
         {/* Top Rated Movies */}
         {topRatedMovies.length > 0 && (
@@ -381,5 +479,7 @@ function HomePage() {
     </div>
   );
 }
+
+
 
 export default HomePage;

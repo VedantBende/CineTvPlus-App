@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+
 function PlayerFrame({ 
   tmdbId,
   mediaType, 
@@ -10,11 +11,13 @@ function PlayerFrame({
 }) {
   const iframeRef = useRef(null);
 
-  const VIDKING_BASE_URL = 'https://www.vidking.net/embed';
+
+  const VIDEO_BASE_URL = import.meta.env.VITE_PLAYER_BASE_URL;
+
 
   // Build Vidking embed URL
   const getEmbedUrl = () => {
-    let url = `${VIDKING_BASE_URL}/${mediaType}/${tmdbId}`;
+    let url = `${VIDEO_BASE_URL}/${mediaType}/${tmdbId}`;
     
     // For TV shows, add season and episode
     if (mediaType === 'tv' && season && episode) {
@@ -23,13 +26,16 @@ function PlayerFrame({
     
     const params = [];
 
+
     // Color
     params.push('color=e50914');
+
 
     // Autoplay
     if (autoplay) {
       params.push('autoPlay=true');
     }
+
 
     // Resume time - only if greater than 10 seconds
     if (resumeTime && resumeTime > 10) {
@@ -40,17 +46,20 @@ function PlayerFrame({
       console.log(`🎬 Starting playback from beginning`);
     }
 
+
     // TV-specific features
     if (mediaType === 'tv') {
       params.push('nextEpisode=true');
       params.push('episodeSelector=true');
     }
 
+
     const finalUrl = params.length > 0 ? `${url}?${params.join('&')}` : url;
     console.log('Player URL:', finalUrl);
     
     return finalUrl;
   };
+
 
   useEffect(() => {
     // Listen for progress events from player
@@ -70,6 +79,7 @@ function PlayerFrame({
               lastWatched: new Date().toISOString()
             };
 
+
             // Store in localStorage every 10 seconds
             const currentSeconds = Math.floor(event.data.currentTime);
             if (currentSeconds % 10 === 0) {
@@ -83,14 +93,18 @@ function PlayerFrame({
       }
     };
 
+
     window.addEventListener('message', handleMessage);
+
 
     return () => {
       window.removeEventListener('message', handleMessage);
     };
   }, [tmdbId, mediaType, season, episode]);
 
+
   const embedUrl = getEmbedUrl();
+
 
   return (
     <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg" style={{ paddingBottom: '56.25%' }}>
@@ -109,5 +123,6 @@ function PlayerFrame({
     </div>
   );
 }
+
 
 export default PlayerFrame;

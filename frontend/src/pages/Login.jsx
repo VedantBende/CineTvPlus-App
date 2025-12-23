@@ -1,10 +1,11 @@
 import { SignIn } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
+
 function Login() {
   return (
-    <div className="min-h-screen bg-netflix-black flex items-center justify-center px-3 sm:px-4 md:px-6 py-8 sm:py-12">
-      <div className="max-w-sm sm:max-w-md w-full">
+    <div className="min-h-screen bg-netflix-black flex flex-col items-center justify-center px-3 sm:px-4 md:px-6 py-8 sm:py-12">
+      <div className="max-w-sm sm:max-w-md w-full flex flex-col items-center">
         {/* Header - Responsive */}
         <div className="text-center mb-6 sm:mb-8">
           <Link to="/" className="inline-block group">
@@ -27,9 +28,10 @@ function Login() {
           </p>
         </div>
 
+
         {/* Clerk SignIn Component - Responsive Container */}
-        <div className="flex justify-center">
-          <div className="w-full">
+        <div className="flex justify-center w-full">
+          <div className="w-full flex justify-center">
             <SignIn 
               routing="path" 
               path="/login"
@@ -38,7 +40,7 @@ function Login() {
               redirectUrl="/"
               appearance={{
                 elements: {
-                  rootBox: "w-full",
+                  rootBox: "w-full flex justify-center",
                   card: "w-full shadow-2xl",
                   formButtonPrimary: "bg-netflix-red hover:bg-red-700 text-sm sm:text-base",
                   formFieldInput: "text-sm sm:text-base",
@@ -48,6 +50,7 @@ function Login() {
             />
           </div>
         </div>
+
 
         {/* Sign Up Link - Responsive */}
         <p className="text-center text-gray-400 mt-4 sm:mt-6 text-xs sm:text-sm md:text-base">
@@ -59,6 +62,7 @@ function Login() {
             Sign up now
           </Link>
         </p>
+
 
         {/* Back to Home - Mobile friendly */}
         <div className="text-center mt-4 sm:mt-6">
@@ -76,5 +80,6 @@ function Login() {
     </div>
   );
 }
+
 
 export default Login;

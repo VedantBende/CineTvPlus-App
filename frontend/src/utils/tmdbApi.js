@@ -1,9 +1,13 @@
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const TMDB_BASE_URL = import.meta.env.VITE_TMDB_BASE_URL || 'https://api.themoviedb.org/3';
+const TMDB_BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
+
+
 
 // Update these for high-quality images
 const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500'; // 500px for posters (cards)
 const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; // Original quality for hero/backdrop
+
+
 
 /**
  * Fetch trending movies
@@ -14,9 +18,13 @@ export const fetchTrendingMovies = async (timeWindow = 'week') => {
       `${TMDB_BASE_URL}/trending/movie/${timeWindow}?api_key=${TMDB_API_KEY}`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch trending movies');
     }
+
+
 
     const data = await response.json();
     
@@ -36,6 +44,8 @@ export const fetchTrendingMovies = async (timeWindow = 'week') => {
   }
 };
 
+
+
 /**
  * Fetch trending TV shows
  */
@@ -45,9 +55,13 @@ export const fetchTrendingTVShows = async (timeWindow = 'week') => {
       `${TMDB_BASE_URL}/trending/tv/${timeWindow}?api_key=${TMDB_API_KEY}`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch trending TV shows');
     }
+
+
 
     const data = await response.json();
     
@@ -67,6 +81,8 @@ export const fetchTrendingTVShows = async (timeWindow = 'week') => {
   }
 };
 
+
+
 /**
  * Fetch popular movies
  */
@@ -76,9 +92,13 @@ export const fetchPopularMovies = async () => {
       `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch popular movies');
     }
+
+
 
     const data = await response.json();
     
@@ -98,6 +118,8 @@ export const fetchPopularMovies = async () => {
   }
 };
 
+
+
 /**
  * Fetch popular TV shows
  */
@@ -107,9 +129,13 @@ export const fetchPopularTVShows = async () => {
       `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch popular TV shows');
     }
+
+
 
     const data = await response.json();
     
@@ -129,6 +155,8 @@ export const fetchPopularTVShows = async () => {
   }
 };
 
+
+
 /**
  * Fetch now playing movies
  */
@@ -138,9 +166,13 @@ export const fetchNowPlayingMovies = async () => {
       `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch now playing movies');
     }
+
+
 
     const data = await response.json();
     
@@ -160,6 +192,8 @@ export const fetchNowPlayingMovies = async () => {
   }
 };
 
+
+
 /**
  * Fetch top rated movies
  */
@@ -169,9 +203,13 @@ export const fetchTopRatedMovies = async () => {
       `${TMDB_BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=1`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch top rated movies');
     }
+
+
 
     const data = await response.json();
     
@@ -191,6 +229,8 @@ export const fetchTopRatedMovies = async () => {
   }
 };
 
+
+
 /**
  * Fetch movie details by ID
  */
@@ -200,11 +240,17 @@ export const fetchMovieDetails = async (movieId) => {
       `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits,videos`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch movie details');
     }
 
+
+
     const movie = await response.json();
+    
+    const directorData = movie.credits?.crew?.find(person => person.job === 'Director');
     
     return {
       tmdbId: movie.id.toString(),
@@ -216,8 +262,14 @@ export const fetchMovieDetails = async (movieId) => {
       overview: movie.overview,
       runtime: movie.runtime,
       genres: movie.genres,
-      cast: movie.credits?.cast?.slice(0, 10).map(actor => actor.name) || [],
-      director: movie.credits?.crew?.find(person => person.job === 'Director')?.name || null,
+      cast: movie.credits?.cast?.slice(0, 12).map(actor => ({
+        name: actor.name,
+        profile_path: actor.profile_path
+      })) || [],
+      director: directorData ? {
+        name: directorData.name,
+        profile_path: directorData.profile_path
+      } : null,
       trailer: movie.videos?.results?.find(video => video.type === 'Trailer')?.key || null
     };
   } catch (error) {
@@ -225,6 +277,8 @@ export const fetchMovieDetails = async (movieId) => {
     return null;
   }
 };
+
+
 
 /**
  * Fetch TV show details by ID
@@ -235,11 +289,17 @@ export const fetchTVShowDetails = async (showId) => {
       `${TMDB_BASE_URL}/tv/${showId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits,videos`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to fetch TV show details');
     }
 
+
+
     const show = await response.json();
+    
+    const creatorData = show.created_by?.[0];
     
     return {
       tmdbId: show.id.toString(),
@@ -252,8 +312,14 @@ export const fetchTVShowDetails = async (showId) => {
       seasons: show.number_of_seasons,
       episodes: show.number_of_episodes,
       genres: show.genres,
-      cast: show.credits?.cast?.slice(0, 10).map(actor => actor.name) || [],
-      creator: show.created_by?.[0]?.name || null,
+      cast: show.credits?.cast?.slice(0, 12).map(actor => ({
+        name: actor.name,
+        profile_path: actor.profile_path
+      })) || [],
+      creator: creatorData ? {
+        name: creatorData.name,
+        profile_path: creatorData.profile_path
+      } : null,
       trailer: show.videos?.results?.find(video => video.type === 'Trailer')?.key || null
     };
   } catch (error) {
@@ -261,6 +327,8 @@ export const fetchTVShowDetails = async (showId) => {
     return null;
   }
 };
+
+
 
 /**
  * Search movies and TV shows
@@ -271,9 +339,13 @@ export const searchMulti = async (query) => {
       `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1`
     );
 
+
+
     if (!response.ok) {
       throw new Error('Failed to search');
     }
+
+
 
     const data = await response.json();
     

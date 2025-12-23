@@ -1,18 +1,50 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 
 function SettingsPage() {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
+  // Playback settings state
+  const [autoplay, setAutoplay] = useState(() => {
+    return localStorage.getItem('autoplay') === 'true';
+  });
+  const [videoQuality, setVideoQuality] = useState(() => {
+    return localStorage.getItem('videoQuality') || 'auto';
+  });
+  const [subtitles, setSubtitles] = useState(() => {
+    return localStorage.getItem('subtitles') || 'off';
+  });
+  const [volume, setVolume] = useState(() => {
+    return parseInt(localStorage.getItem('volume') || '70', 10);
+  });
+
   useEffect(() => {
     if (!isSignedIn) {
       navigate('/login');
     }
   }, [isSignedIn, navigate]);
+
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('autoplay', autoplay.toString());
+  }, [autoplay]);
+
+  useEffect(() => {
+    localStorage.setItem('videoQuality', videoQuality);
+  }, [videoQuality]);
+
+  useEffect(() => {
+    localStorage.setItem('subtitles', subtitles);
+  }, [subtitles]);
+
+  useEffect(() => {
+    localStorage.setItem('volume', volume.toString());
+  }, [volume]);
 
   if (!isSignedIn) {
     return null;
@@ -101,10 +133,15 @@ function SettingsPage() {
                 </p>
               </div>
               <button 
-                className="relative inline-flex h-7 w-12 sm:h-6 sm:w-11 items-center rounded-full transition bg-netflix-red flex-shrink-0 touch-target"
+                onClick={() => setAutoplay(!autoplay)}
+                className={`relative inline-flex h-7 w-12 sm:h-6 sm:w-11 items-center rounded-full transition flex-shrink-0 touch-target ${
+                  autoplay ? 'bg-netflix-red' : 'bg-gray-600'
+                }`}
                 aria-label="Toggle autoplay"
               >
-                <span className="inline-block h-5 w-5 sm:h-4 sm:w-4 transform rounded-full bg-white transition translate-x-6 sm:translate-x-6" />
+                <span className={`inline-block h-5 w-5 sm:h-4 sm:w-4 transform rounded-full bg-white transition ${
+                  autoplay ? 'translate-x-6 sm:translate-x-6' : 'translate-x-1'
+                }`} />
               </button>
             </div>
 
@@ -113,11 +150,15 @@ function SettingsPage() {
               <h3 className="text-white font-medium text-sm sm:text-base mb-2">
                 Video Quality
               </h3>
-              <select className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target">
+              <select 
+                value={videoQuality}
+                onChange={(e) => setVideoQuality(e.target.value)}
+                className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
+              >
                 <option value="auto">Auto</option>
+                <option value="360p">360p</option>
                 <option value="720p">720p</option>
                 <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
               </select>
             </div>
 
@@ -126,7 +167,11 @@ function SettingsPage() {
               <h3 className="text-white font-medium text-sm sm:text-base mb-2">
                 Subtitles
               </h3>
-              <select className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target">
+              <select 
+                value={subtitles}
+                onChange={(e) => setSubtitles(e.target.value)}
+                className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
+              >
                 <option value="off">Off</option>
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
@@ -143,11 +188,13 @@ function SettingsPage() {
                 type="range" 
                 min="0" 
                 max="100" 
-                defaultValue="70"
+                value={volume}
+                onChange={(e) => setVolume(parseInt(e.target.value, 10))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-netflix-red touch-target"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>Mute</span>
+                <span className="text-white font-medium">{volume}%</span>
                 <span>Max</span>
               </div>
             </div>
