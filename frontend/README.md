@@ -72,7 +72,7 @@ npm run dev
 Open:
 
 ```
-http://localhost:5173
+http://localhost:3000
 ```
 
 ---
@@ -95,19 +95,77 @@ npm run preview
 
 ```
 frontend/
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── pages/
-│   ├── layouts/
-│   ├── routes/
-│   ├── App.jsx
-│   └── main.jsx
-├── index.html
-├── package.json
-├── tailwind.config.js
-└── vite.config.js
+├─ public/
+│  ├─ CineLogo.svg
+│  └─ manifest.json
+├─ src/
+│  ├─ assets/
+│  │  └─ react.svg
+│  ├─ components/
+│  │  ├─ common/
+│  │  │  ├─ Footer.jsx
+│  │  │  ├─ Navbar.jsx
+│  │  │  ├─ Sidebar.jsx
+│  │  │  └─ ThemeToggle.jsx
+│  │  ├─ media/
+│  │  │  ├─ ContinueWatching.jsx
+│  │  │  ├─ EpisodeList.jsx
+│  │  │  ├─ FavoriteButton.jsx
+│  │  │  ├─ MovieCard.jsx
+│  │  │  └─ PlayerFrame.jsx
+│  │  └─ ui/
+│  │     ├─ ErrorMessage.jsx
+│  │     ├─ Loader.jsx
+│  │     └─ OptimizedImage.jsx
+│  ├─ context/
+│  │  └─ ThemeContext.jsx
+│  ├─ hooks/
+│  │  └─ useClickProtection.js
+│  ├─ layouts/
+│  │  └─ MainLayout.jsx
+│  ├─ pages/
+│  │  ├─ FavoritesPage.jsx
+│  │  ├─ HomePage.jsx
+│  │  ├─ Login.jsx
+│  │  ├─ MovieDetails.jsx
+│  │  ├─ MoviesPage.jsx
+│  │  ├─ Register.jsx
+│  │  ├─ SearchPage.jsx
+│  │  ├─ SettingsPage.jsx
+│  │  ├─ TVDetails.jsx
+│  │  ├─ TVShowsPage.jsx
+│  │  └─ WatchPage.jsx
+│  ├─ router/
+│  │  └─ index.jsx
+│  ├─ store/
+│  │  ├─ authStore.js
+│  │  └─ mediaStore.js
+│  ├─ styles/
+│  │  ├─ globals.css
+│  │  ├─ tailwind.css
+│  │  ├─ themes.css
+│  │  └─ variables.css
+│  ├─ utils/
+│  │  ├─ api.js
+│  │  ├─ formatters.js
+│  │  ├─ googleCseApi.js
+│  │  ├─ progressTracker.js
+│  │  └─ tmdbApi.js
+│  ├─ App.css
+│  ├─ App.jsx
+│  ├─ index.css
+│  └─ main.jsx
+├─ .env
+├─ .gitignore
+├─ eslint.config.js
+├─ index.html
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.cjs
+├─ README.md
+├─ tailwind.config.js
+└─ vite.config.js
+
 ```
 
 ---
