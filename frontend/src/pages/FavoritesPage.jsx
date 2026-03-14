@@ -16,6 +16,7 @@ function FavoritesPage() {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -42,14 +43,21 @@ function FavoritesPage() {
       setWatchlist(response.data || []);
     } catch (err) {
       console.error('Error loading watchlist:', err);
-      // CHANGED: Don't set error state, just set empty array
       setWatchlist([]);
-      // Optional: You can keep a console warning but don't block the UI
-      // setError(err.response?.data?.error || err.message || 'Failed to load watchlist');
     } finally {
       setLoading(false);
     }
   };
+
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'movie', label: 'Movies' },
+    { key: 'tv', label: 'TV Shows' },
+  ];
+
+  const filteredWatchlist = activeFilter === 'all' 
+    ? watchlist 
+    : watchlist.filter(item => item.type === activeFilter);
 
   if (loading) {
     return (
@@ -80,39 +88,87 @@ function FavoritesPage() {
           </p>
         </div>
 
-        {/* Empty State */}
-        {watchlist.length === 0 ? (
-          <div className="text-center py-12 sm:py-16 md:py-20">
-            <svg 
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-600 mx-auto mb-4 sm:mb-6" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+        {/* Filter Tabs */}
+        <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto no-scrollbar pb-1">
+          {filters.map(filter => (
+            <button
+              key={filter.key}
+              onClick={() => setActiveFilter(filter.key)}
+              className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                activeFilter === filter.key
+                  ? 'bg-accent-red text-white shadow-lg shadow-accent-red/20'
+                  : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 hover:text-white'
+              }`}
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1.5} 
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
-              />
-            </svg>
+              {filter.label}
+              {filter.key !== 'all' && (
+                <span className="ml-1.5 text-xs opacity-70">
+                  ({watchlist.filter(i => filter.key === 'all' ? true : i.type === filter.key).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredWatchlist.length === 0 ? (
+          <div className="text-center py-16 sm:py-20">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full bg-gray-800/50 flex items-center justify-center">
+              <svg 
+                className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={1.5} 
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
+                />
+              </svg>
+            </div>
             <h2 className="text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">
-              Your list is empty
+              {activeFilter === 'all' ? 'Your list is empty' : `No ${activeFilter === 'movie' ? 'movies' : 'TV shows'} saved`}
             </h2>
             <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8 max-w-md mx-auto px-4">
               Start adding movies and shows to watch later!
             </p>
             <button
               onClick={() => navigate('/')}
-              className="bg-white text-black px-6 py-2.5 sm:px-8 sm:py-3 rounded text-sm sm:text-base font-semibold hover:bg-gray-200 transition-all shadow-lg hover:scale-105 active:scale-95"
+              className="bg-accent-red hover:bg-red-700 text-white px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:scale-105 active:scale-95"
             >
               Browse Content
             </button>
+
+            {/* Want to see more? */}
+            <div className="mt-16 sm:mt-20 pt-8 sm:pt-10 border-t border-gray-800/50 max-w-lg mx-auto">
+              <h3 className="text-gray-300 text-lg sm:text-xl font-semibold mb-2">
+                Want to see more?
+              </h3>
+              <p className="text-gray-500 text-sm sm:text-base mb-4">
+                Explore our library to find content you'll love.
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => navigate('/movies')}
+                  className="bg-gray-800/60 hover:bg-gray-700/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Browse Movies
+                </button>
+                <button
+                  onClick={() => navigate('/tv')}
+                  className="bg-gray-800/60 hover:bg-gray-700/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Browse TV Shows
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           /* Watchlist Grid */
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-            {watchlist.map((item) => (
+            {filteredWatchlist.map((item) => (
               <MovieCard
                 key={item.mediaId}
                 title={item.title}

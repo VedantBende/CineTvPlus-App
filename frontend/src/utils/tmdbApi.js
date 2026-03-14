@@ -12,10 +12,10 @@ const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; // Original qua
 /**
  * Fetch trending movies
  */
-export const fetchTrendingMovies = async (timeWindow = 'week') => {
+export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?api_key=${TMDB_API_KEY}`
+      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
     );
 
 
@@ -49,10 +49,10 @@ export const fetchTrendingMovies = async (timeWindow = 'week') => {
 /**
  * Fetch trending TV shows
  */
-export const fetchTrendingTVShows = async (timeWindow = 'week') => {
+export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?api_key=${TMDB_API_KEY}`
+      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
     );
 
 
@@ -86,10 +86,10 @@ export const fetchTrendingTVShows = async (timeWindow = 'week') => {
 /**
  * Fetch popular movies
  */
-export const fetchPopularMovies = async () => {
+export const fetchPopularMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+      `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
     );
 
 
@@ -123,10 +123,10 @@ export const fetchPopularMovies = async () => {
 /**
  * Fetch popular TV shows
  */
-export const fetchPopularTVShows = async () => {
+export const fetchPopularTVShows = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+      `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
     );
 
 
@@ -166,17 +166,23 @@ export const fetchNowPlayingMovies = async () => {
       `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`
     );
 
-
-
     if (!response.ok) {
       throw new Error('Failed to fetch now playing movies');
     }
 
-
-
     const data = await response.json();
     
-    return data.results.map(movie => ({
+    // Filter out movies with release dates in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const releasedMovies = data.results.filter(movie => {
+      if (!movie.release_date) return false;
+      const releaseDate = new Date(movie.release_date);
+      return releaseDate <= today;
+    });
+    
+    return releasedMovies.map(movie => ({
       tmdbId: movie.id.toString(),
       title: movie.title,
       url: movie.poster_path ? `${POSTER_BASE_URL}${movie.poster_path}` : null,
@@ -194,13 +200,14 @@ export const fetchNowPlayingMovies = async () => {
 
 
 
+
 /**
  * Fetch top rated movies
  */
-export const fetchTopRatedMovies = async () => {
+export const fetchTopRatedMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+      `${TMDB_BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
     );
 
 
@@ -230,6 +237,77 @@ export const fetchTopRatedMovies = async () => {
 };
 
 
+
+/**
+ * Fetch top rated TV shows
+ */
+export const fetchTopRatedTVShows = async (page = 1) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch top rated TV shows');
+    }
+
+    const data = await response.json();
+    
+    return data.results.map(show => ({
+      tmdbId: show.id.toString(),
+      title: show.name,
+      url: show.poster_path ? `${POSTER_BASE_URL}${show.poster_path}` : null,
+      backdrop: show.backdrop_path ? `${BACKDROP_BASE_URL}${show.backdrop_path}` : null,
+      rating: show.vote_average.toFixed(1),
+      year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
+      overview: show.overview,
+      mediaId: show.id.toString()
+    }));
+  } catch (error) {
+    console.error('Error fetching top rated TV shows:', error);
+    return [];
+  }
+};
+
+/**
+ * Fetch upcoming movies (only those releasing after today)
+ */
+export const fetchUpcomingMovies = async (page = 1) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch upcoming movies');
+    }
+
+    const data = await response.json();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return data.results
+      .filter(movie => {
+        // Only include movies with a release date strictly in the future
+        if (!movie.release_date) return false;
+        const releaseDate = new Date(movie.release_date);
+        return releaseDate > today;
+      })
+      .map(movie => ({
+        tmdbId: movie.id.toString(),
+        title: movie.title,
+        url: movie.poster_path ? `${POSTER_BASE_URL}${movie.poster_path}` : null,
+        backdrop: movie.backdrop_path ? `${BACKDROP_BASE_URL}${movie.backdrop_path}` : null,
+        rating: movie.vote_average.toFixed(1),
+        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+        overview: movie.overview,
+        mediaId: movie.id.toString()
+      }));
+  } catch (error) {
+    console.error('Error fetching upcoming movies:', error);
+    return [];
+  }
+};
 
 /**
  * Fetch movie details by ID
@@ -333,10 +411,10 @@ export const fetchTVShowDetails = async (showId) => {
 /**
  * Search movies and TV shows
  */
-export const searchMulti = async (query) => {
+export const searchMulti = async (query, page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1`
+      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
     );
 
 
@@ -349,7 +427,7 @@ export const searchMulti = async (query) => {
 
     const data = await response.json();
     
-    return data.results
+    const formattedResults = data.results
       .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
       .map(item => ({
         tmdbId: item.id.toString(),
@@ -357,14 +435,19 @@ export const searchMulti = async (query) => {
         url: item.poster_path ? `${POSTER_BASE_URL}${item.poster_path}` : null,
         backdrop: item.backdrop_path ? `${BACKDROP_BASE_URL}${item.backdrop_path}` : null,
         rating: item.vote_average?.toFixed(1) || 'N/A',
-        year: item.release_date || item.first_air_date 
-          ? new Date(item.release_date || item.first_air_date).getFullYear() 
-          : null,
+        year: (item.release_date || item.first_air_date) ? new Date(item.release_date || item.first_air_date).getFullYear() : 'N/A',
         type: item.media_type,
-        mediaId: item.id.toString()
+        mediaId: item.id.toString(),
+        overview: item.overview
       }));
+
+    return {
+      results: formattedResults,
+      page: data.page,
+      totalPages: data.total_pages
+    };
   } catch (error) {
     console.error('Error searching:', error);
-    return [];
+    return { results: [], page: 1, totalPages: 1 };
   }
 };
