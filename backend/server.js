@@ -39,10 +39,15 @@ app.use(helmet({
 }));
 
 // CORS Configuration - BEFORE routes
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://cinetvplus.vercel.app',
+  'http://localhost:3000',
+  /\.devtunnels\.ms$/
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL
-    : ['http://localhost:3000', /\.devtunnels\.ms$/],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
