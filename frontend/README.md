@@ -1,191 +1,84 @@
-# 🎬 CineTvPlus — Frontend
+# 🎨 CineTv+ Frontend
 
-CineTvPlus is a **modern movie & TV streaming-style web application** focused on delivering a **clean, responsive, and immersive UI/UX** experience.
-This folder contains the complete **frontend codebase** of the project.
-
----
-
-## ⚠️ Important Note
-
-> This frontend is **currently designed to work independently**.
-> A **backend is connected and planned for future updates**, such as:
->
-> * Watchlist synchronization
-> * Dynamic data handling
-> * Scalability & performance improvements
->
-> At present, backend integration is **limited / under development**, and the frontend primarily showcases **UI, routing, and client-side functionality**.
+This directory contains the user-facing React application for **CineTv+**, built with modern web technologies to deliver a premium, Netflix-inspired cinematic streaming experience.
 
 ---
 
-## ✨ Features
+## 🛠️ Tech Stack & Key Libraries
 
-* 🎥 Movie & TV series browsing UI
-* 🔍 Search & filter interface
-* ❤️ Watchlist / favorites UI (client-side)
-* 📱 Fully responsive design
-* 🎨 Netflix-inspired modern UI
-* ⚡ Fast performance with Vite
-
----
-
-## 🧱 Tech Stack
-
-* **React**
-* **Vite**
-* **React Router**
-* **Tailwind CSS**
-* **JavaScript (ES6+)**
+- **Framework**: React 18 powered by **Vite** for blazing fast HMR and optimized production builds.
+- **Styling**: **Tailwind CSS** for strictly utility-first, responsive, and highly customizable UI design (including robust Light/Dark mode support).
+- **State Management**: **Zustand** for lightweight, boilerplate-free global state (Auth state, Media browsing state).
+- **Authentication**: **@clerk/clerk-react** for secure, drop-in user management, social logins, and JWT session handling.
+- **Routing**: **React Router DOM** (v6) for seamless client-side navigation.
+- **Network Requests**: Native `fetch` API structured intuitively via utility singletons.
 
 ---
 
-## 📦 Prerequisites
+## 🏗️ Core Functionalities
 
-* **Node.js** (v16 or higher)
-* **npm / yarn / pnpm**
+### 1. Interactive Media Explorer
+Integrates with our backend proxy to dynamically fetch TMDB catalog data. Features distinct horizontal scroll rows for *Trending*, *Top Rated*, *Now Playing*, and *Popular* media.
+
+### 2. Access Gate
+A custom gatekeeping UI component built to handle the "Pending" user state. Fresh signups are held here globally until an Admin explicitly grants network access through the dashboard.
+
+### 3. Progressive Admin Dashboard
+A dedicated admin route protected by Role-Based Access Control (RBAC). It features dynamic stat cards, real-time user filtering (Name/Email), status categorization, and visually polished sliding drawers for managing user network access (Approve/Reject/Revoke).
+
+### 4. Personal Watchlists & History
+Users can seamlessly curate personal favorites and resume watching content. Local Zustand state updates optimistically, syncing quietly to the backend in the background to ensure high perceived performance.
 
 ---
 
-## 🚀 Getting Started
+## ⚙️ Local Development Setup
 
-Clone the repository and navigate to the frontend folder:
+### Prerequisites
+Make sure you have Node.js (v18+) installed.
 
-```bash
-git clone https://github.com/VedantBende/CineTvPlus.git
-cd CineTvPlus/frontend
-```
-
-Install dependencies:
-
+1. **Install Dependencies**:
 ```bash
 npm install
 ```
 
----
+2. **Environment Variables**:
+Create a `.env` file at the root of the `frontend/` directory:
+```env
+# Clerk Authentication Keys
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 
-## 🧪 Run Locally
+# Backend API Resolution (Use /api to leverage Vite's local proxy)
+VITE_API_URL=/api
 
+# Third-Party Keys
+VITE_TMDB_API_KEY=your_tmdb_api_key
+VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
+VITE_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w500
+VITE_PLAYER_BASE_URL=https://www.vidking.net/embed
+```
+
+3. **Start the Development Server**:
 ```bash
 npm run dev
 ```
-
-Open:
-
-```
-http://localhost:3000
-```
+The frontend will start on `http://localhost:3000`. By default, Vite is configured (`vite.config.js`) to seamlessly proxy `/api` requests over to `http://127.0.0.1:5000` assuming your backend is running simultaneously.
 
 ---
 
-## 🏗️ Build for Production
+## 📦 Build & Deployment (Vercel)
 
+To compile the application for production:
 ```bash
 npm run build
 ```
 
-Preview build:
-
-```bash
-npm run preview
-```
+**Deploying to Vercel**:
+When deploying this frontend explicitly via Vercel, ensure you bind `VITE_API_URL` directly to your live production backend (e.g., `https://your-backend.onrender.com/api`) in Vercel's Environment Variables dashboard so API requests route correctly over the public internet.
 
 ---
 
-## 📁 Project Structure
+## 👨‍💻 Maintainer
 
-```
-frontend/
-├─ public/
-│  ├─ CineLogo.svg
-│  └─ manifest.json
-├─ src/
-│  ├─ assets/
-│  │  └─ react.svg
-│  ├─ components/
-│  │  ├─ common/
-│  │  │  ├─ Footer.jsx
-│  │  │  ├─ Navbar.jsx
-│  │  │  ├─ Sidebar.jsx
-│  │  │  └─ ThemeToggle.jsx
-│  │  ├─ media/
-│  │  │  ├─ ContinueWatching.jsx
-│  │  │  ├─ EpisodeList.jsx
-│  │  │  ├─ FavoriteButton.jsx
-│  │  │  ├─ MovieCard.jsx
-│  │  │  └─ PlayerFrame.jsx
-│  │  └─ ui/
-│  │     ├─ ErrorMessage.jsx
-│  │     ├─ Loader.jsx
-│  │     └─ OptimizedImage.jsx
-│  ├─ context/
-│  │  └─ ThemeContext.jsx
-│  ├─ hooks/
-│  │  └─ useClickProtection.js
-│  ├─ layouts/
-│  │  └─ MainLayout.jsx
-│  ├─ pages/
-│  │  ├─ FavoritesPage.jsx
-│  │  ├─ HomePage.jsx
-│  │  ├─ Login.jsx
-│  │  ├─ MovieDetails.jsx
-│  │  ├─ MoviesPage.jsx
-│  │  ├─ Register.jsx
-│  │  ├─ SearchPage.jsx
-│  │  ├─ SettingsPage.jsx
-│  │  ├─ TVDetails.jsx
-│  │  ├─ TVShowsPage.jsx
-│  │  └─ WatchPage.jsx
-│  ├─ router/
-│  │  └─ index.jsx
-│  ├─ store/
-│  │  ├─ authStore.js
-│  │  └─ mediaStore.js
-│  ├─ styles/
-│  │  ├─ globals.css
-│  │  ├─ tailwind.css
-│  │  ├─ themes.css
-│  │  └─ variables.css
-│  ├─ utils/
-│  │  ├─ api.js
-│  │  ├─ formatters.js
-│  │  ├─ googleCseApi.js
-│  │  ├─ progressTracker.js
-│  │  └─ tmdbApi.js
-│  ├─ App.css
-│  ├─ App.jsx
-│  ├─ index.css
-│  └─ main.jsx
-├─ .env
-├─ .gitignore
-├─ eslint.config.js
-├─ index.html
-├─ package-lock.json
-├─ package.json
-├─ postcss.config.cjs
-├─ README.md
-├─ tailwind.config.js
-└─ vite.config.js
-
-```
-
----
-
-## 🎯 Project Vision
-
-CineTvPlus is built as a **scalable streaming platform**, with the frontend ready for:
-
-* Backend-driven content
-* Secure authentication
-* User personalization
-* Real-time updates
-
-The current version emphasizes **frontend architecture, UI quality, and performance**, while leaving room for future backend enhancements.
-
----
-
-## 📜 License
-
-MIT License
-
----
-
+Created and maintained by **Vedant Bende**.
+- [GitHub Profile](https://github.com/VedantBende)
+- [LinkedIn Profile](https://www.linkedin.com/in/vedant-bende-3aa28b2a8/)
