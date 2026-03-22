@@ -1,4 +1,5 @@
-const TMDB_BASE_URL = '/api/tmdb';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+const TMDB_BASE_URL = `${API_URL}/tmdb`;
 
 // Update these for high-quality images
 // These usually work even if the API domain is blocked, as they are on a different CDN
