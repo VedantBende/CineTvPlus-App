@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const watchProgressSchema = new mongoose.Schema({
+const watchHistorySchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -17,7 +17,6 @@ const watchProgressSchema = new mongoose.Schema({
     enum: ['movie', 'tv'],
     required: true
   },
-  // For TV shows only
   season: {
     type: Number,
     default: null
@@ -26,7 +25,6 @@ const watchProgressSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-  // Progress tracking
   currentTime: {
     type: Number, // in seconds
     required: true,
@@ -47,7 +45,7 @@ const watchProgressSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  lastWatched: {
+  lastWatchedAt: {
     type: Date,
     default: Date.now
   }
@@ -56,12 +54,12 @@ const watchProgressSchema = new mongoose.Schema({
 });
 
 // Compound indexes for efficient queries
-watchProgressSchema.index({ userId: 1, mediaId: 1 });
-watchProgressSchema.index({ userId: 1, lastWatched: -1 });
-watchProgressSchema.index({ userId: 1, completed: 1 });
+watchHistorySchema.index({ userId: 1, mediaId: 1 });
+watchHistorySchema.index({ userId: 1, lastWatchedAt: -1 });
+watchHistorySchema.index({ userId: 1, completed: 1 });
 
 // Calculate progress percentage before saving
-watchProgressSchema.pre('save', function(next) {
+watchHistorySchema.pre('save', function(next) {
   if (this.duration > 0) {
     this.progress = Math.round((this.currentTime / this.duration) * 100);
     
@@ -70,9 +68,12 @@ watchProgressSchema.pre('save', function(next) {
       this.completed = true;
     }
   }
+  // Update lastWatchedAt
+  this.lastWatchedAt = new Date();
+  
   next();
 });
 
-const WatchProgress = mongoose.model('WatchProgress', watchProgressSchema);
+const WatchHistory = mongoose.model('WatchHistory', watchHistorySchema);
 
-export default WatchProgress;
+export default WatchHistory;

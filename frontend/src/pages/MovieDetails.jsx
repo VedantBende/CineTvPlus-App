@@ -72,12 +72,12 @@ function MovieDetails() {
   const checkWatchlist = async () => {
     try {
       const token = await getToken();
-      const response = await axios.get(`${API_URL}/watchlist/check/${id}`, {
+      const response = await axios.get(`${API_URL}/favorites/check/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      setIsInWatchlist(response.data.isInWatchlist);
+      setIsInWatchlist(response.data.isFavorite);
     } catch (error) {
       console.error('Failed to check watchlist:', error);
     }
@@ -116,16 +116,16 @@ function MovieDetails() {
 
 
       if (isInWatchlist) {
-        await axios.delete(`${API_URL}/watchlist/remove/${id}`, config);
+        await axios.delete(`${API_URL}/favorites/remove/${id}`, config);
         setIsInWatchlist(false);
       } else {
-        await axios.post(`${API_URL}/watchlist/add`, {
+        await axios.post(`${API_URL}/favorites/add`, {
           mediaId: id,
           title: movie.title,
-          poster: movie.url,
+          posterPath: movie.url,
           rating: movie.rating,
           year: movie.year,
-          type: 'movie'
+          mediaType: 'movie'
         }, config);
         setIsInWatchlist(true);
       }

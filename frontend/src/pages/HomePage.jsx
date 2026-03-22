@@ -45,7 +45,7 @@ function HomePage() {
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
+      if (entries[0].isIntersecting && hasMore && !isContentEmpty) {
         setPage(prevPage => prevPage + 1);
       }
     });
@@ -80,11 +80,6 @@ function HomePage() {
     try {
       setLoading(true);
       setError(null);
-
-      const hasApiKey = import.meta.env.VITE_TMDB_API_KEY;
-      if (!hasApiKey) {
-        throw new Error('TMDB API key not configured. Please add VITE_TMDB_API_KEY to your .env file');
-      }
 
       const [trending, trendingShows, popular, nowPlaying, topRated] = await Promise.all([
         fetchTrendingMovies('week', 1),
@@ -204,11 +199,49 @@ function HomePage() {
   const heroIds = new Set(heroMovies.map(m => m.tmdbId));
   const filterFromHero = (items) => items.filter(item => !heroIds.has(item.tmdbId));
 
+  const uniqueNowPlaying = filterFromHero(nowPlayingMovies);
+  const uniqueTopRated = filterFromHero(topRatedMovies);
   const uniqueTrending = filterFromHero(trendingMovies);
   const uniquePopular = filterFromHero(popularMovies);
   const uniqueTrendingTV = filterFromHero(trendingTV);
-  const uniqueNowPlaying = filterFromHero(nowPlayingMovies);
-  const uniqueTopRated = filterFromHero(topRatedMovies);
+
+  // If everything is empty, we likely have a TMDB connection issue
+  const isContentEmpty = 
+    trendingMovies.length === 0 && 
+    popularMovies.length === 0 && 
+    trendingTV.length === 0 && 
+    nowPlayingMovies.length === 0 && 
+    topRatedMovies.length === 0 &&
+    dynamicRows.length === 0;
+
+  if (isContentEmpty && !loading) {
+     return (
+        <div className="min-h-screen bg-netflix-black flex flex-col items-center justify-center text-white px-4 text-center">
+            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-xl max-w-lg w-full">
+                <div className="bg-yellow-500/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h2 className="text-2xl font-bold mb-3">Content Unavailable</h2>
+                <p className="text-gray-400 mb-6">We are having trouble connecting to the movie database. This is usually due to a regional DNS block.</p>
+                
+                <div className="bg-black/50 p-4 rounded-lg text-left mb-8 border border-zinc-700">
+                    <p className="text-zinc-300 text-sm mb-2 font-semibold">Immediate Fix:</p>
+                    <p className="text-zinc-400 text-xs leading-relaxed italic">
+                        Change your device's DNS to <span className="text-red-500 font-bold">8.8.8.8</span> (Google DNS). 
+                        Our backend proxy is active, but your network provider is still blocking the upstream connection.
+                    </p>
+                </div>
+                
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02]"
+                >
+                    Retry Connection
+                </button>
+            </div>
+        </div>
+     );
+  }
 
   return (
     <div className="min-h-screen bg-netflix-black">

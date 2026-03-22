@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { getLocalProgress } from '../utils/progressTracker';
+import { getProgress } from '../utils/progressTracker';
 import PlayerFrame from '../components/media/PlayerFrame';
 import Loader from '../components/ui/Loader';
-
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 function WatchPage() {
+  const { getToken } = useAuth();
+  const { isSignedIn } = useUser();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -31,9 +33,12 @@ function WatchPage() {
       return;
     }
 
-
-    loadProgress();
-  }, [tmdbId, mediaType, season, episode]);
+    if (isSignedIn) {
+      loadProgress();
+    } else {
+      setLoading(false);
+    }
+  }, [tmdbId, mediaType, season, episode, isSignedIn]);
 
 
   // Detect fullscreen changes
@@ -114,12 +119,11 @@ function WatchPage() {
           console.log('📍 Resume from URL:', timeToResume);
         }
       } else {
-        const progress = getLocalProgress(tmdbId, mediaType, season, episode);
+        const progress = await getProgress(getToken, tmdbId, season, episode);
         
         if (progress) {
           const currentTime = parseFloat(progress.currentTime) || 0;
           const duration = parseFloat(progress.duration) || 0;
-
 
           if (currentTime > 0 && duration > 0) {
             const percentWatched = (currentTime / duration) * 100;
@@ -129,7 +133,6 @@ function WatchPage() {
               duration: duration.toFixed(2),
               percentWatched: percentWatched.toFixed(2) + '%'
             });
-
 
             if (currentTime > 10 && percentWatched < 95) {
               timeToResume = currentTime;

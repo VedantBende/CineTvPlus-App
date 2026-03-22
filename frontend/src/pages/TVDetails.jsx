@@ -73,12 +73,12 @@ function TVDetails() {
   const checkWatchlist = async () => {
     try {
       const token = await getToken();
-      const response = await axios.get(`${API_URL}/watchlist/check/${id}`, {
+      const response = await axios.get(`${API_URL}/favorites/check/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      setIsInWatchlist(response.data.isInWatchlist);
+      setIsInWatchlist(response.data.isFavorite);
     } catch (error) {
       console.error('Failed to check watchlist:', error);
     }
@@ -119,16 +119,16 @@ function TVDetails() {
 
 
       if (isInWatchlist) {
-        await axios.delete(`${API_URL}/watchlist/remove/${id}`, config);
+        await axios.delete(`${API_URL}/favorites/remove/${id}`, config);
         setIsInWatchlist(false);
       } else {
-        await axios.post(`${API_URL}/watchlist/add`, {
+        await axios.post(`${API_URL}/favorites/add`, {
           mediaId: id,
           title: show.title,
-          poster: show.url,
+          posterPath: show.url,
           rating: show.rating,
           year: show.year,
-          type: 'tv'
+          mediaType: 'tv'
         }, config);
         setIsInWatchlist(true);
       }
@@ -263,7 +263,7 @@ function TVDetails() {
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <span className="hidden sm:inline">{isInWatchlist ? 'Remove' : 'Add'}</span>
+                <span className="hidden sm:inline">{isInWatchlist ? 'Remove from List' : 'Add to My List'}</span>
                 <span className="sm:hidden">{isInWatchlist ? 'Remove' : 'Add'}</span>
               </button>
             )}

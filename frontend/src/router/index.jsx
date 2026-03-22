@@ -11,8 +11,15 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import FavoritesPage from '../pages/FavoritesPage';
 import SettingsPage from '../pages/SettingsPage';
+import AdminPage from '../pages/AdminPage';
+import AccessGate from '../pages/AccessGate';
+import PublicGate from '../components/common/PublicGate';
 
 const router = createBrowserRouter([
+  {
+    path: '/welcome',
+    element: <AccessGate />
+  },
   {
     path: '/',
     element: <MainLayout />,
@@ -53,27 +60,31 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />
+      },
+      {
+        path: 'admin',
+        element: <AdminPage />
       }
     ]
   },
   // Clerk authentication routes with wildcards
   {
     path: '/login',
-    element: <Login />,
+    element: <PublicGate><Login /></PublicGate>,
     children: [
       {
         path: '*',
-        element: <Login />
+        element: <PublicGate><Login /></PublicGate>
       }
     ]
   },
   {
     path: '/register',
-    element: <Register />,
+    element: <PublicGate><Register /></PublicGate>,
     children: [
       {
         path: '*',
-        element: <Register />
+        element: <PublicGate><Register /></PublicGate>
       }
     ]
   },

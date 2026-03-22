@@ -1,13 +1,9 @@
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const TMDB_BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
-
-
+const TMDB_BASE_URL = '/api/tmdb';
 
 // Update these for high-quality images
-const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500'; // 500px for posters (cards)
-const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; // Original quality for hero/backdrop
-
-
+// These usually work even if the API domain is blocked, as they are on a different CDN
+const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
+const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; 
 
 /**
  * Fetch trending movies
@@ -15,16 +11,12 @@ const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; // Original qua
 export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
+      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch trending movies');
     }
-
-
 
     const data = await response.json();
     
@@ -32,7 +24,7 @@ export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
       tmdbId: movie.id.toString(),
       title: movie.title,
       url: movie.poster_path ? `${POSTER_BASE_URL}${movie.poster_path}` : null,
-      backdrop: movie.backdrop_path ? `${BACKDROP_BASE_URL}${movie.backdrop_path}` : null, // HIGH QUALITY
+      backdrop: movie.backdrop_path ? `${BACKDROP_BASE_URL}${movie.backdrop_path}` : null,
       rating: movie.vote_average.toFixed(1),
       year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
       overview: movie.overview,
@@ -44,24 +36,18 @@ export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
   }
 };
 
-
-
 /**
  * Fetch trending TV shows
  */
 export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
+      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch trending TV shows');
     }
-
-
 
     const data = await response.json();
     
@@ -69,7 +55,7 @@ export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
       tmdbId: show.id.toString(),
       title: show.name,
       url: show.poster_path ? `${POSTER_BASE_URL}${show.poster_path}` : null,
-      backdrop: show.backdrop_path ? `${BACKDROP_BASE_URL}${show.backdrop_path}` : null, // HIGH QUALITY
+      backdrop: show.backdrop_path ? `${BACKDROP_BASE_URL}${show.backdrop_path}` : null,
       rating: show.vote_average.toFixed(1),
       year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
       overview: show.overview,
@@ -81,24 +67,18 @@ export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
   }
 };
 
-
-
 /**
  * Fetch popular movies
  */
 export const fetchPopularMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/popular?language=en-US&page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch popular movies');
     }
-
-
 
     const data = await response.json();
     
@@ -118,24 +98,18 @@ export const fetchPopularMovies = async (page = 1) => {
   }
 };
 
-
-
 /**
  * Fetch popular TV shows
  */
 export const fetchPopularTVShows = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/tv/popular?language=en-US&page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch popular TV shows');
     }
-
-
 
     const data = await response.json();
     
@@ -155,15 +129,13 @@ export const fetchPopularTVShows = async (page = 1) => {
   }
 };
 
-
-
 /**
  * Fetch now playing movies
  */
 export const fetchNowPlayingMovies = async () => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+      `${TMDB_BASE_URL}/movie/now_playing?language=en-US&page=1`
     );
 
     if (!response.ok) {
@@ -172,7 +144,6 @@ export const fetchNowPlayingMovies = async () => {
 
     const data = await response.json();
     
-    // Filter out movies with release dates in the future
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -198,25 +169,18 @@ export const fetchNowPlayingMovies = async () => {
   }
 };
 
-
-
-
 /**
  * Fetch top rated movies
  */
 export const fetchTopRatedMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/top_rated?language=en-US&page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch top rated movies');
     }
-
-
 
     const data = await response.json();
     
@@ -236,15 +200,13 @@ export const fetchTopRatedMovies = async (page = 1) => {
   }
 };
 
-
-
 /**
  * Fetch top rated TV shows
  */
 export const fetchTopRatedTVShows = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/top_rated?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/tv/top_rated?language=en-US&page=${page}`
     );
 
     if (!response.ok) {
@@ -270,12 +232,12 @@ export const fetchTopRatedTVShows = async (page = 1) => {
 };
 
 /**
- * Fetch upcoming movies (only those releasing after today)
+ * Fetch upcoming movies
  */
 export const fetchUpcomingMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/upcoming?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/upcoming?language=en-US&page=${page}`
     );
 
     if (!response.ok) {
@@ -288,7 +250,6 @@ export const fetchUpcomingMovies = async (page = 1) => {
     
     return data.results
       .filter(movie => {
-        // Only include movies with a release date strictly in the future
         if (!movie.release_date) return false;
         const releaseDate = new Date(movie.release_date);
         return releaseDate > today;
@@ -315,19 +276,14 @@ export const fetchUpcomingMovies = async (page = 1) => {
 export const fetchMovieDetails = async (movieId) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits,videos`
+      `${TMDB_BASE_URL}/movie/${movieId}?language=en-US&append_to_response=credits,videos`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch movie details');
     }
 
-
-
     const movie = await response.json();
-    
     const directorData = movie.credits?.crew?.find(person => person.job === 'Director');
     
     return {
@@ -356,27 +312,20 @@ export const fetchMovieDetails = async (movieId) => {
   }
 };
 
-
-
 /**
  * Fetch TV show details by ID
  */
 export const fetchTVShowDetails = async (showId) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/${showId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits,videos`
+      `${TMDB_BASE_URL}/tv/${showId}?language=en-US&append_to_response=credits,videos`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to fetch TV show details');
     }
 
-
-
     const show = await response.json();
-    
     const creatorData = show.created_by?.[0];
     
     return {
@@ -406,24 +355,18 @@ export const fetchTVShowDetails = async (showId) => {
   }
 };
 
-
-
 /**
  * Search movies and TV shows
  */
 export const searchMulti = async (query, page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
+      `${TMDB_BASE_URL}/search/multi?language=en-US&query=${encodeURIComponent(query)}&page=${page}`
     );
-
-
 
     if (!response.ok) {
       throw new Error('Failed to search');
     }
-
-
 
     const data = await response.json();
     

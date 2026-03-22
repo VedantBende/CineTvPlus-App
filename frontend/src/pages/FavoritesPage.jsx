@@ -34,13 +34,13 @@ function FavoritesPage() {
       
       const token = await getToken();
       
-      const response = await axios.get(`${API_URL}/watchlist`, {
+      const response = await axios.get(`${API_URL}/favorites`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      setWatchlist(response.data || []);
+      setWatchlist(response.data.favorites || []);
     } catch (err) {
       console.error('Error loading watchlist:', err);
       setWatchlist([]);
@@ -57,7 +57,7 @@ function FavoritesPage() {
 
   const filteredWatchlist = activeFilter === 'all' 
     ? watchlist 
-    : watchlist.filter(item => item.type === activeFilter);
+    : watchlist.filter(item => (item.mediaType || item.type) === activeFilter);
 
   if (loading) {
     return (
@@ -103,7 +103,7 @@ function FavoritesPage() {
               {filter.label}
               {filter.key !== 'all' && (
                 <span className="ml-1.5 text-xs opacity-70">
-                  ({watchlist.filter(i => filter.key === 'all' ? true : i.type === filter.key).length})
+                  ({watchlist.filter(i => filter.key === 'all' ? true : (i.mediaType || i.type) === filter.key).length})
                 </span>
               )}
             </button>
@@ -172,12 +172,12 @@ function FavoritesPage() {
               <MovieCard
                 key={item.mediaId}
                 title={item.title}
-                poster={item.poster}
+                poster={item.posterPath || item.poster}
                 rating={item.rating}
                 year={item.year}
                 mediaId={item.mediaId}
                 tmdbId={item.mediaId}
-                type={item.type}
+                type={item.mediaType || item.type}
               />
             ))}
           </div>

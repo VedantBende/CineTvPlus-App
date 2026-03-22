@@ -4,8 +4,10 @@ import { getContinueWatching } from '../../utils/progressTracker';
 import { fetchMovieDetails, fetchTVShowDetails } from '../../utils/tmdbApi';
 import { formatProgress } from '../../utils/formatters';
 import Loader from '../ui/Loader';
+import { useAuth } from '@clerk/clerk-react';
 
 function ContinueWatching() {
+  const { getToken } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ function ContinueWatching() {
   const loadContinueWatching = async () => {
     try {
       setLoading(true);
-      const progressItems = await getContinueWatching();
+      const progressItems = await getContinueWatching(getToken);
 
       // Fetch TMDB metadata for each item
       const itemsWithMetadata = await Promise.all(

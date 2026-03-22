@@ -1,7 +1,7 @@
-import { useAuth } from '@clerk/clerk-react';
+// import { useAuth } from '@clerk/clerk-react';
 
 // Base API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper to get auth headers
 export const getAuthHeaders = async (getToken) => {
@@ -17,7 +17,7 @@ export const watchlistApi = {
   // Add to watchlist
   add: async (getToken, mediaData) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/api/watchlist/add`, {
+    const response = await fetch(`${API_URL}/favorites/add`, {
       method: 'POST',
       headers,
       body: JSON.stringify(mediaData)
@@ -34,7 +34,7 @@ export const watchlistApi = {
   // Remove from watchlist
   remove: async (getToken, mediaId) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/api/watchlist/remove/${mediaId}`, {
+    const response = await fetch(`${API_URL}/favorites/remove/${mediaId}`, {
       method: 'DELETE',
       headers
     });
@@ -50,7 +50,7 @@ export const watchlistApi = {
   // Get watchlist
   get: async (getToken) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/api/watchlist`, {
+    const response = await fetch(`${API_URL}/favorites`, {
       method: 'GET',
       headers
     });
@@ -65,7 +65,7 @@ export const watchlistApi = {
   // Check if in watchlist
   check: async (getToken, mediaId) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/api/watchlist/check/${mediaId}`, {
+    const response = await fetch(`${API_URL}/favorites/check/${mediaId}`, {
       method: 'GET',
       headers
     });

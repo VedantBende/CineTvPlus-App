@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const useMediaStore = create((set, get) => ({
+const useMediaStore = create((set) => ({
   // Current media data (runtime only)
   currentMedia: null,
   isLoading: false,

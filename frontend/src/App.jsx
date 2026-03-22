@@ -4,53 +4,82 @@ import { ThemeProvider } from './context/ThemeContext';
 import router from './router';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import useAuthStore from './store/authStore';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-// Get API URL
-const getApiUrl = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:5000/api';
-  }
-
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-
-  return `${protocol}//${hostname}:5000/api`;
-};
-
-const API_URL = getApiUrl();
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Component to sync user after auth
 function UserSync() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { user: clerkUser, isSignedIn, isLoaded } = useUser();
   const { getToken } = useAuth();
-
+  const { 
+    user: mongoUser, 
+    isSyncing, 
+    syncError, 
+    setUser: setMongoUser, 
+    setSyncing, 
+    setSyncError 
+  } = useAuthStore();
+  
   useEffect(() => {
+    let isMounted = true;
+
     const syncUser = async () => {
-      if (isLoaded && isSignedIn) {
-        try {
-          const token = await getToken();
-          await axios.post(
-            `${API_URL}/user/sync`,
-            {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          console.log('✅ User synced to MongoDB');
-        } catch (error) {
-          console.error('Failed to sync user:', error.message);
+      // ONLY sync if: isSignedIn, NOT already syncing, NO user loaded yet, and NO persistent error
+      if (!isLoaded || !isSignedIn || isSyncing || mongoUser || syncError) return;
+
+      console.log('🔄 UserSync starting...');
+      setSyncing(true);
+
+      try {
+        const token = await getToken();
+        console.log('📡 Syncing with backend...');
+        
+        const response = await axios.post(
+          `${API_URL}/auth/sync`,
+          {
+            email: clerkUser?.primaryEmailAddress?.emailAddress,
+            name: clerkUser?.fullName || clerkUser?.firstName
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 15000 // 15s timeout
+          }
+        );
+
+        if (isMounted) {
+          console.log('✅ User synced successfully:', response.data.user);
+          setMongoUser(response.data.user);
+        }
+      } catch (error) {
+        if (isMounted) {
+          const backendError = error.response?.data;
+          let errMsg = 'Sync failed';
+          
+          if (backendError) {
+            errMsg = backendError.message || backendError.error || JSON.stringify(backendError);
+          } else {
+            errMsg = error.message;
+          }
+          
+          console.error('❌ Failed to sync user:', errMsg, backendError);
+          setSyncError(errMsg);
+        }
+      } finally {
+        if (isMounted) {
+          setSyncing(false);
         }
       }
     };
 
     syncUser();
-  }, [isSignedIn, isLoaded, getToken]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isSignedIn, isLoaded, getToken, clerkUser, setMongoUser, setSyncing, setSyncError]);
 
   return null;
 }

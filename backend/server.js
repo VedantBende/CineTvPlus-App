@@ -1,11 +1,15 @@
+// DNS bypass must be imported FIRST — before any network calls
+import { getCacheStats } from './services/tmdbService.js';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import connectDB from './config/db.js';
-import watchlistRoutes from './routes/watchlist.routes.js';
-import progressRoutes from './routes/progress.routes.js';
-import continueWatchingRoutes from './routes/continueWatching.routes.js';
+import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import favoritesRoutes from './routes/favorites.routes.js';
+import historyRoutes from './routes/history.routes.js';
+import tmdbRoutes from './routes/tmdb.routes.js';
 
 dotenv.config();
 
@@ -70,14 +74,17 @@ app.get('/api/health', (req, res) => {
     status: '✅ CineTv+ Backend Running',
     timestamp: new Date(),
     version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    cache: getCacheStats()
   });
 });
 
 // API Routes
-app.use('/api/continue-watching', continueWatchingRoutes);
-app.use('/api/watchlist', watchlistRoutes);
-app.use('/api/progress', progressRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/favorites', favoritesRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/tmdb', tmdbRoutes);
 
 // 404 Handler
 app.use((req, res) => {

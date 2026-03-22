@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-
+import { useAuth } from '@clerk/clerk-react';
+import { updateProgress } from '../../utils/progressTracker';
 
 function PlayerFrame({ 
   tmdbId,
@@ -9,6 +10,7 @@ function PlayerFrame({
   autoplay = true,
   resumeTime = 0 
 }) {
+  const { getToken } = useAuth();
   const iframeRef = useRef(null);
 
 
@@ -80,11 +82,10 @@ function PlayerFrame({
             };
 
 
-            // Store in localStorage every 10 seconds
+            // Store in backend every 10 seconds
             const currentSeconds = Math.floor(event.data.currentTime);
-            if (currentSeconds % 10 === 0) {
-              const storageKey = `progress_${mediaType}_${tmdbId}${season ? `_${season}_${episode}` : ''}`;
-              localStorage.setItem(storageKey, JSON.stringify(progressData));
+            if (currentSeconds % 10 === 0 && currentSeconds > 0) {
+              updateProgress(getToken, progressData).catch(err => console.error('Failed to save progress:', err));
             }
           }
         }
@@ -100,7 +101,7 @@ function PlayerFrame({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [tmdbId, mediaType, season, episode]);
+  }, [tmdbId, mediaType, season, episode, getToken]);
 
 
   const embedUrl = getEmbedUrl();

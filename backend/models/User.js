@@ -14,16 +14,21 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-  watchlist: [{
-    _id: false,
-    mediaId: { type: String, required: true },
-    title: { type: String },
-    poster: { type: String },
-    rating: { type: Number },
-    year: { type: Number },
-    type: { type: String, enum: ['movie', 'tv'] },
-    addedAt: { type: Date, default: Date.now }
-  }],
+  name: {
+    type: String
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'revoked'],
+    default: 'pending',
+    lowercase: true,
+    trim: true
+  },
   preferences: {
     theme: {
       type: String,
@@ -40,10 +45,6 @@ const userSchema = new mongoose.Schema({
       default: 'auto'
     }
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
   lastLogin: {
     type: Date,
     default: Date.now
@@ -52,9 +53,9 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for performance
-userSchema.index({ email: 1 });
-userSchema.index({ clerkUserId: 1 });
+// Extra indexes if needed (clerkUserId and email are already unique/indexed in field definitions)
+// userSchema.index({...}); 
+
 
 const User = mongoose.model('User', userSchema);
 
