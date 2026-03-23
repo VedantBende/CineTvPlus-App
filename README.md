@@ -87,10 +87,13 @@ cinetv-plus/
 
 ## 🚀 Installation & Setup
 
-### 1. Clone the repository
+### 1. Fork and Clone the repository
+
+1. Click the **Fork** button at the top right of this repository to create a copy under your account.
+2. Clone your forked repository:
 ```bash
-git clone https://github.com/yourusername/cinetv-plus.git
-cd cinetv-plus
+git clone https://github.com/your-username/cinetvplus.git
+cd cinetvplus
 ```
 
 ### 2. Backend Setup
