@@ -169,6 +169,6 @@ npm run dev
 ## 👨‍💻 Author
 
 **Vedant Bende**
-- GitHub: [@VedantBende](https://github.com/VedantBende)
-- Portfolio: [Portfolio-2.0](https://vedantbende.github.io/Portfolio-2.0/)
-- LinkedIn: [@VedantBende](https://www.linkedin.com/in/vedant-bende-3aa28b2a8/)
+- [GitHub](https://github.com/VedantBende)
+- [Portfolio](https://vedantbende.github.io/Portfolio-2.0/)
+- [LinkedIn](https://www.linkedin.com/in/vedant-bende-3aa28b2a8/)
