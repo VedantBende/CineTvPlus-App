@@ -6,14 +6,14 @@ function Loader({ size = 'md', text = 'Loading...' }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 sm:py-10 md:py-12">
+    <div className="flex flex-col items-center justify-center py-8 sm:py-10 md:py-12 bg-white dark:bg-netflix-black text-gray-900 dark:text-gray-400 transition-colors duration-300">
       <div
         className={`${sizeClasses[size]} border-netflix-red border-t-transparent rounded-full animate-spin`}
         role="status"
         aria-label="Loading"
       ></div>
       {text && (
-        <p className="text-gray-400 mt-3 sm:mt-4 text-xs sm:text-sm font-medium">{text}</p>
+        <p className="mt-3 sm:mt-4 text-xs sm:text-sm font-medium">{text}</p>
       )}
     </div>
   );

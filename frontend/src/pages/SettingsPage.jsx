@@ -51,28 +51,28 @@ function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+    <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
       <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12 max-w-4xl">
         {/* Page Title - Responsive */}
-        <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8">
+        <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 transition-colors">
           Settings
         </h1>
 
         {/* Account Info - Responsive */}
-        <div className="bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
-          <h2 className="text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">
+        <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 transition-colors">
+          <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
             Account
           </h2>
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="text-gray-400 text-xs sm:text-sm block mb-1">Email</label>
-              <p className="text-white text-sm sm:text-base break-all">
+              <label className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Email</label>
+              <p className="text-gray-800 dark:text-white text-sm sm:text-base break-all transition-colors">
                 {user?.primaryEmailAddress?.emailAddress}
               </p>
             </div>
             <div>
-              <label className="text-gray-400 text-xs sm:text-sm block mb-1">Member since</label>
-              <p className="text-white text-sm sm:text-base">
+              <label className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Member since</label>
+              <p className="text-gray-800 dark:text-white text-sm sm:text-base transition-colors">
                 {new Date(user?.createdAt).toLocaleDateString()}
               </p>
             </div>
@@ -80,15 +80,15 @@ function SettingsPage() {
         </div>
 
         {/* Appearance - Responsive */}
-        <div className="bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
-          <h2 className="text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">
+        <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 transition-colors">
+          <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
             Appearance
           </h2>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div className="flex-1">
-              <h3 className="text-white font-medium text-sm sm:text-base">Theme</h3>
-              <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
+              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base transition-colors">Theme</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-0.5 transition-colors">
                 Choose your preferred theme
               </p>
             </div>
@@ -98,7 +98,7 @@ function SettingsPage() {
                 className={`flex-1 sm:flex-none px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-medium transition-all touch-target ${
                   theme === 'dark'
                     ? 'bg-netflix-red text-white shadow-lg'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 Dark
@@ -108,7 +108,7 @@ function SettingsPage() {
                 className={`flex-1 sm:flex-none px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-medium transition-all touch-target ${
                   theme === 'light'
                     ? 'bg-netflix-red text-white shadow-lg'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 Light
@@ -118,8 +118,8 @@ function SettingsPage() {
         </div>
 
         {/* Playback Settings - Responsive */}
-        <div className="bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6">
-          <h2 className="text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">
+        <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 transition-colors">
+          <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
             Playback
           </h2>
           
@@ -127,15 +127,15 @@ function SettingsPage() {
             {/* Autoplay - Responsive */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex-1">
-                <h3 className="text-white font-medium text-sm sm:text-base">Autoplay</h3>
-                <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
+                <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base transition-colors">Autoplay</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-0.5 transition-colors">
                   Automatically play next episode
                 </p>
               </div>
               <button 
                 onClick={() => setAutoplay(!autoplay)}
                 className={`relative inline-flex h-7 w-12 sm:h-6 sm:w-11 items-center rounded-full transition flex-shrink-0 touch-target ${
-                  autoplay ? 'bg-netflix-red' : 'bg-gray-600'
+                  autoplay ? 'bg-netflix-red' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
                 aria-label="Toggle autoplay"
               >
@@ -147,13 +147,13 @@ function SettingsPage() {
 
             {/* Quality - Responsive */}
             <div>
-              <h3 className="text-white font-medium text-sm sm:text-base mb-2">
+              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
                 Video Quality
               </h3>
               <select 
                 value={videoQuality}
                 onChange={(e) => setVideoQuality(e.target.value)}
-                className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
+                className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
               >
                 <option value="auto">Auto</option>
                 <option value="360p">360p</option>
@@ -164,13 +164,13 @@ function SettingsPage() {
 
             {/* Subtitles - Additional Setting */}
             <div>
-              <h3 className="text-white font-medium text-sm sm:text-base mb-2">
+              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
                 Subtitles
               </h3>
               <select 
                 value={subtitles}
                 onChange={(e) => setSubtitles(e.target.value)}
-                className="bg-gray-700 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
+                className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
               >
                 <option value="off">Off</option>
                 <option value="en">English</option>
@@ -181,7 +181,7 @@ function SettingsPage() {
 
             {/* Volume - Additional Setting */}
             <div>
-              <h3 className="text-white font-medium text-sm sm:text-base mb-2">
+              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
                 Default Volume
               </h3>
               <input 
@@ -190,11 +190,11 @@ function SettingsPage() {
                 max="100" 
                 value={volume}
                 onChange={(e) => setVolume(parseInt(e.target.value, 10))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-netflix-red touch-target"
+                className="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-netflix-red touch-target"
               />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
                 <span>Mute</span>
-                <span className="text-white font-medium">{volume}%</span>
+                <span className="text-gray-900 dark:text-white font-medium transition-colors">{volume}%</span>
                 <span>Max</span>
               </div>
             </div>
@@ -205,7 +205,7 @@ function SettingsPage() {
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/')}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-5 py-3 rounded font-medium transition-all text-sm sm:text-base touch-target"
+            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-5 py-3 rounded font-medium transition-all text-sm sm:text-base touch-target"
           >
             Back to Home
           </button>

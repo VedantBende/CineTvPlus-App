@@ -61,7 +61,7 @@ function FavoritesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <Loader text="Loading your favorites..." />
       </div>
     );
@@ -69,18 +69,18 @@ function FavoritesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <ErrorMessage message={error} onRetry={loadWatchlist} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-netflix-black">
+    <div className="min-h-screen pt-14 sm:pt-16 md:pt-16 bg-white dark:bg-netflix-black transition-colors duration-300">
       <div className="container-custom py-6 sm:py-8 md:py-10">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+          <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-2 transition-colors">
             My List
           </h1>
           <p className="text-gray-400 text-sm sm:text-base">
@@ -97,7 +97,7 @@ function FavoritesPage() {
               className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                 activeFilter === filter.key
                   ? 'bg-accent-red text-white shadow-lg shadow-accent-red/20'
-                  : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 hover:text-white'
+                  : 'bg-gray-100 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700/80 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-transparent'
               }`}
             >
               {filter.label}
@@ -113,9 +113,9 @@ function FavoritesPage() {
         {/* Empty State */}
         {filteredWatchlist.length === 0 ? (
           <div className="text-center py-16 sm:py-20">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full bg-gray-800/50 flex items-center justify-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-gray-800/50 flex items-center justify-center transition-colors">
               <svg 
-                className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500" 
+                className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-500" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -128,7 +128,7 @@ function FavoritesPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3">
+            <h2 className="text-gray-900 dark:text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 transition-colors">
               {activeFilter === 'all' ? 'Your list is empty' : `No ${activeFilter === 'movie' ? 'movies' : 'TV shows'} saved`}
             </h2>
             <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8 max-w-md mx-auto px-4">
@@ -142,23 +142,23 @@ function FavoritesPage() {
             </button>
 
             {/* Want to see more? */}
-            <div className="mt-16 sm:mt-20 pt-8 sm:pt-10 border-t border-gray-800/50 max-w-lg mx-auto">
-              <h3 className="text-gray-300 text-lg sm:text-xl font-semibold mb-2">
+            <div className="mt-16 sm:mt-20 pt-8 sm:pt-10 border-t border-gray-200 dark:border-gray-800/50 max-w-lg mx-auto transition-colors">
+              <h3 className="text-gray-700 dark:text-gray-300 text-lg sm:text-xl font-semibold mb-2 transition-colors">
                 Want to see more?
               </h3>
-              <p className="text-gray-500 text-sm sm:text-base mb-4">
+              <p className="text-gray-500 text-sm sm:text-base mb-4 transition-colors">
                 Explore our library to find content you'll love.
               </p>
               <div className="flex justify-center gap-3">
                 <button
                   onClick={() => navigate('/movies')}
-                  className="bg-gray-800/60 hover:bg-gray-700/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-900 dark:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-transparent"
                 >
                   Browse Movies
                 </button>
                 <button
                   onClick={() => navigate('/tv')}
-                  className="bg-gray-800/60 hover:bg-gray-700/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="bg-gray-100 dark:bg-gray-800/60 hover:bg-gray-200 dark:hover:bg-gray-700/80 text-gray-900 dark:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-transparent"
                 >
                   Browse TV Shows
                 </button>

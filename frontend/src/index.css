@@ -16,7 +16,7 @@
   }
 
   body {
-    @apply bg-netflix-black text-white antialiased;
+    @apply bg-white text-gray-900 dark:bg-netflix-black dark:text-white antialiased transition-colors duration-300;
     font-family: 'Lexend', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -27,58 +27,22 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Light mode styles */
-  .light body {
-    @apply bg-gray-100 text-gray-900;
+  /* Utility mapping for existing components using semantic colors */
+  .bg-netflix-black {
+    @apply bg-white dark:bg-[#0f0f0f] transition-colors;
   }
 
-  .light .bg-netflix-black {
-    @apply bg-gray-100;
+  .bg-netflix-gray {
+    @apply bg-gray-100 dark:bg-[#2F2F2F] transition-colors;
   }
 
-  .light .bg-netflix-gray {
-    @apply bg-gray-200;
+  /* Navbar styling */
+  nav.bg-gradient-to-b {
+    @apply from-white dark:from-netflix-black to-transparent transition-all duration-500;
   }
 
-  .light .bg-gray-800 {
-    @apply bg-white border border-gray-300;
-  }
-
-  .light .bg-gray-700 {
-    @apply bg-gray-100;
-  }
-
-  .light .bg-black {
-    @apply bg-white;
-  }
-
-  .light .text-white {
-    @apply text-gray-900;
-  }
-
-  .light .text-gray-300 {
-    @apply text-gray-700;
-  }
-
-  .light .text-gray-400 {
-    @apply text-gray-600;
-  }
-
-  .light .border-gray-800 {
-    @apply border-gray-300;
-  }
-
-  .light .border-gray-700 {
-    @apply border-gray-400;
-  }
-
-  /* Navbar in light mode */
   .light nav {
-    @apply bg-white shadow-md;
-  }
-
-  .light nav.bg-gradient-to-b {
-    @apply bg-white;
+    @apply bg-white/95 backdrop-blur-md shadow-sm;
   }
 
   /* Scrollbar Styling - Responsive */

@@ -154,7 +154,7 @@ function TVDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <Loader text="Loading show details..." />
       </div>
     );
@@ -165,7 +165,7 @@ function TVDetails() {
 
   if (error || !show) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <ErrorMessage message={error || 'Show not found'} onRetry={loadShowDetails} />
       </div>
     );
@@ -175,16 +175,17 @@ function TVDetails() {
 
 
   return (
-    <div className="min-h-screen bg-netflix-black">
+    <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300">
       {/* Hero Section - Responsive */}
-      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16">
-        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/70 sm:via-netflix-black/40 to-transparent z-10" />
+      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16 bg-gradient-to-b from-gray-100 to-white dark:from-black dark:to-netflix-black transition-colors duration-500">
+        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/60 to-transparent z-10" />
+        <div className="absolute left-0 right-0 top-0 h-32 bg-gradient-to-b from-black/50 to-transparent z-10" />
         
         {show.backdrop && (
           <img
             src={show.backdrop}
             alt={show.title}
-            className="w-full h-full object-cover opacity-80 sm:opacity-70"
+            className="w-full h-full object-cover opacity-80 transition-opacity duration-500"
           />
         )}
 
@@ -193,8 +194,8 @@ function TVDetails() {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
           {/* Title - Responsive */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
-            {show.title} {show.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({show.year})</span>}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight drop-shadow-lg">
+            {show.title} {show.year && <span className="text-white/70 block sm:inline mt-1 sm:mt-0">({show.year})</span>}
           </h1>
 
 
@@ -211,17 +212,17 @@ function TVDetails() {
               </div>
             )}
             {show.seasons && (
-              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm">
+              <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm backdrop-blur-sm">
                 {show.seasons} Season{show.seasons > 1 ? 's' : ''}
               </span>
             )}
             {show.episodes && (
-              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm">
+              <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm backdrop-blur-sm">
                 {show.episodes} Episodes
               </span>
             )}
             {show.genres && show.genres.length > 0 && (
-              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1">
+              <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1 backdrop-blur-sm">
                 {show.genres.slice(0, 2).map(g => g.name).join(', ')}
               </span>
             )}
@@ -231,7 +232,7 @@ function TVDetails() {
 
 
           {/* Overview - Responsive */}
-          <p className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mb-3 sm:mb-4 md:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed hidden sm:block">
+          <p className="text-white/80 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mb-3 sm:mb-4 md:mb-6 line-clamp-2 sm:line-clamp-3 leading-relaxed hidden sm:block drop-shadow-md">
             {show.overview}
           </p>
 
@@ -258,9 +259,9 @@ function TVDetails() {
               <button
                 onClick={toggleWatchlist}
                 disabled={watchlistLoading}
-                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm disabled:opacity-50 touch-target"
+                className="bg-white/10 dark:bg-gray-700 dark:bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-white/20 dark:hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm disabled:opacity-50 touch-target border border-white/20 dark:border-transparent shadow-md"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? '#E50914' : 'none'} stroke={isInWatchlist ? '#E50914' : 'currentColor'} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
                 <span className="hidden sm:inline">{isInWatchlist ? 'Remove from List' : 'Add to My List'}</span>
@@ -268,15 +269,12 @@ function TVDetails() {
               </button>
             )}
 
-
-
-
             {show.trailer && (
               <a
                 href={`https://www.youtube.com/watch?v=${show.trailer}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm touch-target"
+                className="bg-white/10 dark:bg-gray-700 dark:bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-white/20 dark:hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm touch-target border border-white/20 dark:border-transparent shadow-md"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
@@ -298,8 +296,8 @@ function TVDetails() {
           <div className="lg:col-span-2 order-2 lg:order-1">
             {/* Overview for Mobile */}
             <div className="sm:hidden mb-6">
-              <h2 className="text-white text-lg font-bold mb-2">Overview</h2>
-              <p className="text-gray-300 text-sm leading-relaxed">
+              <h2 className="text-gray-900 dark:text-white text-lg font-bold mb-2 transition-colors">Overview</h2>
+              <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed transition-colors">
                 {show.overview}
               </p>
             </div>
@@ -308,11 +306,11 @@ function TVDetails() {
 
 
             {/* Episodes Section - Responsive */}
-            <div className="bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6 mb-6 sm:mb-8">
-              <h2 className="text-white text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4">
+            <div className="bg-gray-50 dark:bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6 mb-6 sm:mb-8 border border-gray-100 dark:border-transparent transition-colors">
+              <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 transition-colors">
                 Seasons & Episodes
               </h2>
-              <p className="text-gray-400 text-xs sm:text-sm md:text-base mb-3 sm:mb-4">
+              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm md:text-base mb-3 sm:mb-4 transition-colors">
                 Select season and episode from the player controls when watching.
               </p>
               
@@ -322,7 +320,7 @@ function TVDetails() {
                   <button
                     key={i}
                     onClick={() => navigate(`/watch?id=${id}&type=tv&season=${i + 1}&episode=1`)}
-                    className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded text-sm sm:text-base font-medium transition-all touch-target"
+                    className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-3 py-2 sm:px-4 sm:py-3 rounded text-sm sm:text-base font-medium transition-all touch-target border border-gray-200 dark:border-transparent"
                   >
                     Season {i + 1}
                   </button>
@@ -350,13 +348,13 @@ function TVDetails() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                             </svg>
                           </div>
                         )}
                       </div>
-                      <p className="text-gray-300 text-xs sm:text-sm font-medium line-clamp-2">
+                      <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium line-clamp-2 transition-colors">
                         {member.name}
                       </p>
                     </div>
@@ -413,31 +411,31 @@ function TVDetails() {
 
 
 
-            <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
-              <h3 className="text-white text-base sm:text-lg font-bold mb-3 sm:mb-4">Details</h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6 border border-gray-100 dark:border-transparent transition-colors">
+              <h3 className="text-gray-900 dark:text-white text-base sm:text-lg font-bold mb-3 sm:mb-4 transition-colors">Details</h3>
               <div className="space-y-2 sm:space-y-3">
                 {show.year && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">First Aired</span>
-                    <p className="text-white text-sm sm:text-base">{show.year}</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">First Aired</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{show.year}</p>
                   </div>
                 )}
                 {show.seasons && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Seasons</span>
-                    <p className="text-white text-sm sm:text-base">{show.seasons}</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Seasons</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{show.seasons}</p>
                   </div>
                 )}
                 {show.episodes && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Total Episodes</span>
-                    <p className="text-white text-sm sm:text-base">{show.episodes}</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Total Episodes</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{show.episodes}</p>
                   </div>
                 )}
                 {show.rating && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Rating</span>
-                    <p className="text-white text-sm sm:text-base">{show.rating}/10</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Rating</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{show.rating}/10</p>
                   </div>
                 )}
               </div>

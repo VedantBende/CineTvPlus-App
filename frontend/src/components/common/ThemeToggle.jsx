@@ -6,7 +6,7 @@ function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="text-white hover:text-gray-300 transition p-2 rounded-lg hover:bg-gray-800 flex items-center justify-center"
+      className="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center"
       aria-label="Toggle theme"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >

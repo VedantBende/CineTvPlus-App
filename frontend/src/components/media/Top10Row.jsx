@@ -35,12 +35,12 @@ function Top10Card({ item, index, type }) {
       </div>
 
       {/* Poster Image */}
-      <div className="relative z-10 group-hover:z-30 w-full aspect-[2/3] bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-[1.03] shadow-xl ml-6 xs:ml-8 sm:ml-12 border border-transparent group-hover:border-white/20">
+      <div className="relative z-10 group-hover:z-30 w-full aspect-[2/3] bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-xl ml-6 xs:ml-8 sm:ml-12 border border-transparent group-hover:border-white/20">
         {!imageError && (item.url || item.poster) ? (
           <img
             src={item.url || item.poster}
             alt={item.title || item.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 ease-in-out"
             onError={() => setImageError(true)}
             loading="lazy"
           />
@@ -50,14 +50,16 @@ function Top10Card({ item, index, type }) {
           </div>
         )}
         
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-3 text-center">
-          <button className="bg-white/90 hover:bg-white text-black rounded-full p-2 xs:p-3 mb-2 transition-transform hover:scale-110 shadow-lg">
-            <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </button>
-          <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-2 md:line-clamp-3 mb-1">{item.title || item.name}</h3>
+        {/* Hover Overlay - Consistent Dark Cinematic Effect */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex flex-col items-center justify-center p-3 text-center transition-colors">
+          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+            <button className="bg-white hover:bg-gray-200 text-black rounded-full p-2 xs:p-3 mb-2 transition-all hover:scale-110 shadow-xl">
+              <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+            <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-2 md:line-clamp-3 mb-1 transition-colors">{item.title || item.name}</h3>
+          </div>
         </div>
       </div>
     </div>
@@ -115,7 +117,7 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         <h2 className="text-transparent font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-none" style={{ WebkitTextStroke: '1px #E50914' }}>
           {title}
         </h2>
-        <div className="flex flex-col text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1">
+        <div className="flex flex-col text-gray-900 dark:text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1 transition-colors">
           <span>{subtitle.split(' ')[0]}</span>
           <span>{subtitle.split(' ').slice(1).join(' ')}</span>
         </div>
@@ -126,13 +128,13 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-r from-white via-white/80 dark:from-[#0f0f0f] dark:via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
             canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll left"
         >
-          <div className="bg-black/60 hover:bg-black p-2.5 rounded-full transition-all duration-300 hover:scale-110 border border-white/10">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white/70 dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-black p-2.5 rounded-full transition-all duration-300 hover:scale-110 border border-gray-200 dark:border-white/10 shadow-md">
+            <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </div>
@@ -141,13 +143,13 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         {/* Right Arrow */}
         <button
           onClick={() => scroll('right')}
-          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-l from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-l from-white via-white/80 dark:from-[#0f0f0f] dark:via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
             canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll right"
         >
-          <div className="bg-black/60 hover:bg-black p-2.5 rounded-full transition-all duration-300 hover:scale-110 border border-white/10">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white/70 dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-black p-2.5 rounded-full transition-all duration-300 hover:scale-110 border border-gray-200 dark:border-white/10 shadow-md">
+            <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </div>

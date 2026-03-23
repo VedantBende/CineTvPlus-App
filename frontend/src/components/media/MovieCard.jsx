@@ -17,12 +17,12 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
       className="netflix-card group relative border-2 border-transparent hover:border-accent-red/50 transition-colors duration-400"
     >
       {/* Poster Image */}
-      <div className="relative aspect-[2/3] bg-gray-800 overflow-hidden rounded-lg">
+      <div className="relative aspect-[2/3] bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-lg transition-colors duration-300">
         {!imageError && poster ? (
           <img
             src={poster}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
             onError={() => setImageError(true)}
             loading="lazy"
           />
@@ -46,7 +46,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
 
         {/* Rating Badge - Top Right */}
         {rating && (
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs">
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-black/70 border border-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs transition-colors duration-300">
             <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
@@ -54,11 +54,11 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
           </div>
         )}
 
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4">
-          <div className="text-center px-3">
-            <button className="bg-white/90 hover:bg-white text-black rounded-full p-2.5 mb-2 transition-transform hover:scale-110 shadow-lg">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+        {/* Hover Overlay - Consistent Dark Cinematic Effect */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex items-end justify-center pb-4">
+          <div className="text-center px-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+            <button className="bg-white hover:bg-gray-200 text-black rounded-full p-2.5 mb-2 transition-all hover:scale-110 shadow-xl">
+              <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </button>
@@ -69,7 +69,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
 
       {/* Info */}
       <div className="p-2 pt-2.5">
-        <h3 className="text-white text-sm font-medium truncate">{title}</h3>
+        <h3 className="text-gray-900 dark:text-white text-sm font-medium truncate transition-colors">{title}</h3>
         <div className="flex items-center justify-between mt-1">
           {year && (
             <span className="text-gray-500 text-xs">{year}</span>

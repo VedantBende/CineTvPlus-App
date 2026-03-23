@@ -43,7 +43,7 @@ function ContentRow({ title, icon, children, className = '' }) {
     <section className={`space-y-3 sm:space-y-4 ${className}`}>
       {/* Section Header */}
       <div className="flex items-center justify-between px-1 mb-2">
-        <h2 className="text-white text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold flex items-center">
+        <h2 className="text-gray-900 dark:text-white text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold flex items-center transition-colors">
           <span className="w-1.5 h-5 xs:h-6 sm:h-7 md:h-8 bg-netflix-red mr-2 sm:mr-3 rounded-full"></span>
           {title}
         </h2>
@@ -54,13 +54,13 @@ function ContentRow({ title, icon, children, className = '' }) {
         {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-r from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-r from-white dark:from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
             canScrollLeft ? 'opacity-0 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll left"
         >
-          <div className="bg-black/60 hover:bg-black/90 p-2.5 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white/70 dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-black/90 p-2.5 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-md">
+            <svg className="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </div>
@@ -69,13 +69,13 @@ function ContentRow({ title, icon, children, className = '' }) {
         {/* Right Arrow */}
         <button
           onClick={() => scroll('right')}
-          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-l from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-l from-white dark:from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
             canScrollRight ? 'opacity-0 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll right"
         >
-          <div className="bg-black/60 hover:bg-black/90 p-2.5 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white/70 dark:bg-black/60 hover:bg-gray-100 dark:hover:bg-black/90 p-2.5 rounded-full transition-all duration-300 hover:scale-110 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-md">
+            <svg className="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </div>

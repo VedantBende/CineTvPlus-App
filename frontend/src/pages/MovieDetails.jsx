@@ -148,7 +148,7 @@ function MovieDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <Loader text="Loading movie details..." />
       </div>
     );
@@ -158,7 +158,7 @@ function MovieDetails() {
 
   if (error || !movie) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-netflix-black">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <ErrorMessage message={error || 'Movie not found'} onRetry={loadMovieDetails} />
       </div>
     );
@@ -167,7 +167,7 @@ function MovieDetails() {
 
 
   return (
-    <div className="min-h-screen bg-netflix-black">
+    <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300">
       {toast && (
         <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-md shadow-lg text-base sm:text-lg md:text-xl ${
           toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'
@@ -178,22 +178,23 @@ function MovieDetails() {
 
 
 
-      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16">
-        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/10 sm:via-netflix-black/10 to-transparent z-10" />
+      <div className="relative h-[95vh] sm:h-[60vh] md:h-[65vh] lg:h-[110vh] -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16 bg-gradient-to-b from-gray-100 to-white dark:from-black dark:to-netflix-black transition-colors duration-500">
+        <div className="absolute inset-0 bg-gradient-to-t from-netflix-black via-netflix-black/60 to-transparent z-10" />
+        <div className="absolute left-0 right-0 top-0 h-32 bg-gradient-to-b from-black/50 to-transparent z-10" />
         
         {movie.backdrop && (
           <img
             src={movie.backdrop}
             alt={movie.title}
-            className="w-full h-full object-cover opacity-80 sm:opacity-70"
+            className="w-full h-full object-cover opacity-80 transition-opacity duration-500"
           />
         )}
 
 
 
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 container-custom z-20">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
-            {movie.title} {movie.year && <span className="text-gray-400 block sm:inline mt-1 sm:mt-0">({movie.year})</span>}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight drop-shadow-lg">
+            {movie.title} {movie.year && <span className="text-white/70 block sm:inline mt-1 sm:mt-0">({movie.year})</span>}
           </h1>
 
 
@@ -208,11 +209,11 @@ function MovieDetails() {
               </div>
             )}
             {movie.runtime && (
-              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm">{movie.runtime} min</span>
+              <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm backdrop-blur-sm">{movie.runtime} min</span>
             )}
             {movie.genres && movie.genres.length > 0 && (
-              <span className="text-gray-300 bg-gray-700 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1">
-                {movie.genres.slice(0, 3).map(g => g.name).join(', ')}
+              <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1 backdrop-blur-sm">
+                {movie.genres.slice(0, 2).map(g => g.name).join(', ')}
               </span>
             )}
           </div>
@@ -236,9 +237,9 @@ function MovieDetails() {
               <button
                 onClick={toggleWatchlist}
                 disabled={watchlistLoading}
-                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm disabled:opacity-50 touch-target"
+                className="bg-white/10 dark:bg-gray-700 dark:bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-white/20 dark:hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm disabled:opacity-50 touch-target border border-white/20 dark:border-transparent shadow-md"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill={isInWatchlist ? '#E50914' : 'none'} stroke={isInWatchlist ? '#E50914' : 'currentColor'} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
                 <span className="hidden xs:inline">{isInWatchlist ? 'Remove from List' : 'Add to My List'}</span>
@@ -246,14 +247,12 @@ function MovieDetails() {
               </button>
             )}
 
-
-
             {movie.trailer && (
               <a
                 href={`https://www.youtube.com/watch?v=${movie.trailer}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gray-700 bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm touch-target"
+                className="bg-white/10 dark:bg-gray-700 dark:bg-opacity-70 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded text-sm sm:text-base font-semibold hover:bg-white/20 dark:hover:bg-opacity-90 transition-all flex items-center space-x-1.5 sm:space-x-2 backdrop-blur-sm touch-target border border-white/20 dark:border-transparent shadow-md"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
@@ -270,8 +269,8 @@ function MovieDetails() {
       <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <h2 className="text-white text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Overview</h2>
-            <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8">
+            <h2 className="text-gray-900 dark:text-white text-xl sm:text-2xl font-bold mb-3 sm:mb-4 transition-colors">Overview</h2>
+            <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 transition-colors">
               {movie.overview}
             </p>
 
@@ -279,11 +278,11 @@ function MovieDetails() {
 
             {movie.cast && movie.cast.length > 0 && (
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Cast</h3>
+                <h3 className="text-gray-900 dark:text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4 transition-colors">Cast</h3>
                 <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 sm:gap-4">
                   {movie.cast.map((member, index) => (
                     <div key={index} className="flex flex-col items-center text-center group">
-                      <div className="w-full aspect-square rounded-full overflow-hidden bg-gray-700 mb-2 ring-2 ring-transparent group-hover:ring-netflix-red transition-all">
+                      <div className="w-full aspect-square rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 mb-2 ring-2 ring-transparent group-hover:ring-netflix-red transition-all">
                         {member.profile_path ? (
                           <img
                             src={`${TMDB_IMAGE_BASE}${member.profile_path}`}
@@ -293,13 +292,13 @@ function MovieDetails() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                             </svg>
                           </div>
                         )}
                       </div>
-                      <p className="text-gray-300 text-xs sm:text-sm font-medium line-clamp-2">
+                      <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium line-clamp-2 transition-colors">
                         {member.name}
                       </p>
                     </div>
@@ -312,9 +311,9 @@ function MovieDetails() {
 
             {movie.director && (
               <div className="mb-6 sm:mb-8">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4">Director</h3>
+                <h3 className="text-gray-900 dark:text-white text-lg sm:text-xl font-bold mb-3 sm:mb-4 transition-colors">Director</h3>
                 <div className="flex items-center space-x-3 sm:space-x-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 ring-2 ring-gray-600">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0 ring-2 ring-gray-200 dark:ring-gray-600 transition-colors">
                     {movie.director.profile_path ? (
                       <img
                         src={`${TMDB_IMAGE_BASE}${movie.director.profile_path}`}
@@ -324,13 +323,13 @@ function MovieDetails() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                         </svg>
                       </div>
                     )}
                   </div>
-                  <p className="text-gray-300 text-sm sm:text-base font-medium">{movie.director.name}</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base font-medium transition-colors">{movie.director.name}</p>
                 </div>
               </div>
             )}
@@ -351,25 +350,25 @@ function MovieDetails() {
 
 
 
-            <div className="bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6">
-              <h3 className="text-white text-base sm:text-lg font-bold mb-3 sm:mb-4">Details</h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 sm:p-5 md:p-6 border border-gray-100 dark:border-transparent transition-colors">
+              <h3 className="text-gray-900 dark:text-white text-base sm:text-lg font-bold mb-3 sm:mb-4 transition-colors">Details</h3>
               <div className="space-y-2 sm:space-y-3">
                 {movie.year && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Release Year</span>
-                    <p className="text-white text-sm sm:text-base">{movie.year}</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Release Year</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{movie.year}</p>
                   </div>
                 )}
                 {movie.runtime && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Runtime</span>
-                    <p className="text-white text-sm sm:text-base">{movie.runtime} minutes</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Runtime</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{movie.runtime} minutes</p>
                   </div>
                 )}
                 {movie.rating && (
                   <div>
-                    <span className="text-gray-400 text-xs sm:text-sm block mb-1">Rating</span>
-                    <p className="text-white text-sm sm:text-base">{movie.rating}/10</p>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm block mb-1 transition-colors">Rating</span>
+                    <p className="text-gray-900 dark:text-white text-sm sm:text-base transition-colors">{movie.rating}/10</p>
                   </div>
                 )}
               </div>

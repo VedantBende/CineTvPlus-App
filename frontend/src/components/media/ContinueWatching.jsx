@@ -81,12 +81,12 @@ function ContinueWatching() {
             onClick={() => handleContinueWatching(item)}
             className="netflix-card cursor-pointer group"
           >
-            <div className="relative aspect-[16/9] bg-gray-800 rounded-lg overflow-hidden">
+            <div className="relative aspect-[16/9] bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
               {item.backdrop && (
                 <img
                   src={item.backdrop}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
                   loading="lazy"
                 />
               )}
@@ -99,13 +99,15 @@ function ContinueWatching() {
                 />
               </div>
 
-              {/* Play Overlay */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <button className="bg-white text-black rounded-full p-3 hover:bg-gray-200 transition">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </button>
+              {/* Play Overlay - Consistent Dark Cinematic Effect */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex items-center justify-center">
+                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                  <button className="bg-white text-black rounded-full p-3 hover:bg-gray-200 transition-all hover:scale-110 shadow-xl">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 

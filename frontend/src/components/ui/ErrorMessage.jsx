@@ -1,7 +1,7 @@
 function ErrorMessage({ message, onRetry }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4">
-      <div className="bg-red-900/20 border border-red-900 rounded-lg p-6 max-w-md w-full">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg p-6 max-w-md w-full transition-colors">
         <div className="flex items-start space-x-3">
           <svg
             className="w-6 h-6 text-netflix-red flex-shrink-0 mt-0.5"
@@ -17,8 +17,8 @@ function ErrorMessage({ message, onRetry }) {
             />
           </svg>
           <div className="flex-1">
-            <h3 className="text-white font-semibold mb-1">Error</h3>
-            <p className="text-gray-300 text-sm">
+            <h3 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">Error</h3>
+            <p className="text-gray-700 dark:text-gray-300 text-sm transition-colors">
               {message || 'Something went wrong. Please try again.'}
             </p>
           </div>
