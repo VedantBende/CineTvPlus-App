@@ -1,40 +1,7 @@
-import nodemailer from 'nodemailer';
-import net from 'net';
-
-let transporter;
+import { google } from 'googleapis';
 
 /**
- * Diagnostic: Check if we can reach Gmail's SMTP server on Port 587
- */
-async function testSMTPConnection() {
-  return new Promise((resolve) => {
-    console.log('🔍 Diagnostic: Testing connection to smtp.gmail.com:587...');
-    const socket = net.createConnection(587, 'smtp.gmail.com');
-    
-    socket.setTimeout(5000); // 5s timeout for the raw socket
-
-    socket.on('connect', () => {
-      console.log('✅ Diagnostic SUCCESS: Port 587 is REACHABLE from this network.');
-      socket.destroy();
-      resolve(true);
-    });
-
-    socket.on('timeout', () => {
-      console.warn('❌ Diagnostic TIMEOUT: Port 587 is blocked or unresponsive.');
-      socket.destroy();
-      resolve(false);
-    });
-
-    socket.on('error', (err) => {
-      console.error(`❌ Diagnostic ERROR: ${err.message}`);
-      socket.destroy();
-      resolve(false);
-    });
-  });
-}
-
-/**
- * Send an email using Nodemailer and Gmail SMTP.
+ * Send an email using the Gmail REST API (Firewall Bypass).
  * @param {string} to - Recipient email address
  * @param {string} subject - Email subject
  * @param {string} html - Email HTML body
@@ -42,54 +9,61 @@ async function testSMTPConnection() {
  */
 export async function sendEmail(to, subject, html) {
   try {
-    // Run pre-flight diagnostic on first call or if it failed before
-    if (!transporter) {
-      await testSMTPConnection();
+    const { GMAIL_USER, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
+
+    if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+      console.warn('⚠️ Gmail API Credentials missing. Email NOT sent.');
+      return { success: false, error: 'Gmail API not configured' };
     }
 
-    // Lazy initialization to ensure process.env variables are available
-    if (!transporter && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      console.log('⚙️ Initializing Nodemailer transporter (Port 587, IPv4, Debug ON)...');
-      transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // Use STARTTLS
-        family: 4, // Force IPv4 to avoid ENETUNREACH errors on Render
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-        tls: {
-          // Do not fail on invalid certificates
-          rejectUnauthorized: false,
-        },
-        // Debugging & Timeouts
-        logger: true,
-        debug: true,
-        connectionTimeout: 10000, // 10s
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-      });
-    }
+    console.log(`🌐 Gmail API: Preparing message for ${to}...`);
 
-    if (!transporter) {
-      console.warn(`⚠️ Email NOT sent to ${to}: GMAIL_USER or GMAIL_APP_PASSWORD is missing.`);
-      return { success: false, error: 'Email client not initialized' };
-    }
+    // Initialize OAuth2 client
+    const oauth2Client = new google.auth.OAuth2(
+      GMAIL_CLIENT_ID,
+      GMAIL_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
 
-    const mailOptions = {
-      from: `"CineTv+" <${process.env.GMAIL_USER}>`, 
-      to,
-      subject,
+    oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    // Create the raw email message (RFC 822 format)
+    const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+    const messageParts = [
+      `From: "CineTv+" <${GMAIL_USER}>`,
+      `To: ${to}`,
+      `Content-Type: text/html; charset=utf-8`,
+      `MIME-Version: 1.0`,
+      `Subject: ${utf8Subject}`,
+      '',
       html,
-    };
+    ];
+    const message = messageParts.join('\n');
 
-    console.log(`📨 Attempting to send email to: ${to}`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${to} (id: ${info.messageId})`);
-    return { success: true, data: info };
+    // The Gmail API requires the message to be base64url encoded
+    const encodedMessage = Buffer.from(message)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    console.log(`📨 Sending via Gmail API (HTTPS/443)...`);
+    const res = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage,
+      },
+    });
+
+    console.log(`✅ Email sent successfully via API to ${to} (id: ${res.data.id})`);
+    return { success: true, data: res.data };
   } catch (err) {
-    console.error(`❌ Email send exception to ${to}:`, err.message);
+    console.error(`❌ Gmail API Error for ${to}:`, err.message);
+    // Log helpful context for OAuth errors
+    if (err.message.includes('invalid_grant')) {
+      console.error('💡 TIP: Your Gmail Refresh Token might be expired or revoked.');
+    }
     return { success: false, error: err.message };
   }
 }

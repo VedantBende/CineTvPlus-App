@@ -40,8 +40,8 @@ The platform features a robust, automated email notification system to maintain 
   - **Revoked**: Security notification when access has been removed by an admin.
 - **How it Works**:
   1. Admin takes an action in the Dashboard.
-  2. The custom **Nodemailer** utility is triggered with branded HTML templates.
-  3. The email is delivered via **Gmail SMTP** with secure app-password authentication.
+  2. The custom **Gmail API** utility is triggered via HTTPS.
+  3. The email is delivered via **Google REST API (Port 443)**, ensuring it bypasses all cloud firewall blocks (like Render's SMTP blocks).
 
 ---
 
@@ -58,8 +58,8 @@ The platform features a robust, automated email notification system to maintain 
 - **Environment**: Node.js
 - **Framework**: Express.js
 - **Database**: MongoDB (via Mongoose)
-- **Email Service**: Nodemailer with Gmail SMTP
-- **Security**: Helmet, CORS configurations for strict origin allowance
+- **Email Service**: Google Gmail API (REST)
+- **Security**: Helmet, CORS configurations for strict origin allowance, IPv4 prioritization
 
 ### ☁️ APIs & Deployment
 - **External Data**: TMDB API (The Movie Database)
@@ -75,8 +75,8 @@ CineTv+ utilizes a classic decoupled Client-Server architecture:
 2. **Backend (Express)**: Acts as a secure intermediary layer, guarding the database and protecting sensitive API keys (like TMDB).
 3. **Database (MongoDB)**: Stores immutable user records, access statuses (pending/approved/revoked), and user preferences (Watchlists/History).
 
-*Data Flow*: The frontend sends authenticated REST requests using Clerk's JWT tokens. The Express backend validates these tokens before fulfilling requests. When an admin modifies a user's status, the backend triggers the **Nodemailer** utility to send a real-time notification via **Gmail SMTP**.
-*Architecture Flow*: Admin Dashboard → Express Backend → Nodemailer → Gmail SMTP → User Inbox
+*Data Flow*: The frontend sends authenticated REST requests using Clerk's JWT tokens. The Express backend validates these tokens before fulfilling requests. When an admin modifies a user's status, the backend triggers the **Gmail API** utility to send a real-time notification via **HTTPS (Port 443)**.
+*Architecture Flow*: Admin Dashboard → Express Backend → Google Gmail API (REST) → User Inbox
 
 ---
 
@@ -132,13 +132,12 @@ FRONTEND_URL=http://localhost:3000
 TMDB_API_KEY=your_tmdb_api_key
 TMDB_BASE_URL=https://api.themoviedb.org/3
 
-# SMTP Email Configuration
-# Automatically sends emails to users when their access status
-# (approved, rejected, or revoked) is updated by the admin.
+# Email Notification System (Gmail API - Firewall Proof)
+# This uses the Google REST API (Port 443) which is NOT blocked by Render.
 GMAIL_USER=your_gmail_account
-# Use a Google App Password (not your main password).
-# Generate it from Google Account → Security → App Passwords (requires 2FA).
-GMAIL_APP_PASSWORD=your_gmail_app_password
+GMAIL_CLIENT_ID=your_google_client_id
+GMAIL_CLIENT_SECRET=your_google_client_secret
+GMAIL_REFRESH_TOKEN=your_google_refresh_token
 
 # External Service URLs (Content Security Policy)
 # These are placeholders for external streaming/embedding services.
