@@ -87,6 +87,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root Wake Route (Instant response for Render Load Balancer)
+app.get('/', (req, res) => {
+  res.status(200).send('🚀 CineTv+ API: Active');
+});
+
 // Routes - AFTER all middleware
 app.get('/api/health', (req, res) => {
   res.json({
@@ -126,9 +131,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`🚀 CineTv+ Server running on http://localhost:${PORT}`);
+  console.log(`🚀 CineTv+ Server listening on: 0.0.0.0:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
