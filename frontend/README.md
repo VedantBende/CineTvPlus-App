@@ -21,7 +21,7 @@ This directory contains the user-facing React application for **CineTv+**, built
 Integrates with our backend proxy to dynamically fetch TMDB catalog data. Features distinct horizontal scroll rows for *Trending*, *Top Rated*, *Now Playing*, and *Popular* media.
 
 ### 2. Access Gate
-A custom gatekeeping UI component built to handle the "Pending" user state. Fresh signups are held here globally until an Admin explicitly grants network access through the dashboard.
+A custom gatekeeping UI component built to handle the "Pending" user state. Fresh signups are held here globally until an Admin explicitly grants network access through the dashboard. Users are automatically notified via **email** once their access status reflects a change.
 
 ### 3. Progressive Admin Dashboard
 A dedicated admin route protected by Role-Based Access Control (RBAC). It features dynamic stat cards, real-time user filtering (Name/Email), status categorization, and visually polished sliding drawers for managing user network access (Approve/Reject/Revoke).
@@ -50,11 +50,15 @@ VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 # Backend API Resolution (Use /api to leverage Vite's local proxy)
 VITE_API_URL=/api
 
-# Third-Party Keys
+# TMDB Configuration (used for movie/TV metadata)
 VITE_TMDB_API_KEY=your_tmdb_api_key
 VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
 VITE_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w500
-VITE_PLAYER_BASE_URL=https://www.vidking.net/embed
+VITE_TMDB_BACKDROP_BASE_URL=https://image.tmdb.org/t/p/original
+
+# Video Playback (intentionally non-functional)
+VITE_VIDEO_EMBED_URL=disabled
+VITE_PLAYER_BASE_URL=disabled
 ```
 
 3. **Start the Development Server**:

@@ -20,11 +20,28 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 
 - **Robust Authentication & Sync**: Seamless email and social login via Clerk, instantly synced with a custom MongoDB backend.
 - **Admin-Controlled Access Gate**: New users are placed behind a "Request Access" gate upon signup. An administrative layer must manually approve, reject, or revoke network access.
+- **📧 Email Notification System**: Users receive automatic, branded email updates when their access status changes (Approved, Rejected, or Revoked), ensuring they stay informed about their account status.
 - **Dynamic Media Browsing**: Explore thousands of movies and TV shows securely via the TMDB API, featuring Trending, Popular, Now Playing, and Top Rated sections.
 - **Personalized Watchlists**: Save and manage a persistent list of favorites scoped directly to your account.
 - **Watch History Tracking**: Automatically tracks the content you interact with for easy resume viewing.
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
+
+---
+
+## 📧 Email Notification System
+
+The platform features a robust, automated email notification system to maintain transparency with users regarding their access requests.
+
+- **Overview**: Non-intrusive notifications sent directly to the user's registered email.
+- **Triggers**:
+  - **Approved**: A welcome email with immediate access to the platform.
+  - **Rejected**: A professional notification regarding the application status.
+  - **Revoked**: Security notification when access has been removed by an admin.
+- **How it Works**:
+  1. Admin takes an action in the Dashboard.
+  2. The custom **Nodemailer** utility is triggered with branded HTML templates.
+  3. The email is delivered via **Gmail SMTP** with secure app-password authentication.
 
 ---
 
@@ -41,6 +58,7 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Environment**: Node.js
 - **Framework**: Express.js
 - **Database**: MongoDB (via Mongoose)
+- **Email Service**: Nodemailer with Gmail SMTP
 - **Security**: Helmet, CORS configurations for strict origin allowance
 
 ### ☁️ APIs & Deployment
@@ -57,7 +75,8 @@ CineTv+ utilizes a classic decoupled Client-Server architecture:
 2. **Backend (Express)**: Acts as a secure intermediary layer, guarding the database and protecting sensitive API keys (like TMDB).
 3. **Database (MongoDB)**: Stores immutable user records, access statuses (pending/approved/revoked), and user preferences (Watchlists/History).
 
-*Data Flow*: The frontend sends authenticated REST requests using Clerk's JWT tokens. The Express backend validates these tokens via middleware before fulfilling requests against MongoDB or proxying media data from TMDB to bypass strict client-side CORS issues.
+*Data Flow*: The frontend sends authenticated REST requests using Clerk's JWT tokens. The Express backend validates these tokens before fulfilling requests. When an admin modifies a user's status, the backend triggers the **Nodemailer** utility to send a real-time notification via **Gmail SMTP**.
+*Architecture Flow*: Admin Dashboard → Express Backend → Nodemailer → Gmail SMTP → User Inbox
 
 ---
 
@@ -107,8 +126,26 @@ PORT=5000
 MONGO_URI=your_mongodb_connection_string
 CLERK_SECRET_KEY=your_clerk_secret_key
 CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-TMDB_API_KEY=your_tmdb_api_key
 FRONTEND_URL=http://localhost:3000
+# TMDB API domain (used in Content Security Policy for metadata requests)
+# Provided by default as it is used to fetch movie/TV metadata from TMDB.
+TMDB_API_KEY=your_tmdb_api_key
+TMDB_BASE_URL=https://api.themoviedb.org/3
+
+# SMTP Email Configuration
+# Automatically sends emails to users when their access status
+# (approved, rejected, or revoked) is updated by the admin.
+GMAIL_USER=your_gmail_account
+# Use a Google App Password (not your main password).
+# Generate it from Google Account → Security → App Passwords (requires 2FA).
+GMAIL_APP_PASSWORD=your_gmail_app_password
+
+# External Service URLs (Content Security Policy)
+# These are placeholders for external streaming/embedding services.
+# They are intentionally disabled and non-functional in this project.
+VIDKING_BASE_URL=disabled
+VIDKING_WILDCARD_URL=disabled
+VIDKING_EMBED_URL=disabled
 ```
 Start the backend development server:
 ```bash
@@ -125,7 +162,16 @@ Create a `.env` file in the `frontend/` directory:
 ```env
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 VITE_API_URL=/api
+
+# TMDB Configuration (used for movie/TV metadata)
 VITE_TMDB_API_KEY=your_tmdb_api_key
+VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
+VITE_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w500
+VITE_TMDB_BACKDROP_BASE_URL=https://image.tmdb.org/t/p/original
+
+# Video Playback (intentionally non-functional)
+VITE_VIDEO_EMBED_URL=disabled
+VITE_PLAYER_BASE_URL=disabled
 ```
 Start the frontend development server:
 ```bash
@@ -146,7 +192,7 @@ npm run dev
 1. **Register**: Sign up using the Clerk-powered authentication screen.
 2. **Request Access**: Upon registration, your account is immediately flagged as "Pending". You will be directed to the Access Gate screen.
 3. **Admin Approval**: An administrative account must log in, navigate to the Admin Dashboard, and manually "Approve" your account.
-4. **Cinematic Experience**: Once approved, refresh your page to explore TMDB catalogs, manage your Watchlist across devices, and utilize the full UI!
+4. **Cinematic Experience**: Once approved (you will receive an **email confirmation**), refresh your page to explore TMDB catalogs, manage your Watchlist across devices, and utilize the full UI!
 
 ---
 
