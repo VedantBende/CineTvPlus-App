@@ -126,22 +126,20 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-if (process.env.NODE_ENV !== 'production') {
-  const server = app.listen(PORT, () => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`🚀 CineTv+ Server running on http://localhost:${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  });
+const server = app.listen(PORT, () => {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`🚀 CineTv+ Server running on http://localhost:${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+});
 
-  // Graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('👋 SIGTERM received. Shutting down gracefully...');
-    server.close(() => {
-      console.log('✅ Process terminated');
-    });
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Process terminated');
   });
-}
+});
 
 export default app;
