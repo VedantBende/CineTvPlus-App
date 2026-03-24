@@ -1,8 +1,13 @@
+import dotenv from 'dotenv';
+const result = dotenv.config();
+if (result.error) {
+  console.error('❌ Dotenv Error:', result.error);
+}
+
 // DNS bypass must be imported FIRST — before any network calls
 import { getCacheStats } from './services/tmdbService.js';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
@@ -10,8 +15,6 @@ import adminRoutes from './routes/admin.routes.js';
 import favoritesRoutes from './routes/favorites.routes.js';
 import historyRoutes from './routes/history.routes.js';
 import tmdbRoutes from './routes/tmdb.routes.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,8 +30,12 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://api.themoviedb.org'],
-      frameSrc: ["'self'", 'https://www.vidking.net', 'https://*.vidking.net'],
+      connectSrc: ["'self'", process.env.TMDB_BASE_URL],
+      frameSrc: [
+        "'self'", 
+        process.env.VIDKING_BASE_URL, 
+        process.env.VIDKING_WILDCARD_URL
+      ],
       frameAncestors: ["'self'"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],

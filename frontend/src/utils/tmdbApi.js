@@ -1,10 +1,9 @@
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const TMDB_BASE_URL = `${API_URL}/tmdb`;
 
-// Update these for high-quality images
-// These usually work even if the API domain is blocked, as they are on a different CDN
-const POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
-const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original'; 
+// Image base URLs from environment variables
+const POSTER_BASE_URL = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500'; 
+const BACKDROP_BASE_URL = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/original'; 
 
 /**
  * Fetch trending movies
