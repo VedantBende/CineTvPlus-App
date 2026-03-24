@@ -13,12 +13,18 @@ export async function sendEmail(to, subject, html) {
   try {
     // Lazy initialization to ensure process.env variables are available
     if (!transporter && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      console.log('⚙️ Initializing Nodemailer transporter...');
+      console.log('⚙️ Initializing Nodemailer transporter (Port 587)...');
       transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // Use STARTTLS
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        tls: {
+          // Do not fail on invalid certificates (useful for some cloud networks)
+          rejectUnauthorized: false,
         },
       });
     }

@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
-const result = dotenv.config();
-if (result.error) {
-  console.error('❌ Dotenv Error:', result.error);
+
+// Load environment variables from .env file in development
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
 }
 
 // DNS bypass must be imported FIRST — before any network calls
