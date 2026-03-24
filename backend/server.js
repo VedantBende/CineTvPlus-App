@@ -22,12 +22,16 @@ import adminRoutes from './routes/admin.routes.js';
 import favoritesRoutes from './routes/favorites.routes.js';
 import historyRoutes from './routes/history.routes.js';
 import tmdbRoutes from './routes/tmdb.routes.js';
+import { initDatabaseKeepAlive, checkDatabaseHealth } from './utils/dbHealth.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize DB Keep-Alive (runs every 24h)
+initDatabaseKeepAlive();
 
 // Security middleware
 app.use(helmet({
@@ -93,12 +97,14 @@ app.get('/', (req, res) => {
 });
 
 // Routes - AFTER all middleware
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await checkDatabaseHealth();
   res.json({
     status: '✅ CineTv+ Backend Running',
     timestamp: new Date(),
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
+    database: dbHealth,
     cache: getCacheStats()
   });
 });
@@ -130,10 +136,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
+// Startup Logging
+const server = app.listen(PORT, () => {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`🚀 CineTv+ Server listening on: 0.0.0.0:${PORT}`);
+  console.log(`🚀 CineTv+ Server listening on Port: ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
