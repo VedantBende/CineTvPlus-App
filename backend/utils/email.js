@@ -13,11 +13,12 @@ export async function sendEmail(to, subject, html) {
   try {
     // Lazy initialization to ensure process.env variables are available
     if (!transporter && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      console.log('⚙️ Initializing Nodemailer transporter (Port 587)...');
+      console.log('⚙️ Initializing Nodemailer transporter (Port 587, IPv4)...');
       transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
         secure: false, // Use STARTTLS
+        family: 4, // Force IPv4 to avoid ENETUNREACH errors on Render
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,

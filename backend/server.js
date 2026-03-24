@@ -1,4 +1,10 @@
 import dotenv from 'dotenv';
+import dns from 'dns';
+
+// Force Node to prioritize IPv4 over IPv6 to avoid ENETUNREACH errors in some cloud environments (like Render)
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 // Load environment variables from .env file in development
 if (process.env.NODE_ENV !== 'production') {
