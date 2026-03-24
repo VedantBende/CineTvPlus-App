@@ -75,7 +75,7 @@ function Sidebar({ isOpen, onClose }) {
             {/* Close button - Mobile only */}
             <button
               onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-white transition p-2 touch-target"
+              className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition p-2 touch-target"
               aria-label="Close sidebar"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ function Sidebar({ isOpen, onClose }) {
                 className={`flex items-center space-x-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg transition touch-target ${
                   location.pathname === item.path
                     ? 'bg-netflix-red text-white shadow-lg'
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,9 +107,9 @@ function Sidebar({ isOpen, onClose }) {
 
           {/* User info section - if signed in */}
           {isSignedIn && (
-            <div className="mt-auto pt-6 border-t border-gray-700">
+            <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="px-3 py-2">
-                <p className="text-gray-400 text-xs sm:text-sm">Signed in</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Signed in</p>
               </div>
             </div>
           )}

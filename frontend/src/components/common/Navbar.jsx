@@ -135,7 +135,7 @@ function Navbar() {
                     setIsSearchOpen(false);
                     setSearchQuery('');
                   }}
-                  className="ml-1 sm:ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center touch-target p-1 shrink-0"
+                  className="hidden md:flex ml-1 sm:ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white items-center justify-center touch-target p-1 shrink-0"
                   tabIndex={isSearchOpen ? 0 : -1}
                   aria-label="Close search"
                 >
@@ -187,19 +187,34 @@ function Navbar() {
               </button>
             )}
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu / Search Close Toggle */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-900 dark:text-white p-1.5 sm:p-2 flex items-center justify-center touch-target"
-              aria-label="Toggle menu"
+              onClick={() => {
+                if (isSearchOpen) {
+                  setIsSearchOpen(false);
+                  setSearchQuery('');
+                } else {
+                  setIsMobileMenuOpen(!isMobileMenuOpen);
+                }
+              }}
+              className="md:hidden text-gray-900 dark:text-white p-1.5 sm:p-2 flex items-center justify-center touch-target relative w-10 h-10 overflow-hidden"
+              aria-label={isSearchOpen ? "Close search" : (isMobileMenuOpen ? "Close menu" : "Toggle menu")}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              <div className="relative w-6 h-6">
+                {/* Burger Icon (☰) - Visible when nothing is open */}
+                <div className={`absolute inset-0 transition-all duration-300 transform ${ (isMobileMenuOpen || isSearchOpen) ? 'opacity-0 scale-90 rotate-90' : 'opacity-100 scale-100 rotate-0' }`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </div>
+                
+                {/* Close Icon (✕) - Visible when mobile menu OR search is open */}
+                <div className={`absolute inset-0 transition-all duration-300 transform ${ (isMobileMenuOpen || isSearchOpen) ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-90 -rotate-90' }`}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
             </button>
           </div>
         </div>
@@ -240,20 +255,20 @@ function Navbar() {
                   </Link>
                   <Link 
                     to="/settings" 
-                    className={`block py-3 px-4 transition text-base font-medium touch-target border-l-2 ${isActive('/settings') ? 'text-accent-red bg-accent-red/10 border-accent-red' : 'text-white hover:text-gray-300 hover:bg-gray-800 border-transparent'}`} 
+                    className={`block py-3 px-4 transition text-base font-medium touch-target border-l-2 ${isActive('/settings') ? 'text-accent-red bg-accent-red/10 border-accent-red' : 'text-gray-900 dark:text-white hover:text-netflix-red dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'}`} 
                     onClick={closeMobileMenu}
                   >
                     Settings
                   </Link>
-                  <div className="border-t border-gray-800 my-2"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
                   <div className="px-4 py-3 flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Account</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">Account</span>
                     <UserButton afterSignOutUrl="/" />
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="border-t border-gray-800 my-2"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
                   <button
                     onClick={() => {
                       navigate('/login');
@@ -268,9 +283,9 @@ function Navbar() {
               )}
               
               {/* Theme Toggle in Mobile Menu */}
-              <div className="xs:hidden border-t border-gray-800 mt-2 pt-2 px-4 pb-2">
+              <div className="xs:hidden border-t border-gray-200 dark:border-gray-800 mt-2 pt-2 px-4 pb-2">
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-gray-400 text-sm">Theme</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">Theme</span>
                   <ThemeToggle />
                 </div>
               </div>
