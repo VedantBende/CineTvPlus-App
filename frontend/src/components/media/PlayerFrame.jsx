@@ -1,80 +1,101 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { updateProgress } from '../../utils/progressTracker';
+import { getEmbedUrl, getSavedPlayer, savePlayer } from '../../utils/playerConfig';
+import PlayerSelector from './PlayerSelector';
+import ServerPickerModal from './ServerPickerModal';
+import EpisodeSelector from './EpisodeSelector';
 
 function PlayerFrame({ 
   tmdbId,
   mediaType, 
   season = null, 
   episode = null,
+  seasons = null,
   autoplay = true,
   resumeTime = 0 
 }) {
   const { getToken } = useAuth();
   const iframeRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Player selection — null means no player chosen yet (show modal)
+  const [selectedPlayer, setSelectedPlayer] = useState(() => getSavedPlayer());
+  const [animateButtons, setAnimateButtons] = useState(false);
 
-  const VIDEO_BASE_URL = import.meta.env.VITE_PLAYER_BASE_URL;
+  // Internal season/episode state (for TV switching without page reload)
+  const [activeSeason, setActiveSeason] = useState(() => mediaType === 'tv' ? (season || 1) : null);
+  const [activeEpisode, setActiveEpisode] = useState(() => mediaType === 'tv' ? (episode || 1) : null);
 
-
-  // Build Vidking embed URL
-  const getEmbedUrl = () => {
-    let url = `${VIDEO_BASE_URL}/${mediaType}/${tmdbId}`;
-    
-    // For TV shows, add season and episode
-    if (mediaType === 'tv' && season && episode) {
-      url += `/${season}/${episode}`;
-    }
-    
-    const params = [];
-
-
-    // Color
-    params.push('color=e50914');
-
-
-    // Autoplay
-    if (autoplay) {
-      params.push('autoPlay=true');
-    }
-
-
-    // Resume time - only if greater than 10 seconds
-    if (resumeTime && resumeTime > 10) {
-      const timeInSeconds = Math.floor(resumeTime);
-      params.push(`t=${timeInSeconds}`);
-      console.log(`🎬 Resuming playback from ${timeInSeconds} seconds`);
-    } else {
-      console.log(`🎬 Starting playback from beginning`);
-    }
-
-
-    // TV-specific features
-    if (mediaType === 'tv') {
-      params.push('nextEpisode=true');
-      params.push('episodeSelector=true');
-    }
-
-
-    const finalUrl = params.length > 0 ? `${url}?${params.join('&')}` : url;
-    console.log('Player URL:', finalUrl);
-    
-    return finalUrl;
-  };
-
-
+  // Sync with props when they change (e.g. URL navigation)
   useEffect(() => {
-    // Listen for progress events from player
+    setActiveSeason(mediaType === 'tv' ? (season || 1) : null);
+    setActiveEpisode(mediaType === 'tv' ? (episode || 1) : null);
+  }, [season, episode, mediaType]);
+
+
+  // Build embed URL (only when a player is selected)
+  const embedUrl = selectedPlayer
+    ? getEmbedUrl(selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, {
+        autoplay,
+        resumeTime,
+      })
+    : null;
+
+  // DIAGNOSTIC LOG (As requested: Step 1 Root Cause Analysis logging)
+  useEffect(() => {
+    if (selectedPlayer && embedUrl) {
+      console.log({
+        id: tmdbId,
+        type: mediaType,
+        season: activeSeason,
+        episode: activeEpisode,
+        player: selectedPlayer,
+        finalUrl: embedUrl
+      });
+    }
+  }, [tmdbId, mediaType, activeSeason, activeEpisode, selectedPlayer, embedUrl]);
+
+
+  // Handle player selection (from modal or buttons)
+  const handlePlayerSelect = useCallback((playerId) => {
+    const isFirstSelection = selectedPlayer === null;
+    setSelectedPlayer(playerId);
+    savePlayer(playerId);
+
+    // Trigger button animation on first selection
+    if (isFirstSelection) {
+      setTimeout(() => setAnimateButtons(true), 100);
+    }
+  }, [selectedPlayer]);
+
+
+  // Handle season/episode change from EpisodeSelector
+  const handleEpisodeChange = useCallback((newSeason, newEpisode) => {
+    setActiveSeason(newSeason);
+    setActiveEpisode(newEpisode);
+
+    // Sync URL without a page reload so UI S1 E1 indicators naturally update!
+    const params = new URLSearchParams(location.search);
+    params.set('season', newSeason);
+    params.set('episode', newEpisode);
+    navigate(`?${params.toString()}`, { replace: true });
+  }, [location.search, navigate]);
+
+
+  // Listen for progress events from player
+  useEffect(() => {
     const handleMessage = (event) => {
       try {
         if (event.data && typeof event.data === 'object') {
-          // Handle player events
           if (event.data.event === 'timeupdate' && event.data.currentTime && event.data.duration) {
             const progressData = {
               tmdbId,
               mediaType,
-              season,
-              episode,
+              season: activeSeason,
+              episode: activeEpisode,
               currentTime: event.data.currentTime,
               duration: event.data.duration,
               progress: (event.data.currentTime / event.data.duration) * 100,
@@ -101,26 +122,73 @@ function PlayerFrame({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [tmdbId, mediaType, season, episode, getToken]);
+  }, [tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
 
 
-  const embedUrl = getEmbedUrl();
+  // No player selected — show server picker modal
+  if (!selectedPlayer) {
+    return (
+      <div>
+        {/* Empty player placeholder */}
+        <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg bg-zinc-900/50" style={{ paddingBottom: '56.25%' }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <svg className="w-12 h-12 sm:w-16 sm:h-16 text-zinc-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+              </svg>
+              <p className="text-zinc-600 text-xs sm:text-sm">Select a server to start watching</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Server Picker Modal */}
+        <ServerPickerModal onSelect={handlePlayerSelect} />
+      </div>
+    );
+  }
+
+
+  // Restore fallback logic: strictly no sandbox parameters to prevent Server Gamma issues.
+  const iframeReferrer = selectedPlayer === 'gamma'
+    ? 'no-referrer'
+    : 'origin';
 
 
   return (
-    <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg" style={{ paddingBottom: '56.25%' }}>
-      <iframe
-        ref={iframeRef}
-        src={embedUrl}
-        className="absolute top-0 left-0 w-full h-full border-0"
-        frameBorder="0"
-        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-        allowFullScreen
-        title="Video Player"
-        referrerPolicy="no-referrer"
-        loading="eager"
+    <div>
+      {/* Player Container */}
+      <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg" style={{ paddingBottom: '56.25%' }}>
+        <iframe
+          key={`${selectedPlayer}-${tmdbId}-${activeSeason}-${activeEpisode}`}
+          ref={iframeRef}
+          src={embedUrl}
+          className="absolute top-0 left-0 w-full h-full border-0"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowFullScreen
+          title="Video Player"
+          referrerPolicy={iframeReferrer}
+          loading="eager"
+        />
+      </div>
+
+      {/* Player Selector (server buttons) */}
+      <PlayerSelector
+        selectedPlayer={selectedPlayer}
+        onSelect={handlePlayerSelect}
+        animate={animateButtons}
       />
+
+      {/* Episode Selector (TV shows only) */}
+      {mediaType === 'tv' && seasons && seasons.length > 0 && (
+        <EpisodeSelector
+          seasons={seasons}
+          currentSeason={activeSeason}
+          currentEpisode={activeEpisode}
+          onEpisodeChange={handleEpisodeChange}
+        />
+      )}
     </div>
   );
 }

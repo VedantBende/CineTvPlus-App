@@ -27,6 +27,45 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
 
+### 🎬 Multi-Server Streaming System
+- Users can choose between multiple streaming servers.
+- Improves reliability and playback success with manual fallback capability.
+- **Servers:**
+  - Server Alpha → Fast & Relaible
+  - Server Beta → Premium
+  - Server Gamma → Stable
+
+### 🔐 First-Time Player Selection
+- Users must select a server before playback for a personalized experience.
+- Selection is securely saved locally to prevent repetitive prompts.
+
+### ⚙️ Environment-Based Player Configuration
+- All player URLs are stored entirely in environment variables.
+- Promotes clean architecture with no hardcoded domains, making it highly scalable and easy to switch or update players dynamically.
+
+### 📺 Advanced TV Show Controls
+- Includes custom Season selector and Episode selector tools.
+- Dynamic playback updates natively without full frame reloads.
+- Supports native URL synchronization.
+
+### 🌐 Smart URL Sync
+- Season & episode markers are flawlessly reflected in the URL parameters.
+- Deep linking supported natively (easily share specific episodes with others).
+- Page refresh automatically preserves the state.
+
+### 🎨 Enhanced User Experience
+- Clean, Netflix-inspired OTT-style interface.
+- Smooth CSS animations and micro-interactions.
+- Seamless player switching without full page reloads.
+
+### 🧠 First-Time User Onboarding
+- A mandatory "Before You Start" popup blocks streaming until explicitly accepted.
+- Handled via local storage to ensure it is shown strictly only once.
+- Helps users avoid issues safely by summarizing:
+  - Browser recommendation (Brave)
+  - Ad awareness tips (prevention)
+  - Server switching guidance (resolution)
+
 ---
 
 ## 📧 Email Notification System
@@ -139,12 +178,16 @@ GMAIL_CLIENT_ID=your_google_client_id
 GMAIL_CLIENT_SECRET=your_google_client_secret
 GMAIL_REFRESH_TOKEN=your_google_refresh_token
 
-# External Service URLs (Content Security Policy)
-# These are placeholders for external streaming/embedding services.
-# They are intentionally disabled and non-functional in this project.
-VIDKING_BASE_URL=disabled
-VIDKING_WILDCARD_URL=disabled
-VIDKING_EMBED_URL=disabled
+# External Service Proxy URLs (Content Security Policy)
+PLAYER_ALPHA_BASE_URL=disabled
+PLAYER_ALPHA_EMBED_MOVIE=disabled
+PLAYER_ALPHA_EMBED_TV=disabled
+PLAYER_BETA_BASE_URL=disabled
+PLAYER_BETA_WILDCARD_URL=disabled
+PLAYER_BETA_EMBED_URL=disabled
+PLAYER_GAMMA_BASE_URL=disabled
+PLAYER_GAMMA_EMBED_MOVIE=disabled
+PLAYER_GAMMA_EMBED_TV=disabled
 ```
 Start the backend development server:
 ```bash
@@ -168,9 +211,13 @@ VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
 VITE_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w500
 VITE_TMDB_BACKDROP_BASE_URL=https://image.tmdb.org/t/p/original
 
-# Video Playback (intentionally non-functional)
-VITE_VIDEO_EMBED_URL=disabled
-VITE_PLAYER_BASE_URL=disabled
+# Video Playback Proxy Config (intentionally non-functional)
+VITE_PLAYER_ALPHA_MOVIE=disabled
+VITE_PLAYER_ALPHA_TV=disabled
+VITE_PLAYER_BETA_MOVIE=disabled
+VITE_PLAYER_BETA_TV=disabled
+VITE_PLAYER_GAMMA_MOVIE=disabled
+VITE_PLAYER_GAMMA_TV=disabled
 ```
 Start the frontend development server:
 ```bash
@@ -181,8 +228,8 @@ npm run dev
 
 ## 🌍 Deployment
 
-- **Backend (Render)**: The `backend/` directory is deployed as a Web Service on Render. The `FRONTEND_URL` environment variable is strictly set to the Vercel app domain to enforce secure CORS policies.
-- **Frontend (Vercel)**: The `frontend/` directory is deployed seamlessly via Vercel. `VITE_API_URL` points directly to the live Render backend URL (`https://your-backend.onrender.com/api`).
+- **Backend (Render)**: The ackend/ directory is deployed as a Web Service on Render. The FRONTEND_URL environment variable is strictly set to the Vercel app domain to enforce secure CORS policies. The proxy streaming variables (PLAYER_ALPHA_BASE_URL, etc.) map securely into Helmet's Content Security Policy.
+- **Frontend (Vercel)**: The rontend/ directory is deployed seamlessly via Vercel. VITE_API_URL points directly to the live Render backend URL (https://your-backend.onrender.com/api). Requires setting all VITE_PLAYER_... environment variables inside the Vercel dashboard.
 
 ---
 
@@ -192,6 +239,8 @@ npm run dev
 2. **Request Access**: Upon registration, your account is immediately flagged as "Pending". You will be directed to the Access Gate screen.
 3. **Admin Approval**: An administrative account must log in, navigate to the Admin Dashboard, and manually "Approve" your account.
 4. **Cinematic Experience**: Once approved (you will receive an **email confirmation**), refresh your page to explore TMDB catalogs, manage your Watchlist across devices, and utilize the full UI!
+5. **Streaming Onboarding**: On your first visit to a Watch Page, you will be required to acknowledge the Onboarding guidance popup and select a server (Alpha, Beta, or Gamma). Users can switch servers manually anytime.
+6. **TV Navigation**: TV shows feature dynamic season/episode selectors that effortlessly sync deep-links directly down to your URL bar natively!
 
 ---
 

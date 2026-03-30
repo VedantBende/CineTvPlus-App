@@ -75,12 +75,16 @@ GMAIL_CLIENT_ID=your_google_client_id
 GMAIL_CLIENT_SECRET=your_google_client_secret
 GMAIL_REFRESH_TOKEN=your_google_refresh_token
 
-# External Service URLs (Content Security Policy)
-# These are placeholders for external streaming/embedding services.
-# They are intentionally disabled and non-functional in this project.
-VIDKING_BASE_URL=disabled
-VIDKING_WILDCARD_URL=disabled
-VIDKING_EMBED_URL=disabled
+# External Service Proxy URLs (Content Security Policy)
+PLAYER_ALPHA_BASE_URL=disabled
+PLAYER_ALPHA_EMBED_MOVIE=disabled
+PLAYER_ALPHA_EMBED_TV=disabled
+PLAYER_BETA_BASE_URL=disabled
+PLAYER_BETA_WILDCARD_URL=disabled
+PLAYER_BETA_EMBED_URL=disabled
+PLAYER_GAMMA_BASE_URL=disabled
+PLAYER_GAMMA_EMBED_MOVIE=disabled
+PLAYER_GAMMA_EMBED_TV=disabled
 ```
 
 3. **Start the Development Server**:

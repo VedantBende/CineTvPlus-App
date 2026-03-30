@@ -26,8 +26,14 @@ A custom gatekeeping UI component built to handle the "Pending" user state. Fres
 ### 3. Progressive Admin Dashboard
 A dedicated admin route protected by Role-Based Access Control (RBAC). It features dynamic stat cards, real-time user filtering (Name/Email), status categorization, and visually polished sliding drawers for managing user network access (Approve/Reject/Revoke).
 
-### 4. Personal Watchlists & History
-Users can seamlessly curate personal favorites and resume watching content. Local Zustand state updates optimistically, syncing quietly to the backend in the background to ensure high perceived performance.
+### 4. Advanced Interactive Video Player
+Powered by scalable architecture, the Video Player integrates proxy abstractions securely handling dynamic stream structures:
+- **Multi-Server UI**: Users pick and freely toggle between multiple abstracted servers (Alpha, Beta, Gamma) safely storing their preference for fallback streaming capability.
+- **TV Controls & URL Sync**: Features intuitive Season & Episode modal selectors natively modifying query parameters synchronously so deep-linking TV shows simply works.
+
+### 5. Seamless Onboarding & States
+- To protect UX, all fresh engagements on the watch-route load a mandatory "Before You Start" onboard flow safely persisting acknowledgement tokens directly to the `localStorage` minimizing database fetches.
+- Progress and history optimistically mutate Zustand states while flushing to backend gracefully.
 
 ---
 
@@ -56,9 +62,13 @@ VITE_TMDB_BASE_URL=https://api.themoviedb.org/3
 VITE_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w500
 VITE_TMDB_BACKDROP_BASE_URL=https://image.tmdb.org/t/p/original
 
-# Video Playback (intentionally non-functional)
-VITE_VIDEO_EMBED_URL=disabled
-VITE_PLAYER_BASE_URL=disabled
+# Video Playback Proxy URLs (Intentional Obfuscation abstractions)
+VITE_PLAYER_ALPHA_MOVIE=disabled
+VITE_PLAYER_ALPHA_TV=disabled
+VITE_PLAYER_BETA_MOVIE=disabled
+VITE_PLAYER_BETA_TV=disabled
+VITE_PLAYER_GAMMA_MOVIE=disabled
+VITE_PLAYER_GAMMA_TV=disabled
 ```
 
 3. **Start the Development Server**:

@@ -5,6 +5,8 @@ import PlayerFrame from '../components/media/PlayerFrame';
 import Loader from '../components/ui/Loader';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 function WatchPage() {
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
@@ -21,8 +23,8 @@ function WatchPage() {
   const [resumeTime, setResumeTime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showTips, setShowTips] = useState(true);
-  const [showServerTip, setShowServerTip] = useState(false);
+  const [showTips, setShowTips] = useState(() => !localStorage.getItem('helpfulTipsAccepted'));
+  const [tvSeasons, setTvSeasons] = useState(null);
 
 
   useEffect(() => {
@@ -38,7 +40,27 @@ function WatchPage() {
     } else {
       setLoading(false);
     }
+
+    // Fetch TV show seasons data for episode selector
+    if (mediaType === 'tv' && tmdbId) {
+      fetchTVSeasons();
+    }
   }, [tmdbId, mediaType, season, episode, isSignedIn]);
+
+
+  // Fetch TV seasons metadata from TMDB
+  const fetchTVSeasons = async () => {
+    try {
+      const res = await fetch(`${API_URL}/tmdb/tv/${tmdbId}?language=en-US`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.seasons && Array.isArray(data.seasons)) {
+        setTvSeasons(data.seasons);
+      }
+    } catch (err) {
+      console.error('Failed to fetch TV seasons:', err);
+    }
+  };
 
 
   // Detect fullscreen changes
@@ -69,40 +91,10 @@ function WatchPage() {
   }, []);
 
 
-  // Show server tip after 30 seconds
-  useEffect(() => {
-    const showTimer = setTimeout(() => {
-      setShowServerTip(true);
-    }, 30000);
-
-
-    return () => clearTimeout(showTimer);
-  }, []);
-
-
-  // Auto-hide server tip after 7 seconds of being shown
-  useEffect(() => {
-    if (showServerTip) {
-      const hideTimer = setTimeout(() => {
-        setShowServerTip(false);
-      }, 7000);
-
-
-      return () => clearTimeout(hideTimer);
-    }
-  }, [showServerTip]);
-
-
-  // Hide tips after 12 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTips(false);
-    }, 12000);
-
-
-    return () => clearTimeout(timer);
-  }, []);
-
+  const handleAcceptTips = () => {
+    localStorage.setItem('helpfulTipsAccepted', 'true');
+    setShowTips(false);
+  };
 
   const loadProgress = async () => {
     try {
@@ -214,6 +206,7 @@ function WatchPage() {
             mediaType={mediaType}
             season={season ? parseInt(season) : null}
             episode={episode ? parseInt(episode) : null}
+            seasons={tvSeasons}
             resumeTime={resumeTime}
             autoplay={true}
             quality="auto"
@@ -222,78 +215,46 @@ function WatchPage() {
       </div>
 
 
-      {/* Minimal Tips Card - Responsive */}
+      {/* Mandatory Onboarding Popup */}
       {showTips && !isFullscreen && (
-        <div className="fixed bottom-2 sm:bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 z-40 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:max-w-md px-2 sm:px-0 animate-slide-up">
-          <div className="bg-gray-800 bg-opacity-95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700">
-            {/* Compact Header */}
-            <div className="flex items-center justify-between px-3 py-1.5 sm:px-4 sm:py-2 border-b border-gray-700">
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-gray-900 rounded-xl shadow-2xl border border-red-900/50 max-w-md w-full overflow-hidden transform transition-all scale-100 opacity-100">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h3 className="text-gray-300 font-medium text-[0.65rem] sm:text-xs">Helpful Tips</h3>
+                Before You Start
+              </h3>
+              
+              <div className="space-y-3 mb-6">
+                <p className="text-gray-300 text-sm flex items-start leading-snug">
+                  <span className="text-red-500 mr-2 mt-0.5">•</span> 
+                  For best ad-free experience, use Brave Browser
+                </p>
+                <p className="text-gray-300 text-sm flex items-start leading-snug">
+                  <span className="text-red-500 mr-2 mt-0.5">•</span> 
+                  Avoid clicking ads — they may redirect you
+                </p>
+                <p className="text-gray-300 text-sm flex items-start leading-snug">
+                  <span className="text-red-500 mr-2 mt-0.5">•</span> 
+                  If video doesn't load, try another server
+                </p>
+                <p className="text-gray-300 text-sm flex items-start leading-snug">
+                  <span className="text-red-500 mr-2 mt-0.5">•</span> 
+                  Use fullscreen for best experience
+                </p>
+                <p className="text-gray-300 text-sm flex items-start leading-snug">
+                  <span className="text-red-500 mr-2 mt-0.5">•</span> 
+                  Your progress is saved automatically
+                </p>
               </div>
+
               <button 
-                onClick={() => setShowTips(false)}
-                className="text-gray-400 hover:text-white transition touch-target p-1 -m-1"
-                aria-label="Close tips"
+                onClick={handleAcceptTips}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md"
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-
-
-            {/* Compact Tips */}
-            <div className="px-3 py-2 sm:px-4 sm:py-3 space-y-1.5 sm:space-y-2">
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Avoid clicking ads</strong> - they may redirect you
-              </p>
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Use fullscreen</strong> - for best experience
-              </p>
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Low Video Quality</strong> - Try changing server
-              </p>
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Video not loading?</strong> - Try changing server after 30s
-              </p>
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs leading-snug">
-                <span className="text-gray-400">•</span> <strong className="text-white">Progress auto-saves</strong> - resume anytime
-              </p>
-            </div>
-
-
-            {/* Minimal Footer */}
-            <div className="px-3 py-1 sm:px-4 sm:py-1.5 bg-gray-900 bg-opacity-50 text-center">
-              <p className="text-gray-500 text-[0.6rem] sm:text-xs">Auto-hide in a few seconds</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {/* Minimal Server Tip - Responsive */}
-      {showServerTip && !isFullscreen && !showTips && (
-        <div className="fixed bottom-2 sm:bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 z-40 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:max-w-sm px-2 sm:px-0 animate-slide-up">
-          <div className="bg-gray-800 bg-opacity-95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 p-2.5 sm:p-3">
-            <div className="flex items-start space-x-2 sm:space-x-2.5">
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              <p className="text-gray-300 text-[0.65rem] sm:text-xs flex-1 leading-snug">
-                <strong className="text-white">Video taking too long?</strong> Try changing the server using player controls.
-              </p>
-              <button 
-                onClick={() => setShowServerTip(false)}
-                className="text-gray-400 hover:text-white transition flex-shrink-0 touch-target p-1 -m-1"
-                aria-label="Close server tip"
-              >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                I Understand
               </button>
             </div>
           </div>

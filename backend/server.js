@@ -44,8 +44,10 @@ app.use(helmet({
       connectSrc: ["'self'", process.env.TMDB_BASE_URL],
       frameSrc: [
         "'self'", 
-        process.env.VIDKING_BASE_URL, 
-        process.env.VIDKING_WILDCARD_URL
+        process.env.PLAYER_ALPHA_BASE_URL,
+        process.env.PLAYER_BETA_BASE_URL, 
+        process.env.PLAYER_BETA_WILDCARD_URL,
+        process.env.PLAYER_GAMMA_BASE_URL
       ],
       frameAncestors: ["'self'"],
       objectSrc: ["'none'"],
