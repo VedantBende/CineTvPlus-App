@@ -90,21 +90,29 @@ function PlayerFrame({
     const handleMessage = (event) => {
       try {
         if (event.data && typeof event.data === 'object') {
-          if (event.data.event === 'timeupdate' && event.data.currentTime && event.data.duration) {
+          // If the message is wrapped in a "PLAYER_EVENT", extract the inner payload
+          const payload = event.data.type === 'PLAYER_EVENT' && event.data.data 
+            ? event.data.data 
+            : event.data;
+
+          if (payload.event === 'timeupdate' && payload.currentTime && payload.duration) {
+            const currentProgress = (payload.currentTime / payload.duration) * 100;
+            
             const progressData = {
               tmdbId,
               mediaType,
               season: activeSeason,
               episode: activeEpisode,
-              currentTime: event.data.currentTime,
-              duration: event.data.duration,
-              progress: (event.data.currentTime / event.data.duration) * 100,
+              currentTime: payload.currentTime,
+              duration: payload.duration,
+              progress: currentProgress,
               lastWatched: new Date().toISOString()
             };
 
+            // Calculate seconds to throttle
+            const currentSeconds = Math.floor(payload.currentTime);
 
             // Store in backend every 10 seconds
-            const currentSeconds = Math.floor(event.data.currentTime);
             if (currentSeconds % 10 === 0 && currentSeconds > 0) {
               updateProgress(getToken, progressData).catch(err => console.error('Failed to save progress:', err));
             }

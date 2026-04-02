@@ -164,16 +164,27 @@ function Navbar() {
             {/* User Section - Responsive */}
             {isSignedIn ? (
               <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
-                <Link 
-                  to="/settings" 
-                  className="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition p-2 flex items-center justify-center touch-target"
+                <button 
+                  onClick={() => {
+                    const isSettingsOpen = location.pathname.includes('/settings');
+                    if (isSettingsOpen) {
+                      window.dispatchEvent(new Event('trigger-settings-close'));
+                    } else {
+                      navigate('/settings');
+                    }
+                  }}
+                  className={`transition p-2 flex items-center justify-center touch-target rounded-full ${
+                    location.pathname.includes('/settings')
+                      ? 'text-[#E50914] bg-red-100 dark:bg-red-900/20 shadow-inner'
+                      : 'text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300'
+                  }`}
                   aria-label="Settings"
                 >
                   <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                </Link>
+                </button>
                 <div className="flex items-center">
                   <UserButton afterSignOutUrl="/" />
                 </div>
@@ -253,13 +264,20 @@ function Navbar() {
                   >
                     My List
                   </Link>
-                  <Link 
-                    to="/settings" 
-                    className={`block py-3 px-4 transition text-base font-medium touch-target border-l-2 ${isActive('/settings') ? 'text-accent-red bg-accent-red/10 border-accent-red' : 'text-gray-900 dark:text-white hover:text-netflix-red dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'}`} 
-                    onClick={closeMobileMenu}
+                  <button 
+                    onClick={() => {
+                      const isSettingsOpen = location.pathname.includes('/settings');
+                      if (isSettingsOpen) {
+                        window.dispatchEvent(new Event('trigger-settings-close'));
+                      } else {
+                        navigate('/settings');
+                      }
+                      closeMobileMenu();
+                    }}
+                    className={`w-full text-left block py-3 px-4 transition text-base font-medium touch-target border-l-2 ${isActive('/settings') ? 'text-[#E50914] bg-red-100 dark:bg-red-900/10 border-[#E50914]' : 'text-gray-900 dark:text-white hover:text-netflix-red dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'}`} 
                   >
                     Settings
-                  </Link>
+                  </button>
                   <div className="border-t border-gray-200 dark:border-gray-800 my-2"></div>
                   <div className="px-4 py-3 flex items-center justify-between">
                     <span className="text-gray-500 dark:text-gray-400 text-sm">Account</span>

@@ -22,6 +22,26 @@ function SettingsPage() {
   const [volume, setVolume] = useState(() => {
     return parseInt(localStorage.getItem('volume') || '70', 10);
   });
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    const handleSettingsClose = () => {
+      setIsExiting(true);
+      setTimeout(() => {
+        navigate(-1);
+      }, 250);
+    };
+
+    window.addEventListener('trigger-settings-close', handleSettingsClose);
+    return () => window.removeEventListener('trigger-settings-close', handleSettingsClose);
+  }, [navigate]);
+
+  const handleBackToHomeClick = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      navigate('/');
+    }, 250);
+  };
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -51,8 +71,8 @@ function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-      <div className="container-custom py-6 sm:py-8 md:py-10 lg:py-12 max-w-4xl">
+    <div className={`min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300`}>
+      <div className={`container-custom py-6 sm:py-8 md:py-10 lg:py-12 max-w-4xl ${isExiting ? 'opacity-0 translate-y-8 transition-all duration-300 ease-in' : 'animate-slide-up'}`}>
         {/* Page Title - Responsive */}
         <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 transition-colors">
           Settings
@@ -204,7 +224,7 @@ function SettingsPage() {
         {/* Account Actions - Responsive */}
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={handleBackToHomeClick}
             className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-5 py-3 rounded font-medium transition-all text-sm sm:text-base touch-target"
           >
             Back to Home

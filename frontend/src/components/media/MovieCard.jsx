@@ -12,10 +12,11 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="netflix-card group relative border-2 border-transparent hover:border-accent-red/50 transition-colors duration-400"
-    >
+    <div className="px-1.5 py-1">
+      <div
+        onClick={handleClick}
+        className="netflix-card group relative ring-2 ring-transparent hover:ring-netflix-red transition-all duration-300 rounded-lg cursor-pointer bg-white/0 shadow-sm hover:shadow-xl"
+      >
       {/* Poster Image */}
       <div className="relative aspect-[2/3] bg-gray-200 dark:bg-gray-800 overflow-hidden rounded-lg transition-colors duration-300">
         {!imageError && poster ? (
@@ -76,6 +77,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
           )}
           <span className="text-gray-600 text-xs capitalize">{type === 'tv' ? 'TV Show' : 'Movie'}</span>
         </div>
+      </div>
       </div>
     </div>
   );

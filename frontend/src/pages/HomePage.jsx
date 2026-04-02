@@ -387,7 +387,7 @@ function HomePage() {
       {/* Content Sections - Horizontal Scrolling Rows */}
       <div className="container-custom py-4 xs:py-5 sm:py-6 md:py-8 lg:py-10 xl:py-12 space-y-6 xs:space-y-7 sm:space-y-8 md:space-y-10 lg:space-y-12">
         {/* Continue Watching */}
-        {isSignedIn && <ContinueWatching />}
+        <ContinueWatching />
 
         {trendingMovies.length > 0 && (
           <Top10Row items={trendingMovies} type="movie" />

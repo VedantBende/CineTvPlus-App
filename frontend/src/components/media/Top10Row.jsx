@@ -114,7 +114,7 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
     <section className="space-y-4 sm:space-y-6 md:space-y-8 my-8 sm:my-10 lg:my-16">
       {/* Title Area */}
       <div className="flex items-end gap-3 px-1">
-        <h2 className="text-transparent font-black text-4xl sm:text-5xl md:text-6xl tracking-tight leading-none" style={{ WebkitTextStroke: '1px #E50914' }}>
+        <h2 className="text-transparent font-black text-5xl sm:text-5xl md:text-8xl tracking-tight leading-none" style={{ WebkitTextStroke: '1px #E50914' }}>
           {title}
         </h2>
         <div className="flex flex-col text-gray-900 dark:text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1 transition-colors">
@@ -159,7 +159,7 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         <div
           ref={scrollRef}
           className="flex gap-8 xs:gap-12 sm:gap-16 lg:gap-20 overflow-x-auto overflow-y-visible no-scrollbar scroll-smooth snap-x snap-mandatory py-6 -my-6 px-4 sm:px-8"
-          style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+          style={{ scrollPaddingLeft: '2rem', scrollPaddingRight: '1rem' }}
         >
           {top10Items.map((item, index) => (
             <Top10Card key={item.tmdbId} item={item} index={index} type={type} />

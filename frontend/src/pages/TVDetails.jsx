@@ -27,6 +27,7 @@ function TVDetails() {
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(1);
 
 
 
@@ -306,26 +307,76 @@ function TVDetails() {
 
 
             {/* Episodes Section - Responsive */}
-            <div className="bg-gray-50 dark:bg-netflix-gray rounded-lg p-4 sm:p-5 md:p-6 mb-6 sm:mb-8 border border-gray-100 dark:border-transparent transition-colors">
-              <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 transition-colors">
-                Seasons & Episodes
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm md:text-base mb-3 sm:mb-4 transition-colors">
-                Select season and episode from the player controls when watching.
-              </p>
-              
-              {/* Quick Access Buttons - Responsive */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-                {[...Array(Math.min(show.seasons || 1, 8))].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => navigate(`/watch?id=${id}&type=tv&season=${i + 1}&episode=1`)}
-                    className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-3 py-2 sm:px-4 sm:py-3 rounded text-sm sm:text-base font-medium transition-all touch-target border border-gray-200 dark:border-transparent"
-                  >
-                    Season {i + 1}
-                  </button>
-                ))}
+            <div className="mb-8 p-1">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-gray-900 dark:text-white text-xl md:text-2xl font-bold tracking-tight">
+                  Episodes
+                </h2>
               </div>
+              
+              {/* Season Selection Pills */}
+              <div className="flex overflow-x-auto no-scrollbar gap-2 sm:gap-3 mb-6 pb-2 border-b border-gray-200 dark:border-gray-800">
+                {[...Array(show.seasons || 1)].map((_, i) => {
+                  const seasonNum = i + 1;
+                  const isActive = selectedSeason === seasonNum;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedSeason(seasonNum)}
+                      className={`whitespace-nowrap pb-3 px-1 text-sm sm:text-base font-semibold transition-all relative ${
+                        isActive
+                          ? 'text-[#E50914] dark:text-[#E50914]'
+                          : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      Season {seasonNum}
+                      {isActive && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E50914] rounded-t-lg" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Episodes Minimalist Grid */}
+              {(() => {
+                const targetSeason = show.seasonsData?.find(s => s.season_number === selectedSeason);
+                const epCount = targetSeason?.episode_count || 1;
+                
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+                    {[...Array(epCount)].map((_, i) => {
+                      const epNum = i + 1;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => navigate(`/watch?id=${id}&type=tv&season=${selectedSeason}&episode=${epNum}`)}
+                          className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 dark:bg-[#1a1a1a] dark:hover:bg-[#262626] text-gray-900 dark:text-white p-3 sm:p-4 rounded-xl transition-all duration-300 group border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-2xl font-black text-gray-300 dark:text-gray-700 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-colors">
+                              {epNum}
+                            </span>
+                            <div className="flex flex-col items-start">
+                              <span className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#E50914] transition-colors leading-tight">
+                                Episode {epNum}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-500 font-medium mt-0.5">
+                                Season {selectedSeason}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-white dark:bg-[#0f0f0f] shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100 border border-gray-100 dark:border-gray-800">
+                            <svg className="w-3.5 h-3.5 text-[#E50914] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
 

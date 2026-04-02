@@ -338,6 +338,7 @@ export const fetchTVShowDetails = async (showId) => {
       overview: show.overview,
       seasons: show.number_of_seasons,
       episodes: show.number_of_episodes,
+      seasonsData: show.seasons || [],
       genres: show.genres,
       cast: show.credits?.cast?.slice(0, 12).map(actor => ({
         name: actor.name,

@@ -1,129 +1,62 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getContinueWatching } from '../../utils/progressTracker';
-import { fetchMovieDetails, fetchTVShowDetails } from '../../utils/tmdbApi';
-import { formatProgress } from '../../utils/formatters';
-import Loader from '../ui/Loader';
-import { useAuth } from '@clerk/clerk-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getContinueWatchingList, removeItem } from '../../utils/continueWatchingStore';
+import ContentRow from './ContentRow';
+import ContinueWatchingCard from './ContinueWatchingCard';
 
 function ContinueWatching() {
-  const { getToken } = useAuth();
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    loadContinueWatching();
-  }, []);
+    const list = getContinueWatchingList();
+    setItems(list);
+  }, [location.pathname]);
 
-  const loadContinueWatching = async () => {
-    try {
-      setLoading(true);
-      const progressItems = await getContinueWatching(getToken);
-
-      // Fetch TMDB metadata for each item
-      const itemsWithMetadata = await Promise.all(
-        progressItems.slice(0, 6).map(async (item) => {
-          let metadata;
-          
-          if (item.mediaType === 'movie') {
-            metadata = await fetchMovieDetails(item.mediaId);
-          } else {
-            metadata = await fetchTVShowDetails(item.mediaId);
-          }
-
-          return metadata ? {
-            ...item,
-            ...metadata
-          } : null;
-        })
-      );
-
-      // Filter out null values
-      const validItems = itemsWithMetadata.filter(item => item !== null);
-      setItems(validItems);
-    } catch (error) {
-      console.error('Failed to load continue watching:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleRemove = (id) => {
+    removeItem(id);
+    setItems(getContinueWatchingList());
   };
 
   const handleContinueWatching = (item) => {
     const params = new URLSearchParams({
-      id: item.mediaId,
-      type: item.mediaType,
-      resume: item.currentTime
+      id: item.id,
+      type: item.type
     });
 
-    if (item.season) params.append('season', item.season);
-    if (item.episode) params.append('episode', item.episode);
+    if (item.season && item.episode) {
+      params.append('season', item.season);
+      params.append('episode', item.episode);
+    }
 
     navigate(`/watch?${params.toString()}`);
   };
 
-  if (loading) {
-    return <Loader text="Loading your progress..." />;
-  }
-
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <div className="mb-12">
-      <h2 className="text-white text-2xl font-bold mb-6">Continue Watching</h2>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {items.map((item, index) => (
-          <div
-            key={index}
+    <ContentRow title="Continue Watching" icon="play_arrow">
+      {items.map((item, index) => (
+        <div 
+          key={`${item.id}-${index}`}
+          className="flex-shrink-0 snap-start w-[75vw] xs:w-[60vw] sm:w-[45vw] md:w-[32vw] lg:w-[26vw] xl:w-[22vw] transition-transform duration-300 ease-out"
+        >
+          <ContinueWatchingCard
+            tmdbId={item.id}
+            title={item.title}
+            backdrop={item.backdrop_path || item.poster_path}
+            type={item.type}
+            season={item.season}
+            episode={item.episode}
+            onRemove={handleRemove}
             onClick={() => handleContinueWatching(item)}
-            className="netflix-card cursor-pointer group"
-          >
-            <div className="relative aspect-[16/9] bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
-              {item.backdrop && (
-                <img
-                  src={item.backdrop}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                  loading="lazy"
-                />
-              )}
-
-              {/* Progress Bar */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                <div
-                  className="h-full bg-netflix-red transition-all"
-                  style={{ width: `${item.progress}%` }}
-                />
-              </div>
-
-              {/* Play Overlay - Consistent Dark Cinematic Effect */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex items-center justify-center">
-                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <button className="bg-white text-black rounded-full p-3 hover:bg-gray-200 transition-all hover:scale-110 shadow-xl">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-2">
-              <h3 className="text-white text-sm font-medium truncate">
-                {item.title}
-              </h3>
-              <p className="text-gray-400 text-xs">
-                {formatProgress(item.progress)} complete
-                {item.season && item.episode && ` • S${item.season} E${item.episode}`}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          />
+        </div>
+      ))}
+    </ContentRow>
   );
 }
 

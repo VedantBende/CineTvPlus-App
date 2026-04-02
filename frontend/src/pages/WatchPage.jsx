@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getProgress } from '../utils/progressTracker';
+import { addOrUpdateItem } from '../utils/continueWatchingStore';
 import PlayerFrame from '../components/media/PlayerFrame';
+import DevToolsErrorScreen from '../components/ui/DevToolsErrorScreen';
+import { useDevToolsDetector } from '../utils/devtoolsDetector';
 import Loader from '../components/ui/Loader';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 function WatchPage() {
+  const isDevToolsOpen = useDevToolsDetector();
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
   const [searchParams] = useSearchParams();
@@ -34,6 +38,9 @@ function WatchPage() {
       navigate('/');
       return;
     }
+
+    // Trigger local tracking unconditionally when page loads
+    addOrUpdateItem(tmdbId, mediaType, season, episode);
 
     if (isSignedIn) {
       loadProgress();
@@ -157,6 +164,9 @@ function WatchPage() {
     navigate(-1);
   };
 
+  if (isDevToolsOpen) {
+    return <DevToolsErrorScreen />;
+  }
 
   if (loading) {
     return (
