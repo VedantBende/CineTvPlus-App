@@ -50,7 +50,7 @@ function UserSync() {
         );
 
         if (isMounted) {
-          console.log('✅ User synced successfully:', response.data.user);
+          console.log('✅ User synced successfully...');
           setMongoUser(response.data.user);
         }
       } catch (error) {
