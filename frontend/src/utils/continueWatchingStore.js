@@ -1,82 +1,66 @@
-import { fetchMovieDetails, fetchTVShowDetails } from './tmdbApi';
+import axios from 'axios';
+import { getAuthHeaders } from './api';
 
-const STORAGE_KEY = 'continueWatching';
-const MAX_ITEMS = 20;
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-export const getContinueWatchingList = () => {
+/**
+ * Fetch the user's continue watching list from the database.
+ * @param {Function} getToken - Clerk getToken function
+ * @returns {Array} list of continue watching items
+ */
+export const fetchContinueWatchingList = async (getToken) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (err) {
-    console.error('Failed to parse continue watching list', err);
+    const headers = await getAuthHeaders(getToken);
+    const response = await axios.get(`${API_URL}/continue-watching`, { headers });
+    return response.data.items || [];
+  } catch (error) {
+    console.error('Failed to fetch continue watching list:', error);
     return [];
   }
 };
 
-export const addOrUpdateItem = async (tmdbId, type, season = null, episode = null) => {
-  if (!tmdbId || !type) return;
+/**
+ * Add or update a continue watching item in the database.
+ * Silently skips if getToken is not available (unauthenticated).
+ * @param {Function|null} getToken - Clerk getToken function
+ * @param {Object} params - media metadata
+ */
+export const addOrUpdateItem = async (getToken, { tmdbId, type, title, posterPath, backdropPath, season, episode }) => {
+  if (!getToken || !tmdbId || !type) return;
 
   try {
-    let list = getContinueWatchingList();
-    const existingIndex = list.findIndex(item => String(item.id) === String(tmdbId));
-    let itemToSave;
-
-    if (existingIndex !== -1) {
-      // Use existing item and just update properties
-      itemToSave = { ...list[existingIndex] };
-      itemToSave.season = season ? parseInt(season) : null;
-      itemToSave.episode = episode ? parseInt(episode) : null;
-      itemToSave.addedAt = new Date().toISOString();
-      list.splice(existingIndex, 1);
-    } else {
-      // New item, fetch metadata
-      let metadata;
-      if (type === 'movie') {
-        metadata = await fetchMovieDetails(tmdbId);
-      } else {
-        metadata = await fetchTVShowDetails(tmdbId);
-      }
-      
-      if (!metadata) return; // Prevent saving if API fails
-      
-      itemToSave = {
-        id: String(tmdbId),
-        type,
-        title: metadata.title || 'Unknown Title',
-        poster_path: metadata.url || null,
-        backdrop_path: metadata.backdrop || null,
+    const headers = await getAuthHeaders(getToken);
+    await axios.post(
+      `${API_URL}/continue-watching`,
+      {
+        mediaId: String(tmdbId),
+        mediaType: type,
+        title: title || 'Unknown Title',
+        posterPath: posterPath || null,
+        backdropPath: backdropPath || null,
         season: season ? parseInt(season) : null,
-        episode: episode ? parseInt(episode) : null,
-        addedAt: new Date().toISOString()
-      };
-    }
-
-    list.unshift(itemToSave);
-
-    if (list.length > MAX_ITEMS) {
-      list = list.slice(0, MAX_ITEMS);
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Failed to add continue watching item', err);
+        episode: episode ? parseInt(episode) : null
+      },
+      { headers }
+    );
+  } catch (error) {
+    console.error('Failed to add/update continue watching item:', error);
   }
 };
 
-export const removeItem = (id) => {
-  try {
-    let list = getContinueWatchingList();
-    list = list.filter(item => String(item.id) !== String(id));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Failed to remove item', err);
-  }
-};
+/**
+ * Remove a continue watching item from the database.
+ * @param {Function} getToken - Clerk getToken function
+ * @param {string} mediaId - TMDB media ID
+ */
+export const removeItem = async (getToken, mediaId) => {
+  if (!getToken || !mediaId) return;
 
-export const clearAll = () => {
   try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (err) {
-    console.error('Failed to clear list', err);
+    const headers = await getAuthHeaders(getToken);
+    await axios.delete(`${API_URL}/continue-watching/${mediaId}`, { headers });
+  } catch (error) {
+    console.error('Failed to remove continue watching item:', error);
+    throw error; // Re-throw so caller can revert optimistic UI
   }
 };

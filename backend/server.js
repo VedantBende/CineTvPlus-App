@@ -22,6 +22,7 @@ import adminRoutes from './routes/admin.routes.js';
 import favoritesRoutes from './routes/favorites.routes.js';
 import historyRoutes from './routes/history.routes.js';
 import tmdbRoutes from './routes/tmdb.routes.js';
+import continueWatchingRoutes from './routes/continueWatching.routes.js';
 import { initDatabaseKeepAlive, checkDatabaseHealth } from './utils/dbHealth.js';
 
 const app = express();
@@ -117,6 +118,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/tmdb', tmdbRoutes);
+app.use('/api/continue-watching', continueWatchingRoutes);
 
 // 404 Handler
 app.use((req, res) => {

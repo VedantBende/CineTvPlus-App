@@ -39,8 +39,39 @@ function WatchPage() {
       return;
     }
 
-    // Trigger local tracking unconditionally when page loads
-    addOrUpdateItem(tmdbId, mediaType, season, episode);
+    // Track in continue watching (DB-backed, fire-and-forget)
+    // Uses a lightweight fetch to our cached TMDB proxy — NOT the heavy
+    // fetchMovieDetails/fetchTVShowDetails (which append credits,videos and
+    // can compete with the detail page's own TMDB call, causing intermittent failures).
+    if (isSignedIn) {
+      (async () => {
+        try {
+          const res = await fetch(`${API_URL}/tmdb/${mediaType}/${tmdbId}?language=en-US`);
+          if (res.ok) {
+            const data = await res.json();
+            const title = data.title || data.name || 'Unknown Title';
+            const posterPath = data.poster_path
+              ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
+              : null;
+            const backdropPath = data.backdrop_path
+              ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
+              : null;
+
+            addOrUpdateItem(getToken, {
+              tmdbId,
+              type: mediaType,
+              title,
+              posterPath,
+              backdropPath,
+              season,
+              episode
+            });
+          }
+        } catch (err) {
+          console.error('Continue watching tracking failed:', err);
+        }
+      })();
+    }
 
     if (isSignedIn) {
       loadProgress();

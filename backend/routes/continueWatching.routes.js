@@ -1,112 +1,66 @@
 import express from 'express';
-import User from '../models/User.js';
-import { requireAuth, syncUser } from '../middleware/clerkAuth.middleware.js';
-import mongoose from 'mongoose';
-
+import { requireAuth, requireMongoUser, requireApproved } from '../middleware/auth.middleware.js';
+import ContinueWatching from '../models/ContinueWatching.js';
 
 const router = express.Router();
 
-const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-  });
-};
+// All routes require an approved, authenticated user
+router.use(requireAuth, requireMongoUser, requireApproved);
 
-// Get user's watchlist
-router.get('/', requireAuth, syncUser, async (req, res) => {
+// GET / — Fetch all continue watching items for the logged-in user
+router.get('/', async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    res.json(user.watchlist || []);
+    const items = await ContinueWatching.find({ userId: req.user._id })
+      .sort({ updatedAt: -1 })
+      .limit(20);
+
+    res.json({ items });
   } catch (error) {
-    console.error('Error fetching watchlist:', error);
-    res.status(500).json({ error: 'Failed to fetch watchlist' });
+    console.error('Error fetching continue watching:', error);
+    res.status(500).json({ error: 'Failed to fetch continue watching list' });
   }
 });
 
-// Add to watchlist
-router.post('/add', requireAuth, syncUser, async (req, res) => {
+// POST / — Add or update a continue watching item (upsert)
+router.post('/', async (req, res) => {
   try {
-    const { mediaId, title, poster, rating, year, type } = req.body;
-    
-    if (!mediaId) {
-      return res.status(400).json({ error: 'Media ID is required' });
+    const { mediaId, mediaType, title, posterPath, backdropPath, season, episode } = req.body;
+
+    if (!mediaId || !mediaType) {
+      return res.status(400).json({ error: 'mediaId and mediaType are required' });
     }
 
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const item = await ContinueWatching.findOneAndUpdate(
+      { userId: req.user._id, mediaId: String(mediaId) },
+      {
+        userId: req.user._id,
+        mediaId: String(mediaId),
+        mediaType,
+        title: title || 'Unknown Title',
+        posterPath: posterPath || null,
+        backdropPath: backdropPath || null,
+        season: season ? parseInt(season) : null,
+        episode: episode ? parseInt(episode) : null
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
-    // Check if already exists
-    const exists = user.watchlist.some(item => item.mediaId === mediaId);
-    if (exists) {
-      return res.status(400).json({ error: 'Already in watchlist' });
-    }
-
-    const watchlistItem = {
-      mediaId,
-      title,
-      poster,
-      rating,
-      year,
-      type,
-      addedAt: new Date()
-    };
-
-    user.watchlist.push(watchlistItem);
-    await user.save();
-
-    res.json({
-      message: 'Added to watchlist',
-      item: watchlistItem
-    });
+    res.json({ message: 'Continue watching updated', item });
   } catch (error) {
-    console.error('Error adding to watchlist:', error);
-    res.status(500).json({ error: 'Failed to add to watchlist' });
+    console.error('Error upserting continue watching:', error);
+    res.status(500).json({ error: 'Failed to update continue watching' });
   }
 });
 
-// Remove from watchlist
-router.delete('/remove/:mediaId', requireAuth, syncUser, async (req, res) => {
+// DELETE /:mediaId — Remove a single item
+router.delete('/:mediaId', async (req, res) => {
   try {
     const { mediaId } = req.params;
-    
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    user.watchlist = user.watchlist.filter(item => item.mediaId !== mediaId);
-    await user.save();
-
-    res.json({ message: 'Removed from watchlist' });
+    await ContinueWatching.findOneAndDelete({ userId: req.user._id, mediaId: String(mediaId) });
+    res.json({ message: 'Removed from continue watching' });
   } catch (error) {
-    console.error('Error removing from watchlist:', error);
-    res.status(500).json({ error: 'Failed to remove from watchlist' });
-  }
-});
-
-// Check if media is in watchlist
-router.get('/check/:mediaId', requireAuth, syncUser, async (req, res) => {
-  try {
-    const { mediaId } = req.params;
-    
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.json({ isInWatchlist: false });
-    }
-
-    const isInWatchlist = user.watchlist.some(item => item.mediaId === mediaId);
-    res.json({ isInWatchlist });
-  } catch (error) {
-    console.error('Error checking watchlist:', error);
-    res.status(500).json({ error: 'Failed to check watchlist' });
+    console.error('Error removing continue watching item:', error);
+    res.status(500).json({ error: 'Failed to remove item' });
   }
 });
 
