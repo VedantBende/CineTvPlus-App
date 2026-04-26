@@ -14,8 +14,12 @@ const ALPHA_MOVIE = import.meta.env.VITE_PLAYER_ALPHA_MOVIE;
 const ALPHA_TV    = import.meta.env.VITE_PLAYER_ALPHA_TV;
 const BETA_MOVIE  = import.meta.env.VITE_PLAYER_BETA_MOVIE;
 const BETA_TV     = import.meta.env.VITE_PLAYER_BETA_TV;
-const GAMMA_MOVIE = import.meta.env.VITE_PLAYER_GAMMA_MOVIE;
-const GAMMA_TV    = import.meta.env.VITE_PLAYER_GAMMA_TV;
+const GAMMA_MOVIE   = import.meta.env.VITE_PLAYER_GAMMA_MOVIE;
+const GAMMA_TV      = import.meta.env.VITE_PLAYER_GAMMA_TV;
+const DELTA_MOVIE   = import.meta.env.VITE_PLAYER_DELTA_MOVIE;
+const DELTA_TV      = import.meta.env.VITE_PLAYER_DELTA_TV;
+const EPSILON_MOVIE = import.meta.env.VITE_PLAYER_EPSILON_MOVIE;
+const EPSILON_TV    = import.meta.env.VITE_PLAYER_EPSILON_TV;
 
 // ─── Player Definitions ───────────────────────────────────────────────
 
@@ -75,6 +79,38 @@ export const PLAYERS = {
         return `${GAMMA_TV}/${tmdbId}/${season}/${episode}`;
       }
       return `${GAMMA_MOVIE}/${tmdbId}`;
+    },
+  },
+
+  delta: {
+    id: 'delta',
+    label: 'Server Delta',
+    description: 'Standard · Fast',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv') {
+        if (!season || !episode) {
+          console.warn('[Delta] TV requires season and episode');
+          return null;
+        }
+        return `${DELTA_TV}/${tmdbId}/${season}/${episode}`;
+      }
+      return `${DELTA_MOVIE}/${tmdbId}`;
+    },
+  },
+
+  epsilon: {
+    id: 'epsilon',
+    label: 'Server Epsilon',
+    description: 'Enhanced · Reliable',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv') {
+        if (!season || !episode) {
+          console.warn('[Epsilon] TV requires season and episode');
+          return null;
+        }
+        return `${EPSILON_TV}/${tmdbId}/${season}/${episode}`;
+      }
+      return `${EPSILON_MOVIE}/${tmdbId}`;
     },
   },
 };

@@ -9,6 +9,8 @@ import Loader from '../components/ui/Loader';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const POSTER_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500';
+const BACKDROP_BASE = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/original';
 
 function WatchPage() {
   const isDevToolsOpen = useDevToolsDetector();
@@ -51,10 +53,10 @@ function WatchPage() {
             const data = await res.json();
             const title = data.title || data.name || 'Unknown Title';
             const posterPath = data.poster_path
-              ? `https://image.tmdb.org/t/p/w500${data.poster_path}`
+              ? `${POSTER_BASE}${data.poster_path}`
               : null;
             const backdropPath = data.backdrop_path
-              ? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
+              ? `${BACKDROP_BASE}${data.backdrop_path}`
               : null;
 
             addOrUpdateItem(getToken, {

@@ -133,6 +133,103 @@ function PlayerFrame({
   }, [tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
 
 
+  // ─── Shared Event Handler (Delta + Epsilon) ─────────────────────
+  useEffect(() => {
+    // Only attach if active server is Delta or Epsilon
+    if (selectedPlayer !== 'delta' && selectedPlayer !== 'epsilon') return;
+
+    const TRUSTED_ORIGIN = import.meta.env.VITE_PLAYER_DELTA_EPSILON_ORIGIN;
+
+    const handleDeltaEpsilonMessage = (event) => {
+      // Strict origin validation — NEVER process other origins
+      if (event.origin !== TRUSTED_ORIGIN) return;
+
+      try {
+        const message = event.data;
+        if (!message || typeof message !== 'object') return;
+
+        // ── MEDIA_DATA: Store stream metadata in localStorage ──
+        if (message.type === 'MEDIA_DATA') {
+          try {
+            const existing = JSON.parse(localStorage.getItem('deltaEpsilonProgress') || '{}');
+            const key = mediaType === 'tv'
+              ? `tv_${tmdbId}_s${activeSeason}_e${activeEpisode}`
+              : `movie_${tmdbId}`;
+
+            localStorage.setItem('deltaEpsilonProgress', JSON.stringify({
+              ...existing,
+              [key]: {
+                ...message.data,
+                tmdbId,
+                mediaType,
+                season: activeSeason,
+                episode: activeEpisode,
+                server: selectedPlayer,
+                last_updated: new Date().toISOString(),
+              }
+            }));
+          } catch {
+            // localStorage may be unavailable
+          }
+          return;
+        }
+
+        // ── PLAYER_EVENT: Handle playback lifecycle events ──
+        if (message.type === 'PLAYER_EVENT') {
+          const payload = message.data || {};
+          const eventType = payload.event;
+
+          if (!eventType) return;
+
+          switch (eventType) {
+            case 'timeupdate': {
+              const { currentTime, duration } = payload;
+              if (!currentTime || !duration) break;
+
+              const currentSeconds = Math.floor(currentTime);
+
+              // Throttle: sync to backend every 10s
+              if (currentSeconds % 10 === 0 && currentSeconds > 0) {
+                const progressData = {
+                  tmdbId,
+                  mediaType,
+                  season: activeSeason,
+                  episode: activeEpisode,
+                  currentTime,
+                  duration,
+                  progress: (currentTime / duration) * 100,
+                  lastWatched: new Date().toISOString(),
+                };
+                updateProgress(getToken, progressData).catch(
+                  err => console.error('[Delta/Epsilon] Failed to save progress:', err)
+                );
+              }
+              break;
+            }
+
+            case 'play':
+            case 'pause':
+            case 'seeked':
+            case 'ended':
+              console.debug(`[${selectedPlayer}] Player event: ${eventType}`);
+              break;
+
+            default:
+              // Silently ignore unknown events
+              break;
+          }
+        }
+      } catch {
+        // Malformed event data — silently discard
+      }
+    };
+
+    window.addEventListener('message', handleDeltaEpsilonMessage);
+    return () => window.removeEventListener('message', handleDeltaEpsilonMessage);
+
+  }, [selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
+
+
   // No player selected — show server picker modal
   if (!selectedPlayer) {
     return (

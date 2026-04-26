@@ -48,7 +48,8 @@ app.use(helmet({
         process.env.PLAYER_ALPHA_BASE_URL,
         process.env.PLAYER_BETA_BASE_URL, 
         process.env.PLAYER_BETA_WILDCARD_URL,
-        process.env.PLAYER_GAMMA_BASE_URL
+        process.env.PLAYER_GAMMA_BASE_URL,
+        process.env.PLAYER_DELTA_EPSILON_BASE_URL,
       ],
       frameAncestors: ["'self'"],
       objectSrc: ["'none'"],

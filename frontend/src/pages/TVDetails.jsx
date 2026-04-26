@@ -11,7 +11,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w185';
+const TMDB_IMAGE_BASE = import.meta.env.VITE_TMDB_CAST_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w185';
 
 
 

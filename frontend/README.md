@@ -28,7 +28,7 @@ A dedicated admin route protected by Role-Based Access Control (RBAC). It featur
 
 ### 4. Advanced Interactive Video Player
 Powered by scalable architecture, the Video Player integrates proxy abstractions securely handling dynamic stream structures:
-- **Multi-Server UI**: Users pick and freely toggle between multiple abstracted servers (Alpha, Beta, Gamma) safely storing their preference for fallback streaming capability.
+- **Multi-Server UI**: Users pick and freely toggle between multiple abstracted servers (Alpha, Beta, Gamma, Delta, Epsilon) safely storing their preference for fallback streaming capability.
 - **TV Controls & URL Sync**: Features intuitive Season & Episode modal selectors natively modifying query parameters synchronously so deep-linking TV shows simply works.
 
 ### 5. Seamless Onboarding & States
@@ -69,6 +69,14 @@ VITE_PLAYER_BETA_MOVIE=disabled
 VITE_PLAYER_BETA_TV=disabled
 VITE_PLAYER_GAMMA_MOVIE=disabled
 VITE_PLAYER_GAMMA_TV=disabled
+VITE_PLAYER_DELTA_MOVIE=disabled
+VITE_PLAYER_DELTA_TV=disabled
+VITE_PLAYER_EPSILON_MOVIE=disabled
+VITE_PLAYER_EPSILON_TV=disabled
+VITE_PLAYER_DELTA_EPSILON_ORIGIN=disabled
+
+# TMDB Cast Image (used in MovieDetails and TVDetails)
+VITE_TMDB_CAST_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w185
 ```
 
 3. **Start the Development Server**:
