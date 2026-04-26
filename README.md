@@ -275,5 +275,5 @@ npm run dev
 
 **Vedant Bende**
 - [GitHub](https://github.com/VedantBende)
-- [Portfolio](https://vedantbende.github.io/Portfolio-2.0/)
+- [Portfolio](https://vedantbende.vercel.app/)
 - [LinkedIn](https://www.linkedin.com/in/vedant-bende-3aa28b2a8/)
