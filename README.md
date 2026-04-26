@@ -31,9 +31,11 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - Users can choose between multiple streaming servers.
 - Improves reliability and playback success with manual fallback capability.
 - **Servers:**
-  - Server Alpha → Fast & Relaible
+  - Server Alpha → Fast & Reliable
   - Server Beta → Premium
   - Server Gamma → Stable
+  - Server Delta → Standard · Fast
+  - Server Epsilon → Enhanced · Reliable
 
 ### 🔐 First-Time Player Selection
 - Users must select a server before playback for a personalized experience.
@@ -188,6 +190,7 @@ PLAYER_BETA_EMBED_URL=disabled
 PLAYER_GAMMA_BASE_URL=disabled
 PLAYER_GAMMA_EMBED_MOVIE=disabled
 PLAYER_GAMMA_EMBED_TV=disabled
+PLAYER_DELTA_EPSILON_BASE_URL=disabled
 ```
 Start the backend development server:
 ```bash
@@ -218,6 +221,14 @@ VITE_PLAYER_BETA_MOVIE=disabled
 VITE_PLAYER_BETA_TV=disabled
 VITE_PLAYER_GAMMA_MOVIE=disabled
 VITE_PLAYER_GAMMA_TV=disabled
+VITE_PLAYER_DELTA_MOVIE=disabled
+VITE_PLAYER_DELTA_TV=disabled
+VITE_PLAYER_EPSILON_MOVIE=disabled
+VITE_PLAYER_EPSILON_TV=disabled
+VITE_PLAYER_DELTA_EPSILON_ORIGIN=disabled
+
+# TMDB Cast Image
+VITE_TMDB_CAST_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w185
 ```
 Start the frontend development server:
 ```bash
@@ -239,7 +250,7 @@ npm run dev
 2. **Request Access**: Upon registration, your account is immediately flagged as "Pending". You will be directed to the Access Gate screen.
 3. **Admin Approval**: An administrative account must log in, navigate to the Admin Dashboard, and manually "Approve" your account.
 4. **Cinematic Experience**: Once approved (you will receive an **email confirmation**), refresh your page to explore TMDB catalogs, manage your Watchlist across devices, and utilize the full UI!
-5. **Streaming Onboarding**: On your first visit to a Watch Page, you will be required to acknowledge the Onboarding guidance popup and select a server (Alpha, Beta, or Gamma). Users can switch servers manually anytime.
+5. **Streaming Onboarding**: On your first visit to a Watch Page, you will be required to acknowledge the Onboarding guidance popup and select a server (Alpha, Beta, Gamma, Delta, or Epsilon). Users can switch servers manually anytime.
 6. **TV Navigation**: TV shows feature dynamic season/episode selectors that effortlessly sync deep-links directly down to your URL bar natively!
 
 ---

@@ -85,6 +85,7 @@ PLAYER_BETA_EMBED_URL=disabled
 PLAYER_GAMMA_BASE_URL=disabled
 PLAYER_GAMMA_EMBED_MOVIE=disabled
 PLAYER_GAMMA_EMBED_TV=disabled
+PLAYER_DELTA_EPSILON_BASE_URL=disabled
 ```
 
 3. **Start the Development Server**:

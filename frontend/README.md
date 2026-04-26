@@ -75,7 +75,7 @@ VITE_PLAYER_EPSILON_MOVIE=disabled
 VITE_PLAYER_EPSILON_TV=disabled
 VITE_PLAYER_DELTA_EPSILON_ORIGIN=disabled
 
-# TMDB Cast Image (used in MovieDetails and TVDetails)
+# TMDB Cast Image
 VITE_TMDB_CAST_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w185
 ```
 
