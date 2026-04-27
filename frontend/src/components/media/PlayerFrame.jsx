@@ -22,7 +22,7 @@ function PlayerFrame({
   const location = useLocation();
 
   // Player selection — null means no player chosen yet (show modal)
-  const [selectedPlayer, setSelectedPlayer] = useState(() => getSavedPlayer());
+  const [selectedPlayer, setSelectedPlayer] = useState(() => getSavedPlayer(tmdbId, mediaType));
   const [animateButtons, setAnimateButtons] = useState(false);
 
   // Internal season/episode state (for TV switching without page reload)
@@ -33,7 +33,8 @@ function PlayerFrame({
   useEffect(() => {
     setActiveSeason(mediaType === 'tv' ? (season || 1) : null);
     setActiveEpisode(mediaType === 'tv' ? (episode || 1) : null);
-  }, [season, episode, mediaType]);
+    setSelectedPlayer(getSavedPlayer(tmdbId, mediaType));
+  }, [season, episode, mediaType, tmdbId]);
 
 
   // Build embed URL (only when a player is selected)
@@ -63,13 +64,13 @@ function PlayerFrame({
   const handlePlayerSelect = useCallback((playerId) => {
     const isFirstSelection = selectedPlayer === null;
     setSelectedPlayer(playerId);
-    savePlayer(playerId);
+    savePlayer(playerId, tmdbId, mediaType);
 
     // Trigger button animation on first selection
     if (isFirstSelection) {
       setTimeout(() => setAnimateButtons(true), 100);
     }
-  }, [selectedPlayer]);
+  }, [selectedPlayer, tmdbId, mediaType]);
 
 
   // Handle season/episode change from EpisodeSelector

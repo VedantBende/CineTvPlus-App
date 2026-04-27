@@ -45,8 +45,8 @@ function ContinueWatchingCard({ title, backdrop, season, episode, mediaId, tmdbI
           
           {/* Centered Play Button on Hover */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
-            <div className="bg-white/90 rounded-full p-2.5 sm:p-3 transform transition-transform duration-300 scale-90 group-hover:scale-100 shadow-xl">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-black ml-0.5 sm:ml-1" fill="currentColor" viewBox="0 0 24 24">
+            <div className="bg-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center transform transition-transform duration-300 scale-90 group-hover:scale-100 shadow-xl">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>

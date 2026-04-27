@@ -122,28 +122,63 @@ export const PLAYER_LIST = Object.values(PLAYERS);
 // ─── Persistence ──────────────────────────────────────────────────────
 
 /**
- * Get the last selected player from localStorage.
- * Returns null if no valid saved value — triggers modal.
+ * Get the selected player for this media from localStorage.
+ * Defaults to 'alpha' (Server Alpha) if no specific player is saved.
  */
-export function getSavedPlayer() {
+export function getSavedPlayer(tmdbId, mediaType) {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && PLAYERS[saved]) {
-      return saved;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (tmdbId && mediaType) {
+          const key = `${mediaType}_${tmdbId}`;
+          if (parsed[key] && PLAYERS[parsed[key]]) {
+            return parsed[key];
+          }
+        }
+        
+        // They have used the site before, but no specific server for this media.
+        // Use the global fallback (Alpha).
+        if (Object.keys(parsed).length > 0) {
+          return 'alpha';
+        }
+      } catch (e) {
+        // They have old string format data, meaning they are an existing user.
+        return 'alpha';
+      }
     }
   } catch {
     // localStorage may be unavailable (private browsing, etc.)
   }
+  
+  // Brand new user (or empty storage). Show the modal!
   return null;
 }
 
 /**
- * Save the selected player to localStorage.
+ * Save the selected player for this specific media to localStorage.
  */
-export function savePlayer(playerId) {
+export function savePlayer(playerId, tmdbId, mediaType) {
   try {
     if (PLAYERS[playerId]) {
-      localStorage.setItem(STORAGE_KEY, playerId);
+      let data = {};
+      const saved = localStorage.getItem(STORAGE_KEY);
+      
+      if (saved) {
+        try {
+          data = JSON.parse(saved);
+        } catch (e) {
+          // Old format was just a string, overwrite it.
+        }
+      }
+      
+      if (tmdbId && mediaType) {
+        const key = `${mediaType}_${tmdbId}`;
+        data[key] = playerId;
+      }
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
   } catch {
     // Silently fail if localStorage unavailable
