@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,21 @@ import useAuthStore from '../store/authStore';
 import Loader from '../components/ui/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const TMDB_IMG = 'https://image.tmdb.org/t/p';
+
+// Relative time helper
+const timeAgo = (date) => {
+  if (!date) return 'Never';
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
 
 // Icons
 const SearchIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
@@ -34,6 +49,8 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [toast, setToast] = useState(null);
+  const [userActivity, setUserActivity] = useState(null);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -64,6 +81,23 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
+
+  const fetchActivity = useCallback(async (userId) => {
+    try {
+      setActivityLoading(true);
+      setUserActivity(null);
+      const token = await getToken();
+      const res = await axios.get(`${API_URL}/admin/users/${userId}/activity`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUserActivity(res.data);
+    } catch (err) {
+      console.error('Failed to fetch user activity:', err);
+      setUserActivity({ error: true });
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [getToken]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -233,7 +267,7 @@ export default function AdminPage() {
                     key={u._id} 
                     className="hover:bg-gray-50 dark:hover:bg-zinc-800/40 transition-colors animate-fade-up group cursor-pointer" 
                     style={{ animationDelay: `${idx * 50}ms` }}
-                    onClick={() => setSelectedUser(u)}
+                    onClick={() => { setSelectedUser(u); fetchActivity(u._id); }}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
@@ -350,13 +384,13 @@ export default function AdminPage() {
       {selectedUser && (
         <div className="fixed inset-0 z-[90] flex justify-end">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedUser(null)} />
+          <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => { setSelectedUser(null); setUserActivity(null); }} />
           
           {/* Drawer Content */}
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 shadow-2xl h-full flex flex-col transform transition-transform duration-300 translate-x-0">
             <div className="p-6 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">User Details</h2>
-              <button onClick={() => setSelectedUser(null)} className="p-2 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 transition">
+              <button onClick={() => { setSelectedUser(null); setUserActivity(null); }} className="p-2 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 transition">
                 <CloseIcon />
               </button>
             </div>
@@ -398,18 +432,114 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* --- DYNAMIC ACTIVITY PANEL --- */}
                 <div>
                   <p className="text-xs font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-2">Activity</p>
-                  <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-gray-500 dark:text-zinc-400 text-sm">Last Active</span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-2 h-2 rounded-full bg-green-500/80 animate-pulse"></div>
-                        <span className="text-gray-900 dark:text-zinc-200 text-sm font-medium">Recently active</span>
+
+                  {/* Loading skeleton */}
+                  {activityLoading && (
+                    <div className="space-y-3 animate-pulse">
+                      <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                        <div className="h-3 w-20 bg-gray-200 dark:bg-zinc-700 rounded mb-2" />
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-zinc-700 rounded" />
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-zinc-600 mt-2 italic">Detailed session logs are currently unavailable.</span>
+                      <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                        <div className="h-3 w-32 bg-gray-200 dark:bg-zinc-700 rounded mb-3" />
+                        <div className="flex gap-3">
+                          <div className="w-16 h-24 bg-gray-200 dark:bg-zinc-700 rounded" />
+                          <div className="w-16 h-24 bg-gray-200 dark:bg-zinc-700 rounded" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Error state */}
+                  {!activityLoading && userActivity?.error && (
+                    <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 text-center">
+                      <p className="text-gray-500 dark:text-zinc-400 text-sm">Failed to load activity.</p>
+                      <button
+                        onClick={() => fetchActivity(selectedUser._id)}
+                        className="mt-2 text-accent-red hover:underline text-xs font-medium"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Loaded state */}
+                  {!activityLoading && userActivity && !userActivity.error && (
+                    <div className="space-y-4">
+
+                      {/* Last Login */}
+                      <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-500 dark:text-zinc-400 text-sm">Last Login</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-200 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
+                            {timeAgo(userActivity.lastLogin)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <svg className="w-4 h-4 text-gray-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <span className="text-gray-900 dark:text-zinc-200 text-sm font-medium">
+                            {userActivity.lastLogin
+                              ? new Date(userActivity.lastLogin).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                              : 'Never logged in'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Currently Watching */}
+                      <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-gray-500 dark:text-zinc-400 text-sm">Currently Watching</span>
+                          {userActivity.currentlyWatching?.length > 0 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20">
+                              {userActivity.currentlyWatching.length} active
+                            </span>
+                          )}
+                        </div>
+                        {userActivity.currentlyWatching?.length > 0 ? (
+                          <div className="flex gap-3 overflow-x-auto pb-1 hide-scrollbar">
+                            {userActivity.currentlyWatching.map((item) => (
+                              <div key={item._id} className="flex-shrink-0 w-[90px] group/card">
+                                <div className="relative w-[90px] h-[135px] rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 shadow-sm mb-1.5">
+                                  {item.posterPath ? (
+                                    <img
+                                      src={`${TMDB_IMG}/w185${item.posterPath}`}
+                                      alt={item.title}
+                                      className="w-full h-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center">
+                                      <svg className="w-6 h-6 text-gray-400 dark:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>
+                                    </div>
+                                  )}
+                                  {/* Media type badge */}
+                                  <div className="absolute top-1 left-1 bg-black/70 backdrop-blur-sm text-[8px] font-bold uppercase text-white px-1.5 py-0.5 rounded">
+                                    {item.mediaType === 'tv' ? 'TV' : 'MOV'}
+                                  </div>
+                                </div>
+                                <p className="text-[11px] font-medium text-gray-800 dark:text-zinc-300 truncate leading-tight" title={item.title}>{item.title || 'Unknown'}</p>
+                                {item.mediaType === 'tv' && item.season && (
+                                  <p className="text-[10px] text-gray-400 dark:text-zinc-500">S{item.season} E{item.episode || '?'}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-400 dark:text-zinc-600 italic">Not watching anything right now.</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* No data loaded yet and not loading */}
+                  {!activityLoading && !userActivity && (
+                    <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4">
+                      <p className="text-xs text-gray-400 dark:text-zinc-600 italic">Select a user to view their activity.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
