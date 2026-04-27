@@ -26,6 +26,16 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Watch History Tracking**: Automatically tracks the content you interact with for easy resume viewing.
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
+- **📱 Progressive Web App (PWA)**: Installable as a standalone app with offline support, intelligent caching, and a custom UI update prompt.
+
+### 📱 Progressive Web App (PWA) Architecture
+- Built using `vite-plugin-pwa` with Workbox for advanced service worker management.
+- **Intelligent Caching Strategies**:
+  - `NetworkOnly` for video streaming routes to ensure uninterrupted playback with zero regression.
+  - `CacheFirst` for static assets, fonts, and TMDB images.
+  - `NetworkFirst` for dynamic backend and TMDB API requests with offline fallbacks.
+- **Custom Installation UI**: Overrides the default intrusive browser banner with a sleek, native-feeling "Install App" Navbar integration.
+- **Update Management**: Graceful `prompt` update strategy notifies users of new versions via a toast instead of forcefully reloading during media playback.
 
 ### 🎬 Multi-Server Streaming System
 - Users can choose between multiple streaming servers.

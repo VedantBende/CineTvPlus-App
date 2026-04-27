@@ -35,6 +35,11 @@ Powered by scalable architecture, the Video Player integrates proxy abstractions
 - To protect UX, all fresh engagements on the watch-route load a mandatory "Before You Start" onboard flow safely persisting acknowledgement tokens directly to the `localStorage` minimizing database fetches.
 - Progress and history optimistically mutate Zustand states while flushing to backend gracefully.
 
+### 6. Progressive Web App (PWA) Integration
+- **Installable Experience**: Fully configured as a PWA, allowing users to install CineTv+ directly to their devices via a custom, theme-integrated "Install App" button in the Navbar.
+- **Workbox Caching**: Implements targeted caching strategies (`CacheFirst` for assets/images, `NetworkFirst` for APIs) while strictly bypassing the service worker for video playback routes (`NetworkOnly`) to prevent streaming interruptions.
+- **Offline & Update UI**: Includes custom React components to notify users when they lose internet connection (`OfflineIndicator`) and gracefully prompt them when a new app version is ready (`UpdatePrompt`).
+
 ---
 
 ## ⚙️ Local Development Setup

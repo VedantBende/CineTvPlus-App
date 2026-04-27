@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useState, useEffect, useRef } from 'react';
 import ThemeToggle from './ThemeToggle';
+import InstallPWA from '../pwa/InstallPWA';
 
 function Navbar() {
   const { isSignedIn } = useUser();
@@ -96,14 +97,17 @@ function Navbar() {
           </div>
 
           {/* Right Side - Responsive */}
-          <div className="flex items-center justify-end space-x-1 sm:space-x-2 md:space-x-3 lg:w-1/4">
+          <div className="flex items-center justify-end gap-1 sm:gap-2 md:gap-3 lg:w-1/4">
+            <div className={`transition-all duration-300 overflow-hidden ${isSearchOpen ? 'w-0 opacity-0 hidden sm:block sm:w-0 m-0 p-0' : 'w-auto opacity-100'}`}>
+              <InstallPWA />
+            </div>
             {/* Theme Toggle - Hidden on small mobile */}
             <div className="hidden xs:flex items-center">
               <ThemeToggle />
             </div>
 
             {/* Search - Responsive */}
-            <div className={`relative flex items-center justify-end h-10 transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-[200px] xs:w-[240px] sm:w-[280px] md:w-[300px] mr-2' : 'w-8 sm:w-10'}`}>
+            <div className={`relative flex items-center justify-end h-10 transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-[200px] xs:w-[240px] sm:w-[280px] md:w-[300px] mr-2' : 'w-10'}`}>
               <form 
                 onSubmit={handleSearch} 
                 className={`flex items-center overflow-hidden transition-all duration-300 ${
@@ -150,7 +154,7 @@ function Navbar() {
                   setIsSearchOpen(true);
                   setTimeout(() => searchInputRef.current?.focus(), 150);
                 }}
-                className={`absolute right-0 text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition p-1.5 sm:p-2 flex items-center justify-center touch-target ${
+                className={`absolute right-0 text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition w-10 h-10 flex items-center justify-center touch-target ${
                   isSearchOpen ? 'opacity-0 invisible pointer-events-none' : 'opacity-100 visible delay-150'
                 }`}
                 aria-label="Search"

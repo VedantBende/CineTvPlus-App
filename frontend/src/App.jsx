@@ -5,6 +5,8 @@ import router from './router';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import useAuthStore from './store/authStore';
+import UpdatePrompt from './components/pwa/UpdatePrompt';
+import OfflineIndicator from './components/pwa/OfflineIndicator';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -133,6 +135,8 @@ function App() {
   return (
     <ClerkProvider publishableKey={clerkPubKey}>
       <ThemeProvider>
+        <OfflineIndicator />
+        <UpdatePrompt />
         <UserSync />
         <RouterProvider router={router} />
       </ThemeProvider>
