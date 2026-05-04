@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchTVShowDetails } from '../utils/tmdbApi';
 import { formatRating } from '../utils/formatters';
@@ -24,10 +24,12 @@ function TVDetails() {
   
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
+  const loaderTimerRef = useRef(null);
 
 
 
@@ -48,6 +50,9 @@ function TVDetails() {
       setLoading(true);
       setError(null);
 
+      // Only show the loader if the fetch takes longer than 300ms
+      loaderTimerRef.current = setTimeout(() => setShowLoader(true), 300);
+
 
 
 
@@ -64,6 +69,8 @@ function TVDetails() {
     } catch (err) {
       setError(err.message);
     } finally {
+      clearTimeout(loaderTimerRef.current);
+      setShowLoader(false);
       setLoading(false);
     }
   };
@@ -153,12 +160,17 @@ function TVDetails() {
 
 
 
-  if (loading) {
+  if (loading && showLoader) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <Loader text="Loading show details..." />
       </div>
     );
+  }
+
+  if (loading) {
+    // Still loading but too early to show spinner — render empty shell to avoid flash
+    return <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300" />;
   }
 
 

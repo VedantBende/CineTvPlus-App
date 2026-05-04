@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   fetchTrendingMovies, 
   fetchTrendingTVShows,
@@ -12,20 +13,25 @@ import Top10Row from '../components/media/Top10Row';
 import ContinueWatching from '../components/media/ContinueWatching';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
+import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 import { useUser } from '@clerk/clerk-react';
 
 function HomePage() {
+  const navigate = useNavigate();
   const { isSignedIn } = useUser();
+
+  // Read from / write to global cache
+  const { homeData, homeFetchedAt, setHomeData } = useMediaStore();
   
-  const [trendingMovies, setTrendingMovies] = useState([]);
-  const [trendingTV, setTrendingTV] = useState([]);
-  const [popularMovies, setPopularMovies] = useState([]);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
-  const [topRatedMovies, setTopRatedMovies] = useState([]);
-  const [heroMovies, setHeroMovies] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState(homeData?.trendingMovies ?? []);
+  const [trendingTV, setTrendingTV] = useState(homeData?.trendingTV ?? []);
+  const [popularMovies, setPopularMovies] = useState(homeData?.popularMovies ?? []);
+  const [nowPlayingMovies, setNowPlayingMovies] = useState(homeData?.nowPlayingMovies ?? []);
+  const [topRatedMovies, setTopRatedMovies] = useState(homeData?.topRatedMovies ?? []);
+  const [heroMovies, setHeroMovies] = useState(homeData?.heroMovies ?? []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!homeData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -55,6 +61,11 @@ function HomePage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Skip fetch if cache is fresh (within TTL)
+    const isCacheFresh = homeData && homeFetchedAt && (Date.now() - homeFetchedAt < CACHE_TTL);
+    if (isCacheFresh) return;
+
     loadInitialContent();
   }, []);
 
@@ -100,6 +111,16 @@ function HomePage() {
         .filter(movie => movie.backdrop)
         .slice(0, 5);
       setHeroMovies(heroMoviesData);
+
+      // Persist to global cache so data survives route changes
+      setHomeData({
+        trendingMovies: trending,
+        trendingTV: trendingShows,
+        popularMovies: popular,
+        nowPlayingMovies: nowPlaying,
+        topRatedMovies: topRated,
+        heroMovies: heroMoviesData,
+      });
     } catch (err) {
       console.error('Error loading content:', err);
       setError(err.message);
@@ -344,7 +365,7 @@ function HomePage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button 
-                    onClick={() => window.location.href = `/watch?id=${movie.tmdbId}&type=movie`}
+                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=movie`)}
                     className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -353,7 +374,7 @@ function HomePage() {
                     <span>Play</span>
                   </button>
                   <button 
-                    onClick={() => window.location.href = `/movie/${movie.tmdbId}`}
+                    onClick={() => navigate(`/movie/${movie.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchMovieDetails } from '../utils/tmdbApi';
 import { formatRating } from '../utils/formatters';
@@ -22,10 +22,12 @@ function MovieDetails() {
   
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const loaderTimerRef = useRef(null);
 
 
 
@@ -55,6 +57,10 @@ function MovieDetails() {
     try {
       setLoading(true);
       setError(null);
+
+      // Only show the loader if the fetch takes longer than 300ms
+      loaderTimerRef.current = setTimeout(() => setShowLoader(true), 300);
+
       const movieData = await fetchMovieDetails(id);
       if (!movieData) {
         throw new Error('Movie not found');
@@ -63,6 +69,8 @@ function MovieDetails() {
     } catch (err) {
       setError(err.message);
     } finally {
+      clearTimeout(loaderTimerRef.current);
+      setShowLoader(false);
       setLoading(false);
     }
   };
@@ -146,12 +154,17 @@ function MovieDetails() {
 
 
 
-  if (loading) {
+  if (loading && showLoader) {
     return (
       <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
         <Loader text="Loading movie details..." />
       </div>
     );
+  }
+
+  if (loading) {
+    // Still loading but too early to show spinner — render empty shell to avoid flash
+    return <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300" />;
   }
 
 

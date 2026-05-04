@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   fetchPopularMovies, 
   fetchTopRatedMovies, 
@@ -11,16 +12,22 @@ import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
+import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 
 function MoviesPage() {
-  const [popularMovies, setPopularMovies] = useState([]);
-  const [topRatedMovies, setTopRatedMovies] = useState([]);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
-  const [trendingMovies, setTrendingMovies] = useState([]);
-  const [upcomingMovies, setUpcomingMovies] = useState([]);
-  const [heroMovies, setHeroMovies] = useState([]);
+  const navigate = useNavigate();
+
+  // Read from / write to global cache
+  const { moviesData, moviesFetchedAt, setMoviesData } = useMediaStore();
+
+  const [popularMovies, setPopularMovies] = useState(moviesData?.popularMovies ?? []);
+  const [topRatedMovies, setTopRatedMovies] = useState(moviesData?.topRatedMovies ?? []);
+  const [nowPlayingMovies, setNowPlayingMovies] = useState(moviesData?.nowPlayingMovies ?? []);
+  const [trendingMovies, setTrendingMovies] = useState(moviesData?.trendingMovies ?? []);
+  const [upcomingMovies, setUpcomingMovies] = useState(moviesData?.upcomingMovies ?? []);
+  const [heroMovies, setHeroMovies] = useState(moviesData?.heroMovies ?? []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!moviesData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -49,6 +56,11 @@ function MoviesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Skip fetch if cache is fresh (within TTL)
+    const isCacheFresh = moviesData && moviesFetchedAt && (Date.now() - moviesFetchedAt < CACHE_TTL);
+    if (isCacheFresh) return;
+
     loadInitialMovies();
   }, []);
 
@@ -89,6 +101,16 @@ function MoviesPage() {
 
       const heroes = trending.filter(m => m.backdrop).slice(0, 5);
       setHeroMovies(heroes);
+
+      // Persist to global cache so data survives route changes
+      setMoviesData({
+        popularMovies: popular,
+        topRatedMovies: topRated,
+        nowPlayingMovies: nowPlaying,
+        trendingMovies: trending,
+        upcomingMovies: upcoming,
+        heroMovies: heroes,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -264,7 +286,7 @@ function MoviesPage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button
-                    onClick={() => window.location.href = `/watch?id=${movie.tmdbId}&type=movie`}
+                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=movie`)}
                     className="bg-white hover:bg-gray-200 text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -273,7 +295,7 @@ function MoviesPage() {
                     <span>Play</span>
                   </button>
                   <button
-                    onClick={() => window.location.href = `/movie/${movie.tmdbId}`}
+                    onClick={() => navigate(`/movie/${movie.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

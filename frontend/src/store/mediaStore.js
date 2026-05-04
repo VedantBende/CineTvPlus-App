@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+// Cache TTL: 5 minutes (in ms). Data older than this will be re-fetched.
+export const CACHE_TTL = 5 * 60 * 1000;
+
 const useMediaStore = create((set) => ({
   // Current media data (runtime only)
   currentMedia: null,
@@ -12,6 +15,24 @@ const useMediaStore = create((set) => ({
   // Trending content (session only)
   trendingMovies: [],
   trendingTVShows: [],
+
+  // ──────────────────────────────────────────
+  // HOME PAGE cache
+  // ──────────────────────────────────────────
+  homeData: null,
+  homeFetchedAt: null,
+
+  // ──────────────────────────────────────────
+  // MOVIES PAGE cache
+  // ──────────────────────────────────────────
+  moviesData: null,
+  moviesFetchedAt: null,
+
+  // ──────────────────────────────────────────
+  // TV SHOWS PAGE cache
+  // ──────────────────────────────────────────
+  tvData: null,
+  tvFetchedAt: null,
 
   // Actions
   setCurrentMedia: (media) => set({ currentMedia: media, error: null }),
@@ -32,6 +53,11 @@ const useMediaStore = create((set) => ({
   }),
   
   clearSearch: () => set({ searchResults: [] }),
+
+  // Cache setters
+  setHomeData: (data) => set({ homeData: data, homeFetchedAt: Date.now() }),
+  setMoviesData: (data) => set({ moviesData: data, moviesFetchedAt: Date.now() }),
+  setTvData: (data) => set({ tvData: data, tvFetchedAt: Date.now() }),
   
   clearAll: () => set({
     currentMedia: null,
@@ -39,7 +65,13 @@ const useMediaStore = create((set) => ({
     error: null,
     searchResults: [],
     trendingMovies: [],
-    trendingTVShows: []
+    trendingTVShows: [],
+    homeData: null,
+    homeFetchedAt: null,
+    moviesData: null,
+    moviesFetchedAt: null,
+    tvData: null,
+    tvFetchedAt: null,
   })
 }));
 

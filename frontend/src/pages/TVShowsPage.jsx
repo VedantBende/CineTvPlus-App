@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   fetchPopularTVShows, 
   fetchTrendingTVShows, 
@@ -9,14 +10,20 @@ import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
+import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 
 function TVShowsPage() {
-  const [popularShows, setPopularShows] = useState([]);
-  const [trendingShows, setTrendingShows] = useState([]);
-  const [topRatedShows, setTopRatedShows] = useState([]);
-  const [heroShows, setHeroShows] = useState([]);
+  const navigate = useNavigate();
+
+  // Read from / write to global cache
+  const { tvData, tvFetchedAt, setTvData } = useMediaStore();
+
+  const [popularShows, setPopularShows] = useState(tvData?.popularShows ?? []);
+  const [trendingShows, setTrendingShows] = useState(tvData?.trendingShows ?? []);
+  const [topRatedShows, setTopRatedShows] = useState(tvData?.topRatedShows ?? []);
+  const [heroShows, setHeroShows] = useState(tvData?.heroShows ?? []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!tvData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -45,6 +52,11 @@ function TVShowsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Skip fetch if cache is fresh (within TTL)
+    const isCacheFresh = tvData && tvFetchedAt && (Date.now() - tvFetchedAt < CACHE_TTL);
+    if (isCacheFresh) return;
+
     loadInitialTVShows();
   }, []);
 
@@ -81,6 +93,14 @@ function TVShowsPage() {
 
       const heroes = trending.filter(s => s.backdrop).slice(0, 5);
       setHeroShows(heroes);
+
+      // Persist to global cache so data survives route changes
+      setTvData({
+        popularShows: popular,
+        trendingShows: trending,
+        topRatedShows: topRated,
+        heroShows: heroes,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -252,7 +272,7 @@ function TVShowsPage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button
-                    onClick={() => window.location.href = `/watch?id=${show.tmdbId}&type=tv`}
+                    onClick={() => navigate(`/watch?id=${show.tmdbId}&type=tv`)}
                     className="bg-white hover:bg-gray-200 text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -261,7 +281,7 @@ function TVShowsPage() {
                     <span>Play</span>
                   </button>
                   <button
-                    onClick={() => window.location.href = `/tv/${show.tmdbId}`}
+                    onClick={() => navigate(`/tv/${show.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
