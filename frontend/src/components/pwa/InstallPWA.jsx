@@ -52,7 +52,7 @@ export default function InstallPWA() {
   return (
     <button 
       onClick={handleInstallClick}
-      className="group flex items-center justify-center w-10 h-10 md:w-auto md:h-auto md:px-2 md:py-1.5 text-sm font-medium text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-300 touch-target"
+      className="group flex items-center justify-center w-10 h-10 md:w-auto md:h-auto md:px-2 md:py-1.5 text-sm font-medium text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition touch-target"
       title="Install CineTv+ App"
     >
       <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-5 md:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

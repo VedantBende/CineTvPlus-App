@@ -49,6 +49,24 @@ function FavoritesPage() {
     }
   };
 
+  const handleRemoveFavorite = async (mediaId) => {
+    try {
+      // Optimistically update the UI for instant feedback
+      setWatchlist(prev => prev.filter(item => item.mediaId !== mediaId));
+      
+      const token = await getToken();
+      await axios.delete(`${API_URL}/favorites/remove/${mediaId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (err) {
+      console.error('Error removing favorite:', err);
+      // Revert if API call fails
+      loadWatchlist();
+    }
+  };
+
   const filters = [
     { key: 'all', label: 'All' },
     { key: 'movie', label: 'Movies' },
@@ -178,6 +196,7 @@ function FavoritesPage() {
                 mediaId={item.mediaId}
                 tmdbId={item.mediaId}
                 type={item.mediaType || item.type}
+                onRemove={handleRemoveFavorite}
               />
             ))}
           </div>

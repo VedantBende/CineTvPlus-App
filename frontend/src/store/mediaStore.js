@@ -34,6 +34,12 @@ const useMediaStore = create((set) => ({
   tvData: null,
   tvFetchedAt: null,
 
+  // ──────────────────────────────────────────
+  // PROVIDER PAGE cache (keyed by "providerId_mediaType")
+  // ──────────────────────────────────────────
+  providerCache: {},       // { [key]: { heroMovies, gridContent } }
+  providerCacheFetchedAt: {}, // { [key]: timestamp }
+
   // Actions
   setCurrentMedia: (media) => set({ currentMedia: media, error: null }),
   
@@ -58,6 +64,10 @@ const useMediaStore = create((set) => ({
   setHomeData: (data) => set({ homeData: data, homeFetchedAt: Date.now() }),
   setMoviesData: (data) => set({ moviesData: data, moviesFetchedAt: Date.now() }),
   setTvData: (data) => set({ tvData: data, tvFetchedAt: Date.now() }),
+  setProviderData: (key, data) => set((state) => ({
+    providerCache: { ...state.providerCache, [key]: data },
+    providerCacheFetchedAt: { ...state.providerCacheFetchedAt, [key]: Date.now() },
+  })),
   
   clearAll: () => set({
     currentMedia: null,
@@ -72,6 +82,8 @@ const useMediaStore = create((set) => ({
     moviesFetchedAt: null,
     tvData: null,
     tvFetchedAt: null,
+    providerCache: {},
+    providerCacheFetchedAt: {},
   })
 }));
 

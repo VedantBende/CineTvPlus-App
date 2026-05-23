@@ -43,7 +43,7 @@ function ContentRow({ title, icon, children, className = '' }) {
     <section className={`space-y-3 sm:space-y-4 ${className}`}>
       {/* Section Header */}
       <div className="flex items-center justify-between px-1 mb-2">
-        <h2 className="text-gray-900 dark:text-white text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold flex items-center transition-colors">
+        <h2 className="text-gray-900 dark:text-white text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold flex items-center transition">
           <span className="w-1.5 h-5 xs:h-6 sm:h-7 md:h-8 bg-netflix-red mr-2 sm:mr-3 rounded-full"></span>
           {title}
         </h2>

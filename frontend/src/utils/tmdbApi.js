@@ -68,6 +68,40 @@ export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
 };
 
 /**
+ * Fetch mixed trending movies and TV shows
+ */
+export const fetchTrendingAll = async (timeWindow = 'week', page = 1) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/trending/all/${timeWindow}?page=${page}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trending all');
+    }
+
+    const data = await response.json();
+    
+    return data.results
+      .filter(item => item.media_type === 'movie' || item.media_type === 'tv')
+      .map(item => ({
+        tmdbId: item.id.toString(),
+        title: item.media_type === 'movie' ? item.title : item.name,
+        url: item.poster_path ? `${POSTER_BASE_URL}${item.poster_path}` : null,
+        backdrop: item.backdrop_path ? `${BACKDROP_BASE_URL}${item.backdrop_path}` : null,
+        rating: item.vote_average.toFixed(1),
+        year: item.release_date || item.first_air_date ? new Date(item.release_date || item.first_air_date).getFullYear() : null,
+        overview: item.overview,
+        mediaId: item.id.toString(),
+        media_type: item.media_type
+      }));
+  } catch (error) {
+    console.error('Error fetching trending all:', error);
+    return [];
+  }
+};
+
+/**
  * Fetch popular movies
  */
 export const fetchPopularMovies = async (page = 1) => {
@@ -196,6 +230,37 @@ export const fetchTopRatedMovies = async (page = 1) => {
     }));
   } catch (error) {
     console.error('Error fetching top rated movies:', error);
+    return [];
+  }
+};
+
+/**
+ * Fetch content by provider
+ */
+export const fetchByProvider = async (mediaType, providerId, page = 1) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/discover/${mediaType}?providerId=${providerId}&page=${page}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${mediaType} by provider`);
+    }
+
+    const data = await response.json();
+    
+    return data.results.map(item => ({
+      tmdbId: item.id.toString(),
+      title: item.title || item.name,
+      url: item.poster_path ? `${POSTER_BASE_URL}${item.poster_path}` : null,
+      backdrop: item.backdrop_path ? `${BACKDROP_BASE_URL}${item.backdrop_path}` : null,
+      rating: item.vote_average?.toFixed(1) || 'N/A',
+      year: (item.release_date || item.first_air_date) ? new Date(item.release_date || item.first_air_date).getFullYear() : null,
+      overview: item.overview,
+      mediaId: item.id.toString()
+    }));
+  } catch (error) {
+    console.error(`Error fetching ${mediaType} by provider:`, error);
     return [];
   }
 };

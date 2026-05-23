@@ -5,11 +5,13 @@ import {
   fetchTrendingTVShows,
   fetchPopularMovies,
   fetchNowPlayingMovies,
-  fetchTopRatedMovies
+  fetchTopRatedMovies,
+  fetchTrendingAll
 } from '../utils/tmdbApi';
 import MovieCard from '../components/media/MovieCard';
 import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
+import ProvidersRow from '../components/media/ProvidersRow';
 import ContinueWatching from '../components/media/ContinueWatching';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
@@ -24,11 +26,12 @@ function HomePage() {
   const { homeData, homeFetchedAt, setHomeData } = useMediaStore();
   
   const [trendingMovies, setTrendingMovies] = useState(homeData?.trendingMovies ?? []);
-  const [trendingTV, setTrendingTV] = useState(homeData?.trendingTV ?? []);
-  const [popularMovies, setPopularMovies] = useState(homeData?.popularMovies ?? []);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState(homeData?.nowPlayingMovies ?? []);
-  const [topRatedMovies, setTopRatedMovies] = useState(homeData?.topRatedMovies ?? []);
-  const [heroMovies, setHeroMovies] = useState(homeData?.heroMovies ?? []);
+  const [trendingTV, setTrendingTV] = useState(homeData?.trendingTV || []);
+  const [popularMovies, setPopularMovies] = useState(homeData?.popularMovies || []);
+  const [nowPlayingMovies, setNowPlayingMovies] = useState(homeData?.nowPlayingMovies || []);
+  const [topRatedMovies, setTopRatedMovies] = useState(homeData?.topRatedMovies || []);
+  const [heroMovies, setHeroMovies] = useState(homeData?.heroMovies || []);
+  const [top10Mixed, setTop10Mixed] = useState(homeData?.top10Mixed || []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   
   const [loading, setLoading] = useState(!homeData);
@@ -92,12 +95,13 @@ function HomePage() {
       setLoading(true);
       setError(null);
 
-      const [trending, trendingShows, popular, nowPlaying, topRated] = await Promise.all([
-        fetchTrendingMovies('week', 1),
-        fetchTrendingTVShows('week', 1),
+      const [trending, trendingShows, popular, nowPlaying, topRated, mixedTop10] = await Promise.all([
+        fetchTrendingMovies('day', 1),
+        fetchTrendingTVShows('day', 1),
         fetchPopularMovies(1),
         fetchNowPlayingMovies(1),
-        fetchTopRatedMovies(1)
+        fetchTopRatedMovies(1),
+        fetchTrendingAll('day', 1)
       ]);
 
       setTrendingMovies(trending);
@@ -105,9 +109,10 @@ function HomePage() {
       setPopularMovies(popular);
       setNowPlayingMovies(nowPlaying);
       setTopRatedMovies(topRated);
+      setTop10Mixed(mixedTop10);
 
-      // Set hero movies (top 5 trending movies with backdrops)
-      const heroMoviesData = trending
+      // Set hero movies (top 5 mixed content with backdrops)
+      const heroMoviesData = mixedTop10
         .filter(movie => movie.backdrop)
         .slice(0, 5);
       setHeroMovies(heroMoviesData);
@@ -120,6 +125,7 @@ function HomePage() {
         nowPlayingMovies: nowPlaying,
         topRatedMovies: topRated,
         heroMovies: heroMoviesData,
+        top10Mixed: mixedTop10,
       });
     } catch (err) {
       console.error('Error loading content:', err);
@@ -201,7 +207,7 @@ function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition">
         <Loader text="Loading awesome content..." />
       </div>
     );
@@ -209,7 +215,7 @@ function HomePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
+      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition">
         <ErrorMessage message={error} onRetry={loadInitialContent} />
       </div>
     );
@@ -237,7 +243,7 @@ function HomePage() {
 
   if (isContentEmpty && !loading) {
      return (
-        <div className="min-h-screen bg-white dark:bg-netflix-black flex flex-col items-center justify-center text-gray-900 dark:text-white px-4 text-center transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-netflix-black flex flex-col items-center justify-center text-gray-900 dark:text-white px-4 text-center transition">
             <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-8 rounded-xl max-w-lg w-full shadow-lg">
                 <div className="bg-yellow-500/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                     <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -265,10 +271,10 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-netflix-black transition">
       {/* Hero Carousel Section */}
       <div 
-        className="relative h-[75vh] xs:h-[60vh] sm:h-[65vh] md:h-[70vh] lg:h-[80vh] xl:h-[110vh] bg-gradient-to-b from-gray-100 to-white dark:from-black dark:to-netflix-black overflow-hidden -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16 transition-colors duration-500"
+        className="relative h-[75vh] xs:h-[60vh] sm:h-[65vh] md:h-[70vh] lg:h-[80vh] xl:h-[110vh] bg-gradient-to-b from-gray-100 to-white dark:from-black dark:to-netflix-black overflow-hidden -mt-14 sm:-mt-16 md:-mt-16 pt-14 sm:pt-16 md:pt-16 transition"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -351,7 +357,7 @@ function HomePage() {
                     </div>
                   )}
                   {movie.year && (
-                      <span className="text-white text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-semibold bg-white/20 px-2 py-0.5 xs:px-2.5 xs:py-1 sm:px-3 rounded-lg backdrop-blur-sm transition-colors">
+                      <span className="text-white text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl font-semibold bg-white/20 px-2 py-0.5 xs:px-2.5 xs:py-1 sm:px-3 rounded-lg backdrop-blur-sm transition">
                         {movie.year}
                       </span>
                   )}
@@ -365,7 +371,7 @@ function HomePage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button 
-                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=movie`)}
+                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=${movie.media_type || 'movie'}${(movie.media_type === 'tv' || movie.type === 'tv') ? '&season=1&episode=1' : ''}`)}
                     className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -374,7 +380,7 @@ function HomePage() {
                     <span>Play</span>
                   </button>
                   <button 
-                    onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+                    onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,9 +416,11 @@ function HomePage() {
         {/* Continue Watching */}
         <ContinueWatching />
 
-        {trendingMovies.length > 0 && (
-          <Top10Row items={trendingMovies} type="movie" />
+        {top10Mixed.length > 0 && (
+          <Top10Row items={top10Mixed} />
         )}
+
+        <ProvidersRow />
 
         {uniqueTrending.length > 0 && (
           <ContentRow title="Trending Now" icon="local_fire_department">

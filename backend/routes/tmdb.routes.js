@@ -13,14 +13,15 @@ import {
   fetchNowPlaying,
   fetchUpcoming,
   fetchDetails,
-  searchMulti
+  searchMulti,
+  discoverByProvider
 } from '../services/tmdbService.js';
 
 const router = express.Router();
 
 // ─── VALIDATORS ──────────────────────────────────────────────
 
-const VALID_MEDIA_TYPES = ['movie', 'tv'];
+const VALID_MEDIA_TYPES = ['movie', 'tv', 'all'];
 const VALID_TIME_WINDOWS = ['day', 'week'];
 
 function validateMediaType(type) {
@@ -151,6 +152,29 @@ router.get('/search/multi', async (req, res) => {
 });
 
 /**
+ * GET /api/tmdb/discover/:mediaType?providerId=...&page=1
+ */
+router.get('/discover/:mediaType', async (req, res) => {
+  try {
+    const { mediaType } = req.params;
+    const { providerId } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
+
+    if (!validateMediaType(mediaType)) {
+      return sendError(res, 400, `Invalid media type: ${mediaType}`);
+    }
+    if (!providerId || !validateId(providerId)) {
+      return sendError(res, 400, 'Valid providerId is required.');
+    }
+
+    const data = await discoverByProvider(mediaType, providerId, page);
+    res.json(data);
+  } catch (error) {
+    handleTmdbError(res, error, 'discover');
+  }
+});
+
+/**
  * GET /api/tmdb/movie/:id?language=en-US&append_to_response=credits,videos
  * GET /api/tmdb/tv/:id?language=en-US&append_to_response=credits,videos
  */
@@ -171,8 +195,6 @@ router.get('/:mediaType/:id', async (req, res) => {
     handleTmdbError(res, error, 'details');
   }
 });
-
-
 
 // ─── ERROR HANDLER ───────────────────────────────────────────
 

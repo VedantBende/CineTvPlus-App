@@ -59,7 +59,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-gradient-to-b from-white dark:from-netflix-black to-transparent transition-colors duration-500">
+    <nav className="fixed top-0 w-full z-50 bg-gradient-to-b from-white dark:from-netflix-black to-transparent transition">
       <div className="container-custom">
         <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
           {/* Logo - Left */}
@@ -155,7 +155,7 @@ function Navbar() {
                   setTimeout(() => searchInputRef.current?.focus(), 150);
                 }}
                 className={`absolute right-0 text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition w-10 h-10 flex items-center justify-center touch-target ${
-                  isSearchOpen ? 'opacity-0 invisible pointer-events-none' : 'opacity-100 visible delay-150'
+                  isSearchOpen ? 'opacity-0 invisible pointer-events-none' : 'opacity-100 visible'
                 }`}
                 aria-label="Search"
               >

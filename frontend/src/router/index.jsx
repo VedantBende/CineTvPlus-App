@@ -12,6 +12,7 @@ import Register from '../pages/Register';
 import FavoritesPage from '../pages/FavoritesPage';
 import SettingsPage from '../pages/SettingsPage';
 import AdminPage from '../pages/AdminPage';
+import ProviderPage from '../pages/ProviderPage';
 import AccessGate from '../pages/AccessGate';
 import PublicGate from '../components/common/PublicGate';
 
@@ -64,6 +65,10 @@ const router = createBrowserRouter([
       {
         path: 'admin',
         element: <AdminPage />
+      },
+      {
+        path: 'provider/:id',
+        element: <ProviderPage />
       }
     ]
   },

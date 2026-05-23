@@ -175,14 +175,14 @@ async function tmdbFetch(path, params = {}, options = {}) {
   
   console.log(`🎬 TMDB Fetch: ${path}`, params);
   
-  // Retry loop (initial + 2 retries = 3 attempts total)
-  const MAX_RETRIES = 2;
+  // Retry loop (initial + 3 retries = 4 attempts total)
+  const MAX_RETRIES = 3;
   let lastError;
   
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       if (attempt > 0) {
-        const delay = 500 * Math.pow(2, attempt - 1); // 500ms, 1000ms
+        const delay = 500 * Math.pow(2, attempt - 1); // 500ms, 1000ms, 2000ms
         console.log(`🔄 Retry ${attempt}/${MAX_RETRIES} after ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -198,8 +198,8 @@ async function tmdbFetch(path, params = {}, options = {}) {
     } catch (error) {
       lastError = error;
       
-      // Don't retry on 4xx errors (client errors from TMDB)
-      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+      // Don't retry on 4xx errors (client errors from TMDB), EXCEPT 429 Too Many Requests
+      if (error.response && error.response.status >= 400 && error.response.status < 500 && error.response.status !== 429) {
         throw error;
       }
       
@@ -265,6 +265,19 @@ export async function searchMulti(query, page = 1) {
   });
 }
 
+// Discover by provider
+export async function discoverByProvider(mediaType, providerId, page = 1) {
+  return tmdbFetch(`/discover/${mediaType}`, {
+    language: 'en-US',
+    page,
+    with_watch_providers: providerId,
+    watch_region: 'US',
+    sort_by: 'popularity.desc'
+  }, {
+    cacheTTL: CACHE_TTLS.list
+  });
+}
+
 // Cache stats (for health check)
 export function getCacheStats() {
   return {
@@ -284,5 +297,6 @@ export default {
   fetchUpcoming,
   fetchDetails,
   searchMulti,
+  discoverByProvider,
   getCacheStats
 };

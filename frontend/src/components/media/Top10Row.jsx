@@ -29,13 +29,13 @@ function Top10Card({ item, index, type }) {
         aria-hidden="true"
       >
         {/* We use a span so we can apply the transparent text color that gets overridden on hover */}
-        <span className="text-transparent group-hover:text-accent-red transition-colors duration-300">
+        <span className="text-transparent group-hover:text-accent-red transition">
           {index + 1}
         </span>
       </div>
 
       {/* Poster Image */}
-      <div className="relative z-10 group-hover:z-30 w-full aspect-[2/3] bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-xl ml-6 xs:ml-8 sm:ml-12 border border-transparent group-hover:border-white/20">
+      <div className="relative z-10 group-hover:z-30 w-full aspect-[2/3] bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105 shadow-xl ml-6 xs:ml-8 sm:ml-12 border border-transparent group-hover:border-white/20">
         {!imageError && (item.url || item.poster) ? (
           <img
             src={item.url || item.poster}
@@ -51,14 +51,14 @@ function Top10Card({ item, index, type }) {
         )}
         
         {/* Hover Overlay - Consistent Dark Cinematic Effect */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex flex-col items-center justify-center p-3 text-center transition-colors">
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out flex flex-col items-center justify-center p-3 text-center">
           <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
             <button className="bg-white hover:bg-gray-200 text-black rounded-full p-2 xs:p-3 mb-2 transition-all hover:scale-110 shadow-xl">
               <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </button>
-            <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-2 md:line-clamp-3 mb-1 transition-colors">{item.title || item.name}</h3>
+            <h3 className="text-white text-xs sm:text-sm font-bold line-clamp-2 md:line-clamp-3 mb-1 transition">{item.title || item.name}</h3>
           </div>
         </div>
       </div>
@@ -117,7 +117,7 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         <h2 className="text-transparent font-black text-5xl sm:text-5xl md:text-8xl tracking-tight leading-none" style={{ WebkitTextStroke: '1px #E50914' }}>
           {title}
         </h2>
-        <div className="flex flex-col text-gray-900 dark:text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1 transition-colors">
+        <div className="flex flex-col text-gray-900 dark:text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1 transition">
           <span>{subtitle.split(' ')[0]}</span>
           <span>{subtitle.split(' ').slice(1).join(' ')}</span>
         </div>
