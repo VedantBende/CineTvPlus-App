@@ -366,7 +366,7 @@ function ProviderPage() {
           </h2>
 
           {/* Toggle */}
-          <div className="flex bg-gray-100 dark:bg-[#141414] rounded-full p-1 border border-gray-200 dark:border-[#222] shadow-inner w-full max-w-[280px] sm:w-auto">
+          <div className="flex bg-gray-100 dark:bg-[#141414] rounded-full p-1 border border-gray-200 dark:border-[#222] shadow-inner w-full max-w-[280px] sm:w-auto mx-auto sm:mx-0">
             <button
               onClick={() => setMediaType('movie')}
               className={`flex-1 whitespace-nowrap px-5 sm:px-7 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
