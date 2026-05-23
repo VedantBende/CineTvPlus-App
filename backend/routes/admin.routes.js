@@ -114,7 +114,6 @@ router.get('/users/:id/activity', async (req, res) => {
 
     const currentlyWatching = await ContinueWatching.find({ userId: req.params.id })
       .sort({ updatedAt: -1 })
-      .limit(5)
       .lean();
 
     res.json({
