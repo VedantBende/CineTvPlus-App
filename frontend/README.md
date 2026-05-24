@@ -40,6 +40,12 @@ Powered by scalable architecture, the Video Player integrates proxy abstractions
 - **Workbox Caching**: Implements targeted caching strategies (`CacheFirst` for assets/images, `NetworkFirst` for APIs) while strictly bypassing the service worker for video playback routes (`NetworkOnly`) to prevent streaming interruptions.
 - **Offline & Update UI**: Includes custom React components to notify users when they lose internet connection (`OfflineIndicator`) and gracefully prompt them when a new app version is ready (`UpdatePrompt`).
 
+### 7. Watch Providers Integration
+A dedicated `ProviderPage` and interactive `ProvidersRow` to help users discover exactly where their favorite content is available to stream across various platforms. Includes specialized caching via Zustand to ensure fast subsequent loads.
+
+### 8. Continue Watching
+A dynamic `ContinueWatching` component that fetches user's watch history seamlessly and presents a responsive carousel to resume playback right from the home screen, utilizing optimistic UI updates for instant interaction feedback.
+
 ---
 
 ## ⚙️ Local Development Setup

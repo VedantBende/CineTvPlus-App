@@ -22,8 +22,9 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Admin-Controlled Access Gate**: New users are placed behind a "Request Access" gate upon signup. An administrative layer must manually approve, reject, or revoke network access.
 - **📧 Email Notification System**: Users receive automatic, branded email updates when their access status changes (Approved, Rejected, or Revoked), ensuring they stay informed about their account status.
 - **Dynamic Media Browsing**: Explore thousands of movies and TV shows securely via the TMDB API, featuring Trending, Popular, Now Playing, and Top Rated sections.
+- **Watch Providers Integration**: Discover exactly where your favorite movies and shows are available to stream across different platforms.
 - **Personalized Watchlists**: Save and manage a persistent list of favorites scoped directly to your account.
-- **Watch History Tracking**: Automatically tracks the content you interact with for easy resume viewing.
+- **Watch History & Continue Watching**: Automatically tracks the content you interact with for easy resume viewing right from the home screen.
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
 - **📱 Progressive Web App (PWA)**: Installable as a standalone app with offline support, intelligent caching, and a custom UI update prompt.
