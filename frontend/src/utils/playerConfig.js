@@ -20,6 +20,8 @@ const DELTA_MOVIE   = import.meta.env.VITE_PLAYER_DELTA_MOVIE;
 const DELTA_TV      = import.meta.env.VITE_PLAYER_DELTA_TV;
 const EPSILON_MOVIE = import.meta.env.VITE_PLAYER_EPSILON_MOVIE;
 const EPSILON_TV    = import.meta.env.VITE_PLAYER_EPSILON_TV;
+const ZETA_MOVIE    = import.meta.env.VITE_PLAYER_ZETA_MOVIE;
+const ZETA_TV       = import.meta.env.VITE_PLAYER_ZETA_TV;
 
 // ─── Player Definitions ───────────────────────────────────────────────
 
@@ -73,12 +75,21 @@ export const PLAYERS = {
   gamma: {
     id: 'gamma',
     label: 'Server Gamma',
-    description: 'Alternative Source',
-    getUrl: (tmdbId, mediaType, season, episode) => {
+    description: 'FHD · Fast',
+    getUrl: (tmdbId, mediaType, season, episode, { autoplay = true, resumeTime = 0 } = {}) => {
+      if (!tmdbId) return null;
+      let url;
       if (mediaType === 'tv' && season && episode) {
-        return `${GAMMA_TV}/${tmdbId}/${season}/${episode}`;
+        url = `${GAMMA_TV}/${tmdbId}/${season}/${episode}`;
+      } else {
+        url = `${GAMMA_MOVIE}/${tmdbId}`;
       }
-      return `${GAMMA_MOVIE}/${tmdbId}`;
+      const params = ['theme=e50914'];
+      if (autoplay) params.push('autoPlay=true');
+      if (resumeTime && resumeTime > 10) {
+        params.push(`startTime=${Math.floor(resumeTime)}`);
+      }
+      return `${url}?${params.join('&')}`;
     },
   },
 
@@ -111,6 +122,18 @@ export const PLAYERS = {
         return `${EPSILON_TV}/${tmdbId}/${season}/${episode}`;
       }
       return `${EPSILON_MOVIE}/${tmdbId}`;
+    },
+  },
+
+  zeta: {
+    id: 'zeta',
+    label: 'Server Zeta',
+    description: 'Alternative Source',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `${ZETA_TV}/${tmdbId}/${season}/${episode}`;
+      }
+      return `${ZETA_MOVIE}/${tmdbId}`;
     },
   },
 };

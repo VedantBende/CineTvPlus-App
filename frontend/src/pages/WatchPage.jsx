@@ -211,12 +211,12 @@ function WatchPage() {
 
 
   return (
-    <div className="min-h-screen bg-black overflow-hidden safe-area-top safe-area-bottom">
+    <div className="min-h-screen bg-black overflow-hidden safe-area-top safe-area-bottom sm:pt-16 md:pt-20">
       {/* Back Button - Responsive */}
       {!isFullscreen && (
         <button
           onClick={handleBack}
-          className="fixed top-14 left-2 sm:top-3 sm:left-3 md:top-16 md:left-4 z-50 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
+          className="fixed top-14 left-2 sm:top-20 sm:left-3 md:top-24 md:left-4 z-50 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
           title="Exit player"
           aria-label="Go back"
         >
@@ -229,7 +229,7 @@ function WatchPage() {
 
       {/* Info Banner - Responsive */}
       {!isFullscreen && (
-        <div className="fixed top-14 right-2 sm:top-3 sm:right-3 md:top-16 md:right-4 z-50 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
+        <div className="fixed top-14 right-2 sm:top-20 sm:right-3 md:top-24 md:right-4 z-50 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
           <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
             {mediaType === 'tv' && season && episode ? (
               <span>S{season} E{episode}</span>
@@ -242,7 +242,7 @@ function WatchPage() {
 
 
       {/* Player Container - Fully Responsive */}
-      <div className="flex items-center justify-center min-h-screen w-full p-0 sm:p-2 md:p-3 lg:p-4">
+      <div className="flex items-center justify-center min-h-screen sm:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)] w-full p-0 sm:p-2 md:p-3 lg:p-4">
         <div className="w-full max-w-7xl">
           <PlayerFrame
             tmdbId={tmdbId}

@@ -231,6 +231,100 @@ function PlayerFrame({
   }, [selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
 
 
+  // ─── Gamma Event Bridge ────────────────────────────────────────
+  useEffect(() => {
+    if (selectedPlayer !== 'gamma') return;
+
+    const TRUSTED_ORIGIN = import.meta.env.VITE_PLAYER_GAMMA_ORIGIN;
+
+    const handleGammaMessage = (event) => {
+      if (event.origin !== TRUSTED_ORIGIN) return;
+
+      try {
+        const message = event.data;
+        if (!message || typeof message !== 'object') return;
+
+        // ── MEDIA_DATA: Store stream metadata in localStorage ──
+        if (message.type === 'MEDIA_DATA') {
+          try {
+            const existing = JSON.parse(localStorage.getItem('gammaProgress') || '{}');
+            const key = mediaType === 'tv'
+              ? `tv_${tmdbId}_s${activeSeason}_e${activeEpisode}`
+              : `movie_${tmdbId}`;
+
+            localStorage.setItem('gammaProgress', JSON.stringify({
+              ...existing,
+              [key]: {
+                ...message.data,
+                tmdbId,
+                mediaType,
+                season: activeSeason,
+                episode: activeEpisode,
+                server: 'gamma',
+                last_updated: new Date().toISOString(),
+              }
+            }));
+          } catch {
+            // localStorage may be unavailable
+          }
+          return;
+        }
+
+        // ── PLAYER_EVENT: Handle playback lifecycle events ──
+        if (message.type === 'PLAYER_EVENT') {
+          const payload = message.data || {};
+          const eventType = payload.event;
+
+          if (!eventType) return;
+
+          switch (eventType) {
+            case 'timeupdate': {
+              const { currentTime, duration } = payload;
+              if (!currentTime || !duration) break;
+
+              const currentSeconds = Math.floor(currentTime);
+
+              // Throttle: sync to backend every 10s
+              if (currentSeconds % 10 === 0 && currentSeconds > 0) {
+                const progressData = {
+                  tmdbId,
+                  mediaType,
+                  season: activeSeason,
+                  episode: activeEpisode,
+                  currentTime,
+                  duration,
+                  progress: (currentTime / duration) * 100,
+                  lastWatched: new Date().toISOString(),
+                };
+                updateProgress(getToken, progressData).catch(
+                  err => console.error('[Gamma] Failed to save progress:', err)
+                );
+              }
+              break;
+            }
+
+            case 'play':
+            case 'pause':
+            case 'seeked':
+            case 'ended':
+              console.debug(`[gamma] Player event: ${eventType}`);
+              break;
+
+            default:
+              break;
+          }
+        }
+      } catch {
+        // Malformed event data — silently discard
+      }
+    };
+
+    window.addEventListener('message', handleGammaMessage);
+    return () => window.removeEventListener('message', handleGammaMessage);
+
+  }, [selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
+
+
   // No player selected — show server picker modal
   if (!selectedPlayer) {
     return (
@@ -255,8 +349,8 @@ function PlayerFrame({
   }
 
 
-  // Restore fallback logic: strictly no sandbox parameters to prevent Server Gamma issues.
-  const iframeReferrer = selectedPlayer === 'gamma'
+  // Restore fallback logic: strictly no sandbox parameters to prevent Server Zeta issues.
+  const iframeReferrer = selectedPlayer === 'zeta'
     ? 'no-referrer'
     : 'origin';
 

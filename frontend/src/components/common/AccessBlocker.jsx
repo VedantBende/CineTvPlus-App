@@ -20,7 +20,7 @@ const AccessBlocker = ({ children }) => {
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-white">
         <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h2 className="text-xl font-medium">Syncing profile...</h2>
-        <p className="text-gray-400 mt-2">Connecting with backend...</p>
+        <p className="text-gray-400 mt-2">Connecting with the servers...</p>
       </div>
     );
   }
