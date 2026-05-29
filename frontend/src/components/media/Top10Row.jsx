@@ -46,7 +46,7 @@ function Top10Card({ item, index, type }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-             <span className="text-gray-500 text-xs text-center px-2">{item.title || item.name}</span>
+             <span className="text-gray-600 dark:text-gray-400 text-xs text-center px-2">{item.title || item.name}</span>
           </div>
         )}
         

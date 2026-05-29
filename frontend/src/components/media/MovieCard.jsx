@@ -71,7 +71,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
         {/* Hover Overlay - Consistent Dark Cinematic Effect */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out flex items-end justify-center pb-4">
           <div className="text-center px-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            <button className="bg-white hover:bg-gray-200 text-black rounded-full p-2.5 mb-2 transition-all hover:scale-110 shadow-xl">
+            <button aria-label="Play" className="bg-white hover:bg-gray-200 text-black rounded-full p-2.5 mb-2 transition-all hover:scale-110 shadow-xl">
               <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -86,9 +86,9 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
         <h3 className="text-gray-900 dark:text-white text-sm font-medium truncate transition">{title}</h3>
         <div className="flex items-center justify-between mt-1">
           {year && (
-            <span className="text-gray-500 text-xs">{year}</span>
+            <span className="text-gray-600 dark:text-gray-400 text-xs">{year}</span>
           )}
-          <span className="text-gray-600 text-xs capitalize">{type === 'tv' ? 'TV Show' : 'Movie'}</span>
+          <span className="text-gray-600 dark:text-gray-400 text-xs capitalize">{type === 'tv' ? 'TV Show' : 'Movie'}</span>
         </div>
       </div>
       </div>

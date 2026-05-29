@@ -14,7 +14,7 @@ function Footer() {
           <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-3xl transition-colors">
             This site does not store any files on our server, we only linked to the media which is hosted on 3rd party services.
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-500 transition-colors">
+          <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
             vedantbende.dev@gmail.com
           </p>
         </div>

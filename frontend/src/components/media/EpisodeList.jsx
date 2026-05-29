@@ -64,7 +64,7 @@ function EpisodeList({ episodes, onEpisodeSelect, currentEpisode }) {
                 </p>
               )}
               {episode.duration && (
-                <p className="text-gray-500 text-xs mt-1">{episode.duration}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">{episode.duration}</p>
               )}
             </div>
 
