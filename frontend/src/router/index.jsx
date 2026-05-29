@@ -1,25 +1,42 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+
+// Static Layouts & Gates
 import MainLayout from '../layouts/MainLayout';
-import HomePage from '../pages/HomePage';
-import MoviesPage from '../pages/MoviesPage';
-import TVShowsPage from '../pages/TVShowsPage';
-import SearchPage from '../pages/SearchPage';
-import MovieDetails from '../pages/MovieDetails';
-import TVDetails from '../pages/TVDetails';
-import WatchPage from '../pages/WatchPage';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import FavoritesPage from '../pages/FavoritesPage';
-import SettingsPage from '../pages/SettingsPage';
-import AdminPage from '../pages/AdminPage';
-import ProviderPage from '../pages/ProviderPage';
 import AccessGate from '../pages/AccessGate';
 import PublicGate from '../components/common/PublicGate';
+import Loader from '../components/ui/Loader';
+
+// Lazy-loaded Pages
+const HomePage = lazy(() => import('../pages/HomePage'));
+const MoviesPage = lazy(() => import('../pages/MoviesPage'));
+const TVShowsPage = lazy(() => import('../pages/TVShowsPage'));
+const SearchPage = lazy(() => import('../pages/SearchPage'));
+const MovieDetails = lazy(() => import('../pages/MovieDetails'));
+const TVDetails = lazy(() => import('../pages/TVDetails'));
+const WatchPage = lazy(() => import('../pages/WatchPage'));
+const Login = lazy(() => import('../pages/Login'));
+const Register = lazy(() => import('../pages/Register'));
+const FavoritesPage = lazy(() => import('../pages/FavoritesPage'));
+const SettingsPage = lazy(() => import('../pages/SettingsPage'));
+const AdminPage = lazy(() => import('../pages/AdminPage'));
+const ProviderPage = lazy(() => import('../pages/ProviderPage'));
+
+// Helper for top-level lazy routes (Auth, Welcome)
+const SuspenseLayout = ({ children }) => (
+  <Suspense fallback={
+    <div className="h-screen w-screen flex items-center justify-center bg-netflix-black">
+      <Loader size="lg" />
+    </div>
+  }>
+    {children}
+  </Suspense>
+);
 
 const router = createBrowserRouter([
   {
     path: '/welcome',
-    element: <AccessGate />
+    element: <SuspenseLayout><AccessGate /></SuspenseLayout>
   },
   {
     path: '/',
@@ -75,21 +92,21 @@ const router = createBrowserRouter([
   // Clerk authentication routes with wildcards
   {
     path: '/login',
-    element: <PublicGate><Login /></PublicGate>,
+    element: <PublicGate><SuspenseLayout><Login /></SuspenseLayout></PublicGate>,
     children: [
       {
         path: '*',
-        element: <PublicGate><Login /></PublicGate>
+        element: <PublicGate><SuspenseLayout><Login /></SuspenseLayout></PublicGate>
       }
     ]
   },
   {
     path: '/register',
-    element: <PublicGate><Register /></PublicGate>,
+    element: <PublicGate><SuspenseLayout><Register /></SuspenseLayout></PublicGate>,
     children: [
       {
         path: '*',
-        element: <PublicGate><Register /></PublicGate>
+        element: <PublicGate><SuspenseLayout><Register /></SuspenseLayout></PublicGate>
       }
     ]
   },
