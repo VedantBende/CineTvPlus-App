@@ -212,7 +212,7 @@ function handleTmdbError(res, error, endpoint) {
     });
   }
 
-  if (error.code === 'ECONNABORTED') {
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
     return res.status(504).json({
       success: false,
       error: 'TMDB request timed out. Please try again.',

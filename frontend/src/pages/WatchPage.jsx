@@ -148,7 +148,6 @@ function WatchPage() {
         const resumeValue = parseFloat(resume);
         if (!isNaN(resumeValue) && resumeValue > 0) {
           timeToResume = resumeValue;
-          console.log('📍 Resume from URL:', timeToResume);
         }
       } else {
         const progress = await getProgress(getToken, tmdbId, season, episode);
@@ -159,26 +158,11 @@ function WatchPage() {
 
           if (currentTime > 0 && duration > 0) {
             const percentWatched = (currentTime / duration) * 100;
-            
-            console.log('📊 Progress found:', {
-              currentTime: currentTime.toFixed(2),
-              duration: duration.toFixed(2),
-              percentWatched: percentWatched.toFixed(2) + '%'
-            });
 
             if (currentTime > 10 && percentWatched < 95) {
               timeToResume = currentTime;
-              console.log('✅ Will resume from:', timeToResume.toFixed(2), 'seconds');
-            } else if (percentWatched >= 95) {
-              console.log('🎬 Already watched 95%+, starting fresh');
-            } else {
-              console.log('🎬 Less than 10 seconds watched, starting fresh');
             }
-          } else {
-            console.log('🎬 Invalid progress data, starting fresh');
           }
-        } else {
-          console.log('🎬 No progress found, starting fresh');
         }
       }
 
@@ -216,7 +200,7 @@ function WatchPage() {
       {!isFullscreen && (
         <button
           onClick={handleBack}
-          className="fixed top-14 left-2 sm:top-20 sm:left-3 md:top-24 md:left-4 z-50 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
+          className="fixed top-14 left-2 sm:top-20 sm:left-3 md:top-24 md:left-4 z-40 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
           title="Exit player"
           aria-label="Go back"
         >
@@ -229,7 +213,7 @@ function WatchPage() {
 
       {/* Info Banner - Responsive */}
       {!isFullscreen && (
-        <div className="fixed top-14 right-2 sm:top-20 sm:right-3 md:top-24 md:right-4 z-50 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
+        <div className="fixed top-14 right-2 sm:top-20 sm:right-3 md:top-24 md:right-4 z-40 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
           <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
             {mediaType === 'tv' && season && episode ? (
               <span>S{season} E{episode}</span>

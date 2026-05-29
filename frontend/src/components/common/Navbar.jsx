@@ -235,9 +235,14 @@ function Navbar() {
         </div>
 
         {/* Mobile Menu - Enhanced */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-black bg-opacity-98 border-t border-gray-200 dark:border-gray-800 backdrop-blur-md animate-slide-down">
-            <div className="py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+        <div 
+          className={`md:hidden bg-white dark:bg-black bg-opacity-98 backdrop-blur-md overflow-hidden transition-all duration-300 ease-in-out ${
+            isMobileMenuOpen 
+              ? 'max-h-screen opacity-100 border-t border-gray-200 dark:border-gray-800 pointer-events-auto visible' 
+              : 'max-h-0 opacity-0 border-t-0 pointer-events-none invisible'
+          }`}
+        >
+          <div className="py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
               <Link 
                 to="/" 
                 className={`block py-3 px-4 transition text-base font-medium touch-target border-l-2 ${isActive('/') ? 'text-netflix-red bg-netflix-red/10 border-netflix-red' : 'text-gray-900 dark:text-white hover:text-netflix-red dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border-transparent'}`} 
@@ -310,10 +315,9 @@ function Navbar() {
                   <span className="text-gray-500 dark:text-gray-400 text-sm">Theme</span>
                   <ThemeToggle />
                 </div>
-              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );

@@ -45,20 +45,6 @@ function PlayerFrame({
       })
     : null;
 
-  // DIAGNOSTIC LOG (As requested: Step 1 Root Cause Analysis logging)
-  useEffect(() => {
-    if (selectedPlayer && embedUrl) {
-      console.log({
-        id: tmdbId,
-        type: mediaType,
-        season: activeSeason,
-        episode: activeEpisode,
-        player: selectedPlayer,
-        finalUrl: embedUrl
-      });
-    }
-  }, [tmdbId, mediaType, activeSeason, activeEpisode, selectedPlayer, embedUrl]);
-
 
   // Handle player selection (from modal or buttons)
   const handlePlayerSelect = useCallback((playerId) => {
@@ -366,7 +352,6 @@ function PlayerFrame({
           className="absolute top-0 left-0 w-full h-full border-0"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-          allowFullScreen
           title="Video Player"
           referrerPolicy={iframeReferrer}
           loading="eager"
