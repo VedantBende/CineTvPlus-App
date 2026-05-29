@@ -37,7 +37,7 @@ function EpisodeList({ episodes, onEpisodeSelect, currentEpisode }) {
 
       {/* Episode List */}
       <div className="space-y-4">
-        {currentSeasonEpisodes.map((episode, index) => (
+        {currentSeasonEpisodes.map((episode) => (
           <div
             key={`${episode.season}-${episode.episode}`}
             onClick={() => onEpisodeSelect(episode)}

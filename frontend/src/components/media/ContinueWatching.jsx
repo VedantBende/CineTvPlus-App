@@ -15,15 +15,17 @@ function ContinueWatching() {
 
   // Fetch from DB on mount and on route change
   useEffect(() => {
-    if (!isSignedIn) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
 
     const loadItems = async () => {
+      if (!isSignedIn) {
+        if (!cancelled) {
+          setItems([]);
+          setLoading(false);
+        }
+        return;
+      }
+
       setLoading(true);
       const list = await fetchContinueWatchingList(getToken);
       if (!cancelled) {

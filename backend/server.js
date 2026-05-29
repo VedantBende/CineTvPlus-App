@@ -24,9 +24,13 @@ import historyRoutes from './routes/history.routes.js';
 import tmdbRoutes from './routes/tmdb.routes.js';
 import continueWatchingRoutes from './routes/continueWatching.routes.js';
 import { initDatabaseKeepAlive, checkDatabaseHealth } from './utils/dbHealth.js';
+import { globalLimiter, tmdbLimiter, dbWriteLimiter } from './middleware/rateLimiter.middleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Trust reverse proxy (Render, Vercel, Nginx, etc.) so rate limiters use the correct client IP
+app.set('trust proxy', 1);
 
 // Connect to MongoDB
 connectDB();
@@ -100,6 +104,9 @@ app.get('/', (req, res) => {
   res.status(200).send('🚀 CineTv+ API: Active');
 });
 
+// Apply Global Rate Limiter to all routes EXCEPT the root health check
+app.use(globalLimiter);
+
 // Routes - AFTER all middleware
 app.get('/api/health', async (req, res) => {
   const dbHealth = await checkDatabaseHealth();
@@ -116,10 +123,10 @@ app.get('/api/health', async (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/favorites', favoritesRoutes);
-app.use('/api/history', historyRoutes);
-app.use('/api/tmdb', tmdbRoutes);
-app.use('/api/continue-watching', continueWatchingRoutes);
+app.use('/api/favorites', dbWriteLimiter, favoritesRoutes);
+app.use('/api/history', dbWriteLimiter, historyRoutes);
+app.use('/api/tmdb', tmdbLimiter, tmdbRoutes);
+app.use('/api/continue-watching', dbWriteLimiter, continueWatchingRoutes);
 
 // 404 Handler
 app.use((req, res) => {

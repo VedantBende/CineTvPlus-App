@@ -25,16 +25,14 @@ function PlayerFrame({
   const [selectedPlayer, setSelectedPlayer] = useState(() => getSavedPlayer(tmdbId, mediaType));
   const [animateButtons, setAnimateButtons] = useState(false);
 
-  // Internal season/episode state (for TV switching without page reload)
-  const [activeSeason, setActiveSeason] = useState(() => mediaType === 'tv' ? (season || 1) : null);
-  const [activeEpisode, setActiveEpisode] = useState(() => mediaType === 'tv' ? (episode || 1) : null);
+  // Derive season/episode from URL props directly instead of syncing via useEffect
+  const activeSeason = mediaType === 'tv' ? (season || 1) : null;
+  const activeEpisode = mediaType === 'tv' ? (episode || 1) : null;
 
-  // Sync with props when they change (e.g. URL navigation)
+  // Sync selected player when tmdbId or mediaType changes
   useEffect(() => {
-    setActiveSeason(mediaType === 'tv' ? (season || 1) : null);
-    setActiveEpisode(mediaType === 'tv' ? (episode || 1) : null);
     setSelectedPlayer(getSavedPlayer(tmdbId, mediaType));
-  }, [season, episode, mediaType, tmdbId]);
+  }, [tmdbId, mediaType]);
 
 
   // Build embed URL (only when a player is selected)
@@ -61,9 +59,6 @@ function PlayerFrame({
 
   // Handle season/episode change from EpisodeSelector
   const handleEpisodeChange = useCallback((newSeason, newEpisode) => {
-    setActiveSeason(newSeason);
-    setActiveEpisode(newEpisode);
-
     // Sync URL without a page reload so UI S1 E1 indicators naturally update!
     const params = new URLSearchParams(location.search);
     params.set('season', newSeason);
@@ -105,7 +100,7 @@ function PlayerFrame({
             }
           }
         }
-      } catch (error) {
+      } catch {
         // Silently handle errors
       }
     };

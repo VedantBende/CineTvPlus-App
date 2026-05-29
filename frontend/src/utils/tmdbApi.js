@@ -3,7 +3,7 @@ const TMDB_BASE_URL = `${API_URL}/tmdb`;
 
 // Image base URLs from environment variables
 const POSTER_BASE_URL = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500'; 
-const BACKDROP_BASE_URL = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/original'; 
+const BACKDROP_BASE_URL = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/w1280'; 
 
 /**
  * Fetch trending movies

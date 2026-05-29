@@ -10,7 +10,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const POSTER_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500';
-const BACKDROP_BASE = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/original';
+const BACKDROP_BASE = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/w1280';
 
 function WatchPage() {
   const isDevToolsOpen = useDevToolsDetector();
