@@ -64,3 +64,19 @@ export const removeItem = async (getToken, mediaId) => {
     throw error; // Re-throw so caller can revert optimistic UI
   }
 };
+
+/**
+ * Clear all continue watching history from the database.
+ * @param {Function} getToken - Clerk getToken function
+ */
+export const clearHistory = async (getToken) => {
+  if (!getToken) return;
+
+  try {
+    const headers = await getAuthHeaders(getToken);
+    await axios.delete(`${API_URL}/continue-watching/clear/all`, { headers });
+  } catch (error) {
+    console.error('Failed to clear watch history:', error);
+    throw error;
+  }
+};

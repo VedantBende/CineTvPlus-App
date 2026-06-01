@@ -1,28 +1,26 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { useEffect, useState } from 'react';
-
+import { useEffect, useState, useRef } from 'react';
+import { clearHistory } from '../utils/continueWatchingStore';
+import { deleteUserDB } from '../utils/api';
+import useMediaStore from '../store/mediaStore';
 
 function SettingsPage() {
   const { user, isSignedIn } = useUser();
+  const { getToken, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { clearAll } = useMediaStore();
 
-  // Playback settings state
-  const [autoplay, setAutoplay] = useState(() => {
-    return localStorage.getItem('autoplay') === 'true';
-  });
-  const [videoQuality, setVideoQuality] = useState(() => {
-    return localStorage.getItem('videoQuality') || 'auto';
-  });
-  const [subtitles, setSubtitles] = useState(() => {
-    return localStorage.getItem('subtitles') || 'off';
-  });
-  const [volume, setVolume] = useState(() => {
-    return parseInt(localStorage.getItem('volume') || '70', 10);
-  });
   const [isExiting, setIsExiting] = useState(false);
+
+  // Modal states
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   useEffect(() => {
     const handleSettingsClose = () => {
@@ -49,36 +47,54 @@ function SettingsPage() {
     }
   }, [isSignedIn, navigate]);
 
-  // Save settings to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('autoplay', autoplay.toString());
-  }, [autoplay]);
 
-  useEffect(() => {
-    localStorage.setItem('videoQuality', videoQuality);
-  }, [videoQuality]);
 
-  useEffect(() => {
-    localStorage.setItem('subtitles', subtitles);
-  }, [subtitles]);
+  const handleClearHistory = async () => {
+    setIsClearing(true);
+    try {
+      await clearHistory(getToken);
+      setShowHistoryModal(false);
+      // Optional: you could trigger a re-fetch of the continue watching row here
+      // But since it's on the home page, it will just re-fetch when they navigate back
+    } catch (error) {
+      console.error('Failed to clear history:', error);
+      alert('Failed to clear history. Please try again.');
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('volume', volume.toString());
-  }, [volume]);
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') return;
+    setIsDeleting(true);
+    try {
+      // Deletes from MongoDB AND Clerk on the backend via clerkClient
+      await deleteUserDB(getToken); 
+      
+      // Sign the user out locally since their account no longer exists
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      alert(`Failed to delete account: ${error.message || 'Unknown error'}`);
+      setIsDeleting(false);
+    }
+  };
 
   if (!isSignedIn) {
     return null;
   }
 
   return (
-    <div className={`min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300`}>
+    <div className={`min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300 relative`}>
       <div className={`container-custom py-6 sm:py-8 md:py-10 lg:py-12 max-w-4xl ${isExiting ? 'opacity-0 translate-y-8 transition-all duration-300 ease-in' : 'animate-slide-up'}`}>
-        {/* Page Title - Responsive */}
+        
+        {/* Page Title */}
         <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 transition-colors">
           Settings
         </h1>
 
-        {/* Account Info - Responsive */}
+        {/* Account Info */}
         <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 transition-colors">
           <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
             Account
@@ -99,7 +115,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        {/* Appearance - Responsive */}
+        {/* Appearance */}
         <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6 transition-colors">
           <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
             Appearance
@@ -137,91 +153,47 @@ function SettingsPage() {
           </div>
         </div>
 
-        {/* Playback Settings - Responsive */}
-        <div className="bg-gray-50 dark:bg-netflix-gray border border-gray-200 dark:border-transparent rounded-lg p-4 sm:p-5 md:p-6 transition-colors">
-          <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
-            Playback
+
+        {/* Privacy & Data Management */}
+        <div className="bg-gray-50 dark:bg-netflix-gray border border-red-500/20 rounded-lg p-4 sm:p-5 md:p-6 transition-colors">
+          <h2 className="text-red-500 dark:text-red-400 text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 transition-colors">
+            Privacy & Data
           </h2>
           
-          <div className="space-y-5 sm:space-y-6">
-            {/* Autoplay - Responsive */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="flex-1">
-                <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base transition-colors">Autoplay</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-0.5 transition-colors">
-                  Automatically play next episode
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base">Clear Watch History</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-0.5">
+                  Reset your "Continue Watching" progress permanently.
                 </p>
               </div>
-              <button 
-                onClick={() => setAutoplay(!autoplay)}
-                className={`relative inline-flex h-7 w-12 sm:h-6 sm:w-11 items-center rounded-full transition flex-shrink-0 touch-target ${
-                  autoplay ? 'bg-netflix-red' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                aria-label="Toggle autoplay"
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded text-sm font-medium transition"
               >
-                <span className={`inline-block h-5 w-5 sm:h-4 sm:w-4 transform rounded-full bg-white transition ${
-                  autoplay ? 'translate-x-6 sm:translate-x-6' : 'translate-x-1'
-                }`} />
+                Clear History
               </button>
             </div>
 
-            {/* Quality - Responsive */}
-            <div>
-              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
-                Video Quality
-              </h3>
-              <select 
-                value={videoQuality}
-                onChange={(e) => setVideoQuality(e.target.value)}
-                className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
-              >
-                <option value="auto">Auto</option>
-                <option value="360p">360p</option>
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-              </select>
-            </div>
-
-            {/* Subtitles - Additional Setting */}
-            <div>
-              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
-                Subtitles
-              </h3>
-              <select 
-                value={subtitles}
-                onChange={(e) => setSubtitles(e.target.value)}
-                className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-transparent px-3 py-2 sm:px-4 sm:py-2.5 rounded w-full text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-netflix-red transition touch-target"
-              >
-                <option value="off">Off</option>
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-              </select>
-            </div>
-
-            {/* Volume - Additional Setting */}
-            <div>
-              <h3 className="text-gray-900 dark:text-white font-medium text-sm sm:text-base mb-2 transition-colors">
-                Default Volume
-              </h3>
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={volume}
-                onChange={(e) => setVolume(parseInt(e.target.value, 10))}
-                className="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-netflix-red touch-target"
-              />
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
-                <span>Mute</span>
-                <span className="text-gray-900 dark:text-white font-medium transition-colors">{volume}%</span>
-                <span>Max</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <h3 className="text-red-500 font-medium text-sm sm:text-base">Delete Account</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-0.5">
+                  Permanently delete your account and all associated data.
+                </p>
               </div>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition"
+              >
+                Delete Account
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Account Actions - Responsive */}
+        {/* Back to Home */}
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={handleBackToHomeClick}
@@ -231,6 +203,87 @@ function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* MODALS */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-netflix-gray rounded-xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Clear Watch History?</h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+              Are you sure you want to clear all your watch history? This action cannot be undone and your "Continue Watching" list will be emptied.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowHistoryModal(false)}
+                className="px-4 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition"
+                disabled={isClearing}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleClearHistory}
+                className="px-4 py-2 rounded bg-netflix-red text-white hover:bg-red-700 font-medium transition flex items-center justify-center min-w-[80px]"
+                disabled={isClearing}
+              >
+                {isClearing ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Clear'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-netflix-gray rounded-xl p-6 max-w-sm w-full shadow-2xl border border-red-500/30">
+            <h3 className="text-xl font-bold text-red-500 mb-2">Delete Account</h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+              This action is permanent and cannot be reversed. All your data, favorites, and history will be wiped.
+            </p>
+            <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 font-medium">
+              Please type <strong className="text-gray-900 dark:text-white">DELETE</strong> to confirm.
+            </p>
+            <input 
+              type="text" 
+              value={deleteConfirmation}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/[a-z]/.test(val)) return; // Completely reject lowercase characters
+                setDeleteConfirmation(val);
+              }}
+              placeholder="DELETE"
+              className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 mb-6"
+            />
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation('');
+                }}
+                className="px-4 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmation !== 'DELETE' || isDeleting}
+                className="px-4 py-2 rounded bg-red-600 text-white font-medium transition flex items-center justify-center min-w-[80px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-700"
+              >
+                {isDeleting ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Delete'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

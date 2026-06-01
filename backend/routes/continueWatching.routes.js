@@ -52,6 +52,17 @@ router.post('/', async (req, res) => {
   }
 });
 
+// DELETE /clear/all — Clear all continue watching history for the user
+router.delete('/clear/all', async (req, res) => {
+  try {
+    await ContinueWatching.deleteMany({ userId: req.user._id });
+    res.json({ message: 'Watch history cleared' });
+  } catch (error) {
+    console.error('Error clearing watch history:', error);
+    res.status(500).json({ error: 'Failed to clear watch history' });
+  }
+});
+
 // DELETE /:mediaId — Remove a single item
 router.delete('/:mediaId', async (req, res) => {
   try {

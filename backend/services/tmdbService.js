@@ -271,7 +271,7 @@ export async function discoverByProvider(mediaType, providerId, page = 1) {
     language: 'en-US',
     page,
     with_watch_providers: providerId,
-    watch_region: 'US',
+    watch_region: 'IN',
     sort_by: 'popularity.desc'
   }, {
     cacheTTL: CACHE_TTLS.list

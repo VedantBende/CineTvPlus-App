@@ -1,6 +1,7 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import User from '../models/User.js';
+import { clerkClient } from '@clerk/clerk-sdk-node';
 
 const router = express.Router();
 
@@ -45,6 +46,26 @@ router.post('/sync', requireAuth, async (req, res) => {
       message: error.message,
       details: error.errors // Mongoose validation errors
     });
+  }
+});
+
+// Delete user from MongoDB
+router.delete('/delete', requireAuth, async (req, res) => {
+  try {
+    const { userId } = req.auth;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication failed' });
+    }
+    
+    // Delete user from Clerk directly (bypasses frontend verification issues)
+    await clerkClient.users.deleteUser(userId);
+
+    // Delete user from MongoDB
+    await User.findOneAndDelete({ clerkUserId: userId });
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('❌ Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user', details: error.message });
   }
 });
 

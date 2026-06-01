@@ -89,7 +89,7 @@ function Sidebar({ isOpen, onClose }) {
             {menuItems.map((item) => (
               <Link
                 key={item.path}
-                to={item.path}
+                to={item.path === '/settings' ? item.path + location.search : item.path}
                 onClick={onClose}
                 className={`flex items-center space-x-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg transition touch-target ${
                   location.pathname === item.path

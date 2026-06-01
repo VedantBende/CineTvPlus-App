@@ -174,7 +174,7 @@ function Navbar() {
                     if (isSettingsOpen) {
                       window.dispatchEvent(new Event('trigger-settings-close'));
                     } else {
-                      navigate('/settings');
+                      navigate('/settings' + location.search);
                     }
                   }}
                   className={`transition p-2 flex items-center justify-center touch-target rounded-full ${
@@ -279,7 +279,7 @@ function Navbar() {
                       if (isSettingsOpen) {
                         window.dispatchEvent(new Event('trigger-settings-close'));
                       } else {
-                        navigate('/settings');
+                        navigate('/settings' + location.search);
                       }
                       closeMobileMenu();
                     }}
