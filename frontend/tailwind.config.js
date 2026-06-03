@@ -17,9 +17,9 @@ module.exports = {
     extend: {
       colors: {
         netflix: {
-          red: '#E50914',
-          black: '#0f0f0f',
-          gray: '#2F2F2F',
+          red: 'var(--netflix-red, #E50914)',
+          black: 'var(--netflix-black, #0f0f0f)',
+          gray: 'var(--netflix-gray, #2F2F2F)',
         },
         accent: {
           red: '#e60a15',

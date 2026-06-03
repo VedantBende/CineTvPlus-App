@@ -8,10 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
  * @param {Function} getToken - Clerk getToken function
  * @returns {Array} list of continue watching items
  */
-export const fetchContinueWatchingList = async (getToken) => {
+export const fetchContinueWatchingList = async (getToken, isAnime = false) => {
   try {
     const headers = await getAuthHeaders(getToken);
-    const response = await axios.get(`${API_URL}/continue-watching`, { headers });
+    const response = await axios.get(`${API_URL}/continue-watching?anime=${isAnime}`, { headers });
     return response.data.items || [];
   } catch (error) {
     console.error('Failed to fetch continue watching list:', error);
@@ -25,7 +25,7 @@ export const fetchContinueWatchingList = async (getToken) => {
  * @param {Function|null} getToken - Clerk getToken function
  * @param {Object} params - media metadata
  */
-export const addOrUpdateItem = async (getToken, { tmdbId, type, title, posterPath, backdropPath, season, episode }) => {
+export const addOrUpdateItem = async (getToken, { tmdbId, type, title, posterPath, backdropPath, season, episode, isAnime = false }) => {
   if (!getToken || !tmdbId || !type) return;
 
   try {
@@ -39,7 +39,8 @@ export const addOrUpdateItem = async (getToken, { tmdbId, type, title, posterPat
         posterPath: posterPath || null,
         backdropPath: backdropPath || null,
         season: season ? parseInt(season) : null,
-        episode: episode ? parseInt(episode) : null
+        episode: episode ? parseInt(episode) : null,
+        isAnime
       },
       { headers }
     );
@@ -53,12 +54,12 @@ export const addOrUpdateItem = async (getToken, { tmdbId, type, title, posterPat
  * @param {Function} getToken - Clerk getToken function
  * @param {string} mediaId - TMDB media ID
  */
-export const removeItem = async (getToken, mediaId) => {
+export const removeItem = async (getToken, mediaId, isAnime = false) => {
   if (!getToken || !mediaId) return;
 
   try {
     const headers = await getAuthHeaders(getToken);
-    await axios.delete(`${API_URL}/continue-watching/${mediaId}`, { headers });
+    await axios.delete(`${API_URL}/continue-watching/${mediaId}?anime=${isAnime}`, { headers });
   } catch (error) {
     console.error('Failed to remove continue watching item:', error);
     throw error; // Re-throw so caller can revert optimistic UI
@@ -69,12 +70,12 @@ export const removeItem = async (getToken, mediaId) => {
  * Clear all continue watching history from the database.
  * @param {Function} getToken - Clerk getToken function
  */
-export const clearHistory = async (getToken) => {
+export const clearHistory = async (getToken, isAnime = false) => {
   if (!getToken) return;
 
   try {
     const headers = await getAuthHeaders(getToken);
-    await axios.delete(`${API_URL}/continue-watching/clear/all`, { headers });
+    await axios.delete(`${API_URL}/continue-watching/clear/all?anime=${isAnime}`, { headers });
   } catch (error) {
     console.error('Failed to clear watch history:', error);
     throw error;

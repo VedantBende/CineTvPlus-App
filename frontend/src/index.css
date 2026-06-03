@@ -622,6 +622,22 @@
     background: radial-gradient(circle, rgba(229,9,20,0.2) 0%, rgba(0,0,0,0) 70%);
   }
 
+  .fade-edge-left {
+    background-image: linear-gradient(to right, #ffffff 10%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .fade-edge-right {
+    background-image: linear-gradient(to left, #ffffff 10%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .dark .fade-edge-left {
+    background-image: linear-gradient(to right, #0f0f0f 10%, rgba(15, 15, 15, 0) 100%);
+  }
+
+  .dark .fade-edge-right {
+    background-image: linear-gradient(to left, #0f0f0f 10%, rgba(15, 15, 15, 0) 100%);
+  }
+
   /* Image aspect ratios */
   .aspect-video {
     aspect-ratio: 16 / 9;

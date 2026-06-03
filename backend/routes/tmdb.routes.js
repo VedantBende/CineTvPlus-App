@@ -14,7 +14,10 @@ import {
   fetchUpcoming,
   fetchDetails,
   searchMulti,
-  discoverByProvider
+  discoverByProvider,
+  fetchAnimeDiscover,
+  searchAnimeMulti,
+  discoverAnimeByProvider
 } from '../services/tmdbService.js';
 
 const router = express.Router();
@@ -60,7 +63,10 @@ router.get('/trending/:mediaType/:timeWindow', async (req, res) => {
       return sendError(res, 400, `Invalid time window: ${timeWindow}. Must be 'day' or 'week'.`);
     }
 
-    const data = await fetchTrending(mediaType, timeWindow, page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime 
+      ? await fetchAnimeDiscover(mediaType, 'trending', page)
+      : await fetchTrending(mediaType, timeWindow, page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'trending');
@@ -80,7 +86,10 @@ router.get('/:mediaType/popular', async (req, res) => {
       return sendError(res, 400, `Invalid media type: ${mediaType}`);
     }
 
-    const data = await fetchPopular(mediaType, page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await fetchAnimeDiscover(mediaType, 'popular', page)
+      : await fetchPopular(mediaType, page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'popular');
@@ -100,7 +109,10 @@ router.get('/:mediaType/top_rated', async (req, res) => {
       return sendError(res, 400, `Invalid media type: ${mediaType}`);
     }
 
-    const data = await fetchTopRated(mediaType, page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await fetchAnimeDiscover(mediaType, 'top_rated', page)
+      : await fetchTopRated(mediaType, page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'top_rated');
@@ -113,7 +125,10 @@ router.get('/:mediaType/top_rated', async (req, res) => {
 router.get('/movie/now_playing', async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const data = await fetchNowPlaying(page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await fetchAnimeDiscover('movie', 'now_playing', page)
+      : await fetchNowPlaying(page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'now_playing');
@@ -126,7 +141,10 @@ router.get('/movie/now_playing', async (req, res) => {
 router.get('/movie/upcoming', async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const data = await fetchUpcoming(page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await fetchAnimeDiscover('movie', 'upcoming', page)
+      : await fetchUpcoming(page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'upcoming');
@@ -144,7 +162,10 @@ router.get('/search/multi', async (req, res) => {
       return sendError(res, 400, 'Search query is required.');
     }
 
-    const data = await searchMulti(query.trim(), parseInt(page, 10) || 1);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await searchAnimeMulti(query.trim(), parseInt(page, 10) || 1)
+      : await searchMulti(query.trim(), parseInt(page, 10) || 1);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'search');
@@ -167,7 +188,10 @@ router.get('/discover/:mediaType', async (req, res) => {
       return sendError(res, 400, 'Valid providerId is required.');
     }
 
-    const data = await discoverByProvider(mediaType, providerId, page);
+    const isAnime = req.query.anime === 'true';
+    const data = isAnime
+      ? await discoverAnimeByProvider(mediaType, providerId, page)
+      : await discoverByProvider(mediaType, providerId, page);
     res.json(data);
   } catch (error) {
     handleTmdbError(res, error, 'discover');

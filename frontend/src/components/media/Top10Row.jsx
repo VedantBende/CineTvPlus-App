@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 function Top10Card({ item, index, type }) {
   const navigate = useNavigate();
@@ -70,9 +71,13 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const { isAnimeMode } = useTheme();
 
   // Take only top 10
-  const top10Items = items?.slice(0, 10) || [];
+  const top10Items = useMemo(() => {
+    if (!items) return [];
+    return items.slice(0, 10);
+  }, [items]);
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -110,6 +115,8 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
 
   if (!top10Items.length) return null;
 
+  const displaySubtitle = isAnimeMode ? "CONTENT THIS WEEK" : subtitle;
+
   return (
     <section className="space-y-4 sm:space-y-6 md:space-y-8 my-8 sm:my-10 lg:my-16">
       {/* Title Area */}
@@ -118,8 +125,8 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
           {title}
         </h2>
         <div className="flex flex-col text-gray-900 dark:text-white font-bold text-xs sm:text-sm tracking-widest leading-none pb-1 transition">
-          <span>{subtitle.split(' ')[0]}</span>
-          <span>{subtitle.split(' ').slice(1).join(' ')}</span>
+          <span>{displaySubtitle.split(' ')[0]}</span>
+          <span>{displaySubtitle.split(' ').slice(1).join(' ')}</span>
         </div>
       </div>
 
@@ -128,8 +135,8 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-r from-white via-white/80 dark:from-[#0f0f0f] dark:via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
-            canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-20 z-20 items-center justify-center fade-edge-left transition-all duration-500 ease-out ${
+            !canScrollLeft ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:w-24'
           }`}
           aria-label="Scroll left"
         >
@@ -143,8 +150,8 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
         {/* Right Arrow */}
         <button
           onClick={() => scroll('right')}
-          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-20 z-20 items-center justify-center bg-gradient-to-l from-white via-white/80 dark:from-[#0f0f0f] dark:via-[#0f0f0f]/80 to-transparent transition-all duration-500 ease-out ${
-            canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-20 z-20 items-center justify-center fade-edge-right transition-all duration-500 ease-out ${
+            !canScrollRight ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:w-24'
           }`}
           aria-label="Scroll right"
         >

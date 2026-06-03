@@ -13,21 +13,30 @@ import Top10Row from '../components/media/Top10Row';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
+import { useTheme } from '../context/ThemeContext';
 
 function MoviesPage() {
   const navigate = useNavigate();
+  const { isAnimeMode } = useTheme();
 
   // Read from / write to global cache
-  const { moviesData, moviesFetchedAt, setMoviesData } = useMediaStore();
+  const { 
+    moviesData, moviesFetchedAt, 
+    moviesDataAnime, moviesFetchedAtAnime,
+    setMoviesData 
+  } = useMediaStore();
 
-  const [popularMovies, setPopularMovies] = useState(moviesData?.popularMovies ?? []);
-  const [topRatedMovies, setTopRatedMovies] = useState(moviesData?.topRatedMovies ?? []);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState(moviesData?.nowPlayingMovies ?? []);
-  const [trendingMovies, setTrendingMovies] = useState(moviesData?.trendingMovies ?? []);
-  const [upcomingMovies, setUpcomingMovies] = useState(moviesData?.upcomingMovies ?? []);
-  const [heroMovies, setHeroMovies] = useState(moviesData?.heroMovies ?? []);
+  const activeData = isAnimeMode ? moviesDataAnime : moviesData;
+  const activeFetchedAt = isAnimeMode ? moviesFetchedAtAnime : moviesFetchedAt;
+
+  const [popularMovies, setPopularMovies] = useState(activeData?.popularMovies || []);
+  const [topRatedMovies, setTopRatedMovies] = useState(activeData?.topRatedMovies || []);
+  const [nowPlayingMovies, setNowPlayingMovies] = useState(activeData?.nowPlayingMovies || []);
+  const [trendingMovies, setTrendingMovies] = useState(activeData?.trendingMovies || []);
+  const [upcomingMovies, setUpcomingMovies] = useState(activeData?.upcomingMovies || []);
+  const [heroMovies, setHeroMovies] = useState(activeData?.heroMovies || []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [loading, setLoading] = useState(!moviesData);
+  const [loading, setLoading] = useState(!activeData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -54,15 +63,36 @@ function MoviesPage() {
     if (node) observer.current.observe(node);
   }, [loading, loadingMore, hasMore]);
 
+  // Sync local state when active cache changes
+  useEffect(() => {
+    if (activeData) {
+      setPopularMovies(activeData.popularMovies || []);
+      setTopRatedMovies(activeData.topRatedMovies || []);
+      setNowPlayingMovies(activeData.nowPlayingMovies || []);
+      setTrendingMovies(activeData.trendingMovies || []);
+      setUpcomingMovies(activeData.upcomingMovies || []);
+      setHeroMovies(activeData.heroMovies || []);
+      setLoading(false);
+    }
+  }, [activeData]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Skip fetch if cache is fresh (within TTL)
-    const isCacheFresh = moviesData && moviesFetchedAt && (Date.now() - moviesFetchedAt < CACHE_TTL);
-    if (isCacheFresh) return;
+    // Reset infinite scroll state on mode toggle
+    setDynamicRows([]);
+    setPage(1);
+    setHasMore(true);
+
+    // Skip fetch if cache is fresh (within TTL) for current mode
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    if (isCacheFresh) {
+      setLoading(false);
+      return;
+    }
 
     loadInitialMovies();
-  }, []);
+  }, [isAnimeMode]);
 
   // Fetch more data when page changes
   useEffect(() => {
@@ -93,14 +123,7 @@ function MoviesPage() {
         fetchUpcomingMovies(1)
       ]);
 
-      setPopularMovies(popular);
-      setTopRatedMovies(topRated);
-      setNowPlayingMovies(nowPlaying);
-      setTrendingMovies(trending);
-      setUpcomingMovies(upcoming);
-
       const heroes = trending.filter(m => m.backdrop).slice(0, 5);
-      setHeroMovies(heroes);
 
       // Persist to global cache so data survives route changes
       setMoviesData({
@@ -110,7 +133,9 @@ function MoviesPage() {
         trendingMovies: trending,
         upcomingMovies: upcoming,
         heroMovies: heroes,
-      });
+      }, isAnimeMode);
+      
+      // We don't call setLoading(false) here, the useEffect([activeData]) will do it.
     } catch (err) {
       setError(err.message);
     } finally {
@@ -118,15 +143,23 @@ function MoviesPage() {
     }
   };
 
+  const currentModeRef = useRef(isAnimeMode);
+  useEffect(() => {
+    currentModeRef.current = isAnimeMode;
+  }, [isAnimeMode]);
+
   const loadMoreMovies = async (pageNum) => {
     try {
       setLoadingMore(true);
+      const activeMode = currentModeRef.current;
       
       const [popular, topRated, upcoming] = await Promise.all([
         fetchPopularMovies(pageNum),
         fetchTopRatedMovies(pageNum),
         fetchUpcomingMovies(pageNum)
       ]);
+
+      if (activeMode !== currentModeRef.current) return;
 
       if (popular.length === 0 && topRated.length === 0 && upcoming.length === 0) {
         setHasMore(false);

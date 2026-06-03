@@ -5,13 +5,20 @@ const TMDB_BASE_URL = `${API_URL}/tmdb`;
 const POSTER_BASE_URL = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500'; 
 const BACKDROP_BASE_URL = import.meta.env.VITE_TMDB_BACKDROP_BASE_URL || 'https://image.tmdb.org/t/p/w1280'; 
 
+const getAnimeQuery = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('isAnimeMode') === 'true' ? '&anime=true' : '';
+  }
+  return '';
+};
+
 /**
  * Fetch trending movies
  */
 export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?page=${page}`
+      `${TMDB_BASE_URL}/trending/movie/${timeWindow}?page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -42,7 +49,7 @@ export const fetchTrendingMovies = async (timeWindow = 'week', page = 1) => {
 export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?page=${page}`
+      `${TMDB_BASE_URL}/trending/tv/${timeWindow}?page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -73,7 +80,7 @@ export const fetchTrendingTVShows = async (timeWindow = 'week', page = 1) => {
 export const fetchTrendingAll = async (timeWindow = 'week', page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/all/${timeWindow}?page=${page}`
+      `${TMDB_BASE_URL}/trending/all/${timeWindow}?page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -107,7 +114,7 @@ export const fetchTrendingAll = async (timeWindow = 'week', page = 1) => {
 export const fetchPopularMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/popular?language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/popular?language=en-US&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -138,7 +145,7 @@ export const fetchPopularMovies = async (page = 1) => {
 export const fetchPopularTVShows = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/popular?language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/tv/popular?language=en-US&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -169,7 +176,7 @@ export const fetchPopularTVShows = async (page = 1) => {
 export const fetchNowPlayingMovies = async () => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/now_playing?language=en-US&page=1`
+      `${TMDB_BASE_URL}/movie/now_playing?language=en-US&page=1${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -209,7 +216,7 @@ export const fetchNowPlayingMovies = async () => {
 export const fetchTopRatedMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/top_rated?language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/top_rated?language=en-US&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -240,7 +247,7 @@ export const fetchTopRatedMovies = async (page = 1) => {
 export const fetchByProvider = async (mediaType, providerId, page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/discover/${mediaType}?providerId=${providerId}&page=${page}`
+      `${TMDB_BASE_URL}/discover/${mediaType}?providerId=${providerId}&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -271,7 +278,7 @@ export const fetchByProvider = async (mediaType, providerId, page = 1) => {
 export const fetchTopRatedTVShows = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/top_rated?language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/tv/top_rated?language=en-US&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -302,7 +309,7 @@ export const fetchTopRatedTVShows = async (page = 1) => {
 export const fetchUpcomingMovies = async (page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/upcoming?language=en-US&page=${page}`
+      `${TMDB_BASE_URL}/movie/upcoming?language=en-US&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {
@@ -427,7 +434,7 @@ export const fetchTVShowDetails = async (showId) => {
 export const searchMulti = async (query, page = 1) => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/search/multi?language=en-US&query=${encodeURIComponent(query)}&page=${page}`
+      `${TMDB_BASE_URL}/search/multi?language=en-US&query=${encodeURIComponent(query)}&page=${page}${getAnimeQuery()}`
     );
 
     if (!response.ok) {

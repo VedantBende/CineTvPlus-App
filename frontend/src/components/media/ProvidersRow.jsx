@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from './MovieCard';
 import { fetchByProvider } from '../../utils/tmdbApi';
+import { useTheme } from '../../context/ThemeContext';
 
 // Provider data with TMDB IDs and clean public logos
 export const PROVIDERS = [
@@ -56,10 +57,27 @@ export const PROVIDERS = [
   }
 ];
 
+// Anime heavy providers: Netflix (8), Prime (9), Hulu (15), Crunchyroll (283)
+const ANIME_PROVIDERS = [8, 9, 15, 283];
+
 function ProvidersRow() {
+  const { isAnimeMode } = useTheme();
+  
+  const visibleProviders = isAnimeMode 
+    ? PROVIDERS.filter(p => ANIME_PROVIDERS.includes(p.id))
+    : PROVIDERS;
+
   const [mediaType, setMediaType] = useState('movie');
-  const [activeProvider, setActiveProvider] = useState(PROVIDERS[0]);
+  const [activeProvider, setActiveProvider] = useState(visibleProviders[0]);
   const [content, setContent] = useState([]);
+  
+  // Ensure active provider is always valid when toggling modes
+  useEffect(() => {
+    if (!visibleProviders.find(p => p.id === activeProvider.id)) {
+      setActiveProvider(visibleProviders[0]);
+    }
+  }, [isAnimeMode, activeProvider.id, visibleProviders]);
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const scrollRef = useRef(null);
@@ -99,7 +117,7 @@ function ProvidersRow() {
     });
   };
 
-  // Fetch content when provider or media type changes
+  // Fetch content when provider or media type or anime mode changes
   useEffect(() => {
     let isMounted = true;
     const loadContent = async () => {
@@ -114,7 +132,7 @@ function ProvidersRow() {
     return () => {
       isMounted = false;
     };
-  }, [mediaType, activeProvider.id]);
+  }, [mediaType, activeProvider.id, isAnimeMode]);
 
   return (
     <div className="relative pt-8 pb-4">
@@ -152,7 +170,7 @@ function ProvidersRow() {
 
       {/* Provider List (Horizontal Scrollable) */}
       <div className="flex overflow-x-auto no-scrollbar space-x-3 sm:space-x-4 mb-8 py-4 -my-4 snap-x relative z-10">
-        {PROVIDERS.map((provider, index) => {
+        {visibleProviders.map((provider, index) => {
           const isActive = activeProvider.id === provider.id;
           return (
             <button
@@ -208,7 +226,8 @@ function ProvidersRow() {
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-0 bottom-0 z-40 w-12 bg-gradient-to-r from-white via-white/80 dark:from-netflix-black dark:via-netflix-black/80 to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity duration-300 flex items-center justify-start group"
+            className="absolute left-0 top-0 bottom-0 z-40 w-12 fade-edge-left opacity-0 group-hover/row:opacity-100 transition-opacity duration-300 flex items-center justify-start group"
+            aria-label="Scroll left"
           >
             <div className="bg-white/80 dark:bg-black/50 p-2 rounded-full backdrop-blur-sm ml-2 group-hover:bg-white dark:group-hover:bg-black/80 transition-colors shadow-lg border border-gray-200 dark:border-gray-800">
               <svg className="w-6 h-6 text-black dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -247,7 +266,7 @@ function ProvidersRow() {
               <svg className="w-12 h-12 mb-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
               </svg>
-              <p>No content found for {activeProvider.name}</p>
+              <p>{isAnimeMode ? 'No Anime Content on this platform' : `No content found for ${activeProvider.name}`}</p>
             </div>
           )}
         </div>
@@ -256,7 +275,8 @@ function ProvidersRow() {
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-0 bottom-0 z-40 w-12 bg-gradient-to-l from-white via-white/80 dark:from-netflix-black dark:via-netflix-black/80 to-transparent opacity-0 group-hover/row:opacity-100 transition-opacity duration-300 flex items-center justify-end group"
+            className="absolute right-0 top-0 bottom-0 z-40 w-12 fade-edge-right opacity-0 group-hover/row:opacity-100 transition-opacity duration-300 flex items-center justify-end group"
+            aria-label="Scroll right"
           >
             <div className="bg-white/80 dark:bg-black/50 p-2 rounded-full backdrop-blur-sm mr-2 group-hover:bg-white dark:group-hover:bg-black/80 transition-colors shadow-lg border border-gray-200 dark:border-gray-800">
               <svg className="w-6 h-6 text-black dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

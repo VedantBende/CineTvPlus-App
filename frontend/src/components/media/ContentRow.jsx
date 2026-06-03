@@ -54,7 +54,7 @@ function ContentRow({ title, icon, children, className = '' }) {
         {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-r from-white dark:from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute left-0 top-0 bottom-0 w-14 z-20 items-center justify-center fade-edge-left transition-all duration-500 ease-out ${
             canScrollLeft ? 'opacity-0 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll left"
@@ -67,9 +67,9 @@ function ContentRow({ title, icon, children, className = '' }) {
         </button>
 
         {/* Right Arrow */}
-        <button
+        <button 
           onClick={() => scroll('right')}
-          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-14 z-20 items-center justify-center bg-gradient-to-l from-white dark:from-netflix-black/90 to-transparent transition-all duration-500 ease-out ${
+          className={`hidden lg:flex absolute right-0 top-0 bottom-0 w-14 z-20 items-center justify-center fade-edge-right transition-all duration-500 ease-out ${
             canScrollRight ? 'opacity-0 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll right"

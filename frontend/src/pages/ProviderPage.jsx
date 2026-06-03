@@ -6,11 +6,13 @@ import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { PROVIDERS } from '../components/media/ProvidersRow';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
+import { useTheme } from '../context/ThemeContext';
 
 function ProviderPage() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAnimeMode } = useTheme();
 
   // Try to get provider and initial mediaType from router state, otherwise fallback
   const stateProvider = location.state?.provider;
@@ -26,12 +28,12 @@ function ProviderPage() {
 
   // Cache
   const { providerCache, providerCacheFetchedAt, setProviderData } = useMediaStore();
-  const cacheKey = `${provider.id}_${mediaType}`;
+  const cacheKey = isAnimeMode ? `${provider.id}_${mediaType}_anime` : `${provider.id}_${mediaType}`;
   const cachedData = providerCache[cacheKey];
 
   // Data state — initialise from cache if available
-  const [heroMovies, setHeroMovies] = useState(cachedData?.heroMovies ?? []);
-  const [gridContent, setGridContent] = useState(cachedData?.gridContent ?? []);
+  const [heroMovies, setHeroMovies] = useState(cachedData?.heroMovies || []);
+  const [gridContent, setGridContent] = useState(cachedData?.gridContent || []);
   const [loading, setLoading] = useState(!cachedData);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -58,18 +60,25 @@ function ProviderPage() {
     if (node) observer.current.observe(node);
   }, [loading, loadingMore, hasMore]);
 
-  // Initial fetch when provider or mediaType changes
+  // Sync local state when cacheKey changes
+  useEffect(() => {
+    if (cachedData) {
+      setHeroMovies(cachedData.heroMovies || []);
+      setGridContent(cachedData.gridContent || []);
+      setLoading(false);
+      setPage(1);
+      setHasMore(true);
+    }
+  }, [cachedData]);
+
+  // Initial fetch when provider, mediaType, or isAnimeMode changes
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const key = `${provider.id}_${mediaType}`;
-    const fetchedAt = providerCacheFetchedAt[key];
-    const isCacheFresh = providerCache[key] && fetchedAt && (Date.now() - fetchedAt < CACHE_TTL);
+    const fetchedAt = providerCacheFetchedAt[cacheKey];
+    const isCacheFresh = providerCache[cacheKey] && fetchedAt && (Date.now() - fetchedAt < CACHE_TTL);
 
     if (isCacheFresh) {
-      // Restore from cache — no network call needed
-      setHeroMovies(providerCache[key].heroMovies);
-      setGridContent(providerCache[key].gridContent);
       setLoading(false);
       setPage(1);
       setHasMore(true);
@@ -81,7 +90,7 @@ function ProviderPage() {
     setPage(1);
     setHasMore(true);
     loadInitialData();
-  }, [provider.id, mediaType]);
+  }, [provider.id, mediaType, isAnimeMode]);
 
   // Fetch more data when page changes > 1
   useEffect(() => {
@@ -125,12 +134,9 @@ function ProviderPage() {
         finalGrid = results;
       }
 
-      setHeroMovies(finalHeroes);
-      setGridContent(finalGrid);
-
       // Persist to store cache
-      const key = `${provider.id}_${mediaType}`;
-      setProviderData(key, { heroMovies: finalHeroes, gridContent: finalGrid });
+      // This will trigger a re-render and the useEffect will sync the local state
+      setProviderData(cacheKey, { heroMovies: finalHeroes, gridContent: finalGrid });
 
       setHasMore(results.length >= 20);
     } catch (err) {
@@ -140,10 +146,18 @@ function ProviderPage() {
     }
   };
 
+  const currentModeRef = useRef(isAnimeMode);
+  useEffect(() => {
+    currentModeRef.current = isAnimeMode;
+  }, [isAnimeMode]);
+
   const loadMoreData = async (pageNum) => {
     try {
       setLoadingMore(true);
+      const activeMode = currentModeRef.current;
       const results = await fetchByProvider(mediaType, provider.id, pageNum);
+
+      if (activeMode !== currentModeRef.current) return;
 
       if (results.length === 0) {
         setHasMore(false);

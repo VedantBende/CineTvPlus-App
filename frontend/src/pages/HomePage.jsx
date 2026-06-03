@@ -4,8 +4,10 @@ import {
   fetchTrendingMovies, 
   fetchTrendingTVShows,
   fetchPopularMovies,
+  fetchPopularTVShows,
   fetchNowPlayingMovies,
   fetchTopRatedMovies,
+  fetchTopRatedTVShows,
   fetchTrendingAll
 } from '../utils/tmdbApi';
 import MovieCard from '../components/media/MovieCard';
@@ -17,24 +19,33 @@ import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 import { useUser } from '@clerk/clerk-react';
+import { useTheme } from '../context/ThemeContext';
 
 function HomePage() {
   const navigate = useNavigate();
   const { isSignedIn } = useUser();
+  const { isAnimeMode } = useTheme();
 
   // Read from / write to global cache
-  const { homeData, homeFetchedAt, setHomeData } = useMediaStore();
+  const { 
+    homeData, homeFetchedAt, 
+    homeDataAnime, homeFetchedAtAnime,
+    setHomeData 
+  } = useMediaStore();
   
-  const [trendingMovies, setTrendingMovies] = useState(homeData?.trendingMovies ?? []);
-  const [trendingTV, setTrendingTV] = useState(homeData?.trendingTV || []);
-  const [popularMovies, setPopularMovies] = useState(homeData?.popularMovies || []);
-  const [nowPlayingMovies, setNowPlayingMovies] = useState(homeData?.nowPlayingMovies || []);
-  const [topRatedMovies, setTopRatedMovies] = useState(homeData?.topRatedMovies || []);
-  const [heroMovies, setHeroMovies] = useState(homeData?.heroMovies || []);
-  const [top10Mixed, setTop10Mixed] = useState(homeData?.top10Mixed || []);
+  const activeData = isAnimeMode ? homeDataAnime : homeData;
+  const activeFetchedAt = isAnimeMode ? homeFetchedAtAnime : homeFetchedAt;
+  
+  const [trendingMovies, setTrendingMovies] = useState(activeData?.trendingMovies || []);
+  const [trendingTV, setTrendingTV] = useState(activeData?.trendingTV || []);
+  const [popularMovies, setPopularMovies] = useState(activeData?.popularMovies || []);
+  const [nowPlayingMovies, setNowPlayingMovies] = useState(activeData?.nowPlayingMovies || []);
+  const [topRatedMovies, setTopRatedMovies] = useState(activeData?.topRatedMovies || []);
+  const [heroMovies, setHeroMovies] = useState(activeData?.heroMovies || []);
+  const [top10Mixed, setTop10Mixed] = useState(activeData?.top10Mixed || []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   
-  const [loading, setLoading] = useState(!homeData);
+  const [loading, setLoading] = useState(!activeData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -62,15 +73,40 @@ function HomePage() {
     if (node) observer.current.observe(node);
   }, [loading, loadingMore, hasMore]);
 
+  // Sync local state when active cache changes (e.g., when toggling Anime Mode)
+  useEffect(() => {
+    if (activeData) {
+      setTrendingMovies(activeData.trendingMovies || []);
+      setTrendingTV(activeData.trendingTV || []);
+      setPopularMovies(activeData.popularMovies || []);
+      setNowPlayingMovies(activeData.nowPlayingMovies || []);
+      setTopRatedMovies(activeData.topRatedMovies || []);
+      setHeroMovies(activeData.heroMovies || []);
+      setTop10Mixed(activeData.top10Mixed || []);
+      setCurrentHeroIndex(0);
+      setLoading(false);
+    }
+  }, [activeData]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Skip fetch if cache is fresh (within TTL)
-    const isCacheFresh = homeData && homeFetchedAt && (Date.now() - homeFetchedAt < CACHE_TTL);
-    if (isCacheFresh) return;
+    // Reset state on mode toggle
+    setDynamicRows([]);
+    setPage(1);
+    setHasMore(true);
+    setCurrentHeroIndex(0);
+
+    // Skip fetch if cache is fresh (within TTL) for current mode
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    
+    if (isCacheFresh) {
+      setLoading(false);
+      return;
+    }
 
     loadInitialContent();
-  }, []);
+  }, [isAnimeMode]);
 
   // Fetch more data when page changes
   useEffect(() => {
@@ -95,38 +131,68 @@ function HomePage() {
       setLoading(true);
       setError(null);
 
-      const [trending, trendingShows, popular, nowPlaying, topRated, mixedTop10] = await Promise.all([
+      const [trending, trendingShows, popularMoviesData, nowPlaying, topRatedMoviesData, mixedTop10, popularShows, topRatedShows] = await Promise.all([
         fetchTrendingMovies('day', 1),
         fetchTrendingTVShows('day', 1),
         fetchPopularMovies(1),
         fetchNowPlayingMovies(1),
         fetchTopRatedMovies(1),
-        fetchTrendingAll('day', 1)
+        fetchTrendingAll('day', 1),
+        fetchPopularTVShows(1),
+        fetchTopRatedTVShows(1)
       ]);
 
-      setTrendingMovies(trending);
-      setTrendingTV(trendingShows);
-      setPopularMovies(popular);
-      setNowPlayingMovies(nowPlaying);
-      setTopRatedMovies(topRated);
-      setTop10Mixed(mixedTop10);
+      let finalTrending = trending;
+      let finalPopular = popularMoviesData;
+      let finalTopRated = topRatedMoviesData;
+
+      {
+        const trMovies = trending.map(m => ({ ...m, media_type: 'movie' }));
+        const trShows = trendingShows.map(s => ({ ...s, media_type: 'tv' }));
+        finalTrending = [];
+        let trTvIdx = 0; let trMovIdx = 0;
+        while (trTvIdx < trShows.length || trMovIdx < trMovies.length) {
+          for (let k = 0; k < 19 && trTvIdx < trShows.length; k++) finalTrending.push(trShows[trTvIdx++]);
+          if (trMovIdx < trMovies.length) finalTrending.push(trMovies[trMovIdx++]);
+        }
+
+        const pMovies = popularMoviesData.map(m => ({ ...m, media_type: 'movie' }));
+        const pShows = popularShows.map(s => ({ ...s, media_type: 'tv' }));
+        finalPopular = [];
+        let pTvIdx = 0; let pMovIdx = 0;
+        while (pTvIdx < pShows.length || pMovIdx < pMovies.length) {
+          for (let k = 0; k < 3 && pTvIdx < pShows.length; k++) finalPopular.push(pShows[pTvIdx++]);
+          if (pMovIdx < pMovies.length) finalPopular.push(pMovies[pMovIdx++]);
+        }
+
+        const tMovies = topRatedMoviesData.map(m => ({ ...m, media_type: 'movie' }));
+        const tShows = topRatedShows.map(s => ({ ...s, media_type: 'tv' }));
+        finalTopRated = [];
+        let tTvIdx = 0; let tMovIdx = 0;
+        while (tTvIdx < tShows.length || tMovIdx < tMovies.length) {
+          for (let k = 0; k < 3 && tTvIdx < tShows.length; k++) finalTopRated.push(tShows[tTvIdx++]);
+          if (tMovIdx < tMovies.length) finalTopRated.push(tMovies[tMovIdx++]);
+        }
+      }
 
       // Set hero movies (top 5 mixed content with backdrops)
       const heroMoviesData = mixedTop10
         .filter(movie => movie.backdrop)
         .slice(0, 5);
-      setHeroMovies(heroMoviesData);
 
       // Persist to global cache so data survives route changes
+      // This will trigger a re-render and the useEffect will sync the local state
       setHomeData({
-        trendingMovies: trending,
+        trendingMovies: finalTrending,
         trendingTV: trendingShows,
-        popularMovies: popular,
+        popularMovies: finalPopular,
         nowPlayingMovies: nowPlaying,
-        topRatedMovies: topRated,
+        topRatedMovies: finalTopRated,
         heroMovies: heroMoviesData,
-        top10Mixed: mixedTop10,
-      });
+        top10Mixed: mixedTop10
+      }, isAnimeMode);
+
+      // We don't call setLoading(false) here, the useEffect([activeData]) will do it.
     } catch (err) {
       console.error('Error loading content:', err);
       setError(err.message);
@@ -135,39 +201,77 @@ function HomePage() {
     }
   };
 
+  const currentModeRef = useRef(isAnimeMode);
+  useEffect(() => {
+    currentModeRef.current = isAnimeMode;
+  }, [isAnimeMode]);
+
   const loadMoreContent = async (pageNum) => {
     try {
       setLoadingMore(true);
+      const activeMode = currentModeRef.current;
       
-      // Fetch a mix of popular and top rated movies for subsequent pages
-      const [popular, topRated, trendingTv] = await Promise.all([
+      // Fetch a mix of popular and top rated movies/shows for subsequent pages
+      const [popularMoviesData, topRatedMoviesData, trendingTv, popularShows, topRatedShows] = await Promise.all([
         fetchPopularMovies(pageNum),
         fetchTopRatedMovies(pageNum),
-        fetchTrendingTVShows('week', pageNum)
+        fetchTrendingTVShows('week', pageNum),
+        fetchPopularTVShows(pageNum),
+        fetchTopRatedTVShows(pageNum)
       ]);
 
+      if (activeMode !== currentModeRef.current) return;
+
       // If we stop getting results, halt infinite scroll
-      if (popular.length === 0 && topRated.length === 0 && trendingTv.length === 0) {
+      if (popularMoviesData.length === 0 && topRatedMoviesData.length === 0 && trendingTv.length === 0 && popularShows.length === 0 && topRatedShows.length === 0) {
         setHasMore(false);
         return;
       }
 
+      let finalPopular = popularMoviesData;
+      let finalTopRated = topRatedMoviesData;
+
+      {
+        const pMovies = popularMoviesData.map(m => ({ ...m, media_type: 'movie' }));
+        const pShows = popularShows.map(s => ({ ...s, media_type: 'tv' }));
+        finalPopular = [];
+        let pTvIdx = 0; let pMovIdx = 0;
+        while (pTvIdx < pShows.length || pMovIdx < pMovies.length) {
+          for (let k = 0; k < 3 && pTvIdx < pShows.length; k++) finalPopular.push(pShows[pTvIdx++]);
+          if (pMovIdx < pMovies.length) finalPopular.push(pMovies[pMovIdx++]);
+        }
+
+        const tMovies = topRatedMoviesData.map(m => ({ ...m, media_type: 'movie' }));
+        const tShows = topRatedShows.map(s => ({ ...s, media_type: 'tv' }));
+        finalTopRated = [];
+        let tTvIdx = 0; let tMovIdx = 0;
+        while (tTvIdx < tShows.length || tMovIdx < tMovies.length) {
+          for (let k = 0; k < 3 && tTvIdx < tShows.length; k++) finalTopRated.push(tShows[tTvIdx++]);
+          if (tMovIdx < tMovies.length) finalTopRated.push(tMovies[tMovIdx++]);
+        }
+      }
+
       const newRows = [];
       
-      if (popular.length > 0) {
-        newRows.push({ title: `More Popular Picks`, icon: 'thumb_up', data: popular, type: 'movie' });
+      if (finalPopular.length > 0) {
+        newRows.push({ title: `More Popular Picks`, icon: 'thumb_up', data: finalPopular, type: 'mixed' });
       }
-      if (topRated.length > 0) {
-        newRows.push({ title: `More Critically Acclaimed`, icon: 'star', data: topRated, type: 'movie' });
+      if (finalTopRated.length > 0) {
+        newRows.push({ title: `More Critically Acclaimed`, icon: 'star', data: finalTopRated, type: 'mixed' });
       }
-      if (trendingTv.length > 0) {
+      if (trendingTv.length > 0 && !activeMode) {
         newRows.push({ title: `More Trending TV Shows`, icon: 'trending_up', data: trendingTv, type: 'tv' });
       }
 
       setDynamicRows(prev => [...prev, ...newRows]);
       
       // Assume we have more if we got a full page of results
-      setHasMore(popular.length >= 20 || topRated.length >= 20);
+      setHasMore(
+        popularMoviesData.length >= 20 || 
+        topRatedMoviesData.length >= 20 ||
+        (activeMode && popularShows.length >= 20) ||
+        (activeMode && topRatedShows.length >= 20)
+      );
     } catch (err) {
       console.error('Error loading more content:', err);
       setHasMore(false);
@@ -426,7 +530,7 @@ function HomePage() {
           <ContentRow title="Trending Now" icon="local_fire_department">
             {uniqueTrending.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -436,7 +540,7 @@ function HomePage() {
           <ContentRow title="Top Picks for You" icon="thumb_up">
             {uniquePopular.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -466,7 +570,7 @@ function HomePage() {
           <ContentRow title="Critically Acclaimed" icon="star">
             {uniqueTopRated.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
               </ContentRowItem>
             ))}
           </ContentRow>

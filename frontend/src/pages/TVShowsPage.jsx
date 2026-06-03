@@ -11,19 +11,28 @@ import Top10Row from '../components/media/Top10Row';
 import Loader from '../components/ui/Loader';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
+import { useTheme } from '../context/ThemeContext';
 
 function TVShowsPage() {
   const navigate = useNavigate();
+  const { isAnimeMode } = useTheme();
 
   // Read from / write to global cache
-  const { tvData, tvFetchedAt, setTvData } = useMediaStore();
+  const { 
+    tvData, tvFetchedAt, 
+    tvDataAnime, tvFetchedAtAnime,
+    setTvData 
+  } = useMediaStore();
 
-  const [popularShows, setPopularShows] = useState(tvData?.popularShows ?? []);
-  const [trendingShows, setTrendingShows] = useState(tvData?.trendingShows ?? []);
-  const [topRatedShows, setTopRatedShows] = useState(tvData?.topRatedShows ?? []);
-  const [heroShows, setHeroShows] = useState(tvData?.heroShows ?? []);
+  const activeData = isAnimeMode ? tvDataAnime : tvData;
+  const activeFetchedAt = isAnimeMode ? tvFetchedAtAnime : tvFetchedAt;
+
+  const [popularShows, setPopularShows] = useState(activeData?.popularShows || []);
+  const [trendingShows, setTrendingShows] = useState(activeData?.trendingShows || []);
+  const [topRatedShows, setTopRatedShows] = useState(activeData?.topRatedShows || []);
+  const [heroShows, setHeroShows] = useState(activeData?.heroShows || []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [loading, setLoading] = useState(!tvData);
+  const [loading, setLoading] = useState(!activeData);
   const [error, setError] = useState(null);
 
   // Pagination state for vertical infinite scroll
@@ -50,15 +59,34 @@ function TVShowsPage() {
     if (node) observer.current.observe(node);
   }, [loading, loadingMore, hasMore]);
 
+  // Sync local state when active cache changes
+  useEffect(() => {
+    if (activeData) {
+      setPopularShows(activeData.popularShows || []);
+      setTrendingShows(activeData.trendingShows || []);
+      setTopRatedShows(activeData.topRatedShows || []);
+      setHeroShows(activeData.heroShows || []);
+      setLoading(false);
+    }
+  }, [activeData]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    // Skip fetch if cache is fresh (within TTL)
-    const isCacheFresh = tvData && tvFetchedAt && (Date.now() - tvFetchedAt < CACHE_TTL);
-    if (isCacheFresh) return;
+    // Reset infinite scroll state on mode toggle
+    setDynamicRows([]);
+    setPage(1);
+    setHasMore(true);
+
+    // Skip fetch if cache is fresh (within TTL) for current mode
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    if (isCacheFresh) {
+      setLoading(false);
+      return;
+    }
 
     loadInitialTVShows();
-  }, []);
+  }, [isAnimeMode]);
 
   // Fetch more data when page changes
   useEffect(() => {
@@ -87,12 +115,7 @@ function TVShowsPage() {
         fetchTopRatedTVShows(1)
       ]);
 
-      setPopularShows(popular);
-      setTrendingShows(trending);
-      setTopRatedShows(topRated);
-
       const heroes = trending.filter(s => s.backdrop).slice(0, 5);
-      setHeroShows(heroes);
 
       // Persist to global cache so data survives route changes
       setTvData({
@@ -100,7 +123,9 @@ function TVShowsPage() {
         trendingShows: trending,
         topRatedShows: topRated,
         heroShows: heroes,
-      });
+      }, isAnimeMode);
+      
+      // We don't call setLoading(false) here, the useEffect([activeData]) will do it.
     } catch (err) {
       setError(err.message);
     } finally {
@@ -108,14 +133,22 @@ function TVShowsPage() {
     }
   };
 
+  const currentModeRef = useRef(isAnimeMode);
+  useEffect(() => {
+    currentModeRef.current = isAnimeMode;
+  }, [isAnimeMode]);
+
   const loadMoreTVShows = async (pageNum) => {
     try {
       setLoadingMore(true);
+      const activeMode = currentModeRef.current;
       
       const [popular, topRated] = await Promise.all([
         fetchPopularTVShows(pageNum),
         fetchTopRatedTVShows(pageNum)
       ]);
+
+      if (activeMode !== currentModeRef.current) return;
 
       if (popular.length === 0 && topRated.length === 0) {
         setHasMore(false);

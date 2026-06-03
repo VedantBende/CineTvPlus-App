@@ -17,6 +17,13 @@ export const ThemeProvider = ({ children }) => {
     return localStorage.getItem('theme') || 'dark';
   });
 
+  const [isAnimeMode, setIsAnimeMode] = useState(() => {
+    return localStorage.getItem('isAnimeMode') === 'true';
+  });
+
+  const [transitionVideo, setTransitionVideo] = useState(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
   useEffect(() => {
     // Apply theme to document
     const root = document.documentElement;
@@ -33,12 +40,53 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isAnimeMode) {
+      root.classList.add('anime-theme');
+    } else {
+      root.classList.remove('anime-theme');
+    }
+    localStorage.setItem('isAnimeMode', isAnimeMode);
+  }, [isAnimeMode]);
+
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
   };
 
+  const toggleAnimeMode = () => {
+    if (isAnimeMode) {
+      setTransitionVideo('toStandard');
+    } else {
+      setTransitionVideo('toAnime');
+    }
+    setIsVideoPlaying(true);
+  };
+
+  const executeModeSwap = () => {
+    setIsAnimeMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem('isAnimeMode', newValue);
+      return newValue;
+    });
+  };
+
+  const endVideoTransition = () => {
+    setTransitionVideo(null);
+    setIsVideoPlaying(false);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ 
+      theme, 
+      toggleTheme, 
+      isAnimeMode, 
+      toggleAnimeMode,
+      transitionVideo,
+      isVideoPlaying,
+      executeModeSwap,
+      endVideoTransition
+    }}>
       {children}
     </ThemeContext.Provider>
   );

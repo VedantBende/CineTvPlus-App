@@ -2,9 +2,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useState, useEffect, useRef } from 'react';
 import ThemeToggle from './ThemeToggle';
+import AnimeToggle from './AnimeToggle';
 import InstallPWA from '../pwa/InstallPWA';
+import { useTheme } from '../../context/ThemeContext';
 
 function Navbar() {
+  const { isAnimeMode } = useTheme();
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,8 +63,8 @@ function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-gradient-to-b from-white dark:from-netflix-black to-transparent transition">
-      <div className="container-custom">
-        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+      <div className="container-custom relative">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 relative">
           {/* Logo - Left */}
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 lg:w-1/4" onClick={closeMobileMenu}>
             <img
@@ -70,12 +73,12 @@ function Navbar() {
               className="h-6 w-auto sm:h-7 md:h-8"
             />
             <span className="text-gray-900 dark:text-white text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-              CineTv+
+              {isAnimeMode ? 'AniTv+' : 'CineTv+'}
             </span>
           </Link>
 
           {/* Desktop Navigation - Center */}
-          <div className="hidden md:flex items-center justify-center space-x-4 lg:space-x-8 lg:w-2/4">
+          <div className="hidden md:flex items-center justify-center space-x-4 lg:space-x-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link to="/" className={`transition flex items-center space-x-1.5 text-sm lg:text-base font-medium ${isActive('/') ? 'text-netflix-red' : 'text-gray-500 dark:text-gray-400 hover:text-netflix-red dark:hover:text-white'}`}>
               <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
               <span>Home</span>
@@ -97,9 +100,13 @@ function Navbar() {
           </div>
 
           {/* Right Side - Responsive */}
-          <div className="flex items-center justify-end gap-1 sm:gap-2 md:gap-3 lg:w-1/4">
-            <div className={`transition-all duration-300 overflow-hidden ${isSearchOpen ? 'w-0 opacity-0 hidden sm:block sm:w-0 m-0 p-0' : 'w-auto opacity-100'}`}>
+          <div className="flex items-center justify-end gap-1 sm:gap-2 md:gap-3 flex-1">
+            <div className={`transition-all duration-300 shrink-0 ${isSearchOpen ? 'w-0 opacity-0 hidden sm:block sm:w-0 m-0 p-0 overflow-hidden' : 'w-auto opacity-100'}`}>
               <InstallPWA />
+            </div>
+            {/* Anime Toggle - Visible on mobile */}
+            <div className={`transition-all duration-300 shrink-0 ${isSearchOpen ? 'w-0 opacity-0 hidden sm:block sm:w-0 m-0 p-0 overflow-hidden' : 'w-auto opacity-100'}`}>
+              <AnimeToggle />
             </div>
             {/* Theme Toggle - Hidden on small mobile */}
             <div className="hidden xs:flex items-center">

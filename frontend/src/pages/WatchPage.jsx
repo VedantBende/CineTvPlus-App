@@ -7,6 +7,7 @@ import DevToolsErrorScreen from '../components/ui/DevToolsErrorScreen';
 import { useDevToolsDetector } from '../utils/devtoolsDetector';
 import Loader from '../components/ui/Loader';
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { useTheme } from '../context/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const POSTER_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w500';
@@ -16,6 +17,7 @@ function WatchPage() {
   const isDevToolsOpen = useDevToolsDetector();
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
+  const { isAnimeMode } = useTheme();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -66,7 +68,8 @@ function WatchPage() {
               posterPath,
               backdropPath,
               season,
-              episode
+              episode,
+              isAnime: isAnimeMode
             });
           }
         } catch (err) {
@@ -85,7 +88,7 @@ function WatchPage() {
     if (mediaType === 'tv' && tmdbId) {
       fetchTVSeasons();
     }
-  }, [tmdbId, mediaType, season, episode, isSignedIn]);
+  }, [tmdbId, mediaType, season, episode, isSignedIn, isAnimeMode]);
 
 
   // Fetch TV seasons metadata from TMDB

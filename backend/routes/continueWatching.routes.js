@@ -10,7 +10,12 @@ router.use(requireAuth, requireMongoUser, requireApproved);
 // GET / — Fetch all continue watching items for the logged-in user
 router.get('/', async (req, res) => {
   try {
-    const items = await ContinueWatching.find({ userId: req.user._id })
+    const isAnime = req.query.anime === 'true';
+    
+    // For standard mode, match explicitly false OR missing field (for old documents)
+    const query = { userId: req.user._id, isAnime: isAnime ? true : { $ne: true } };
+
+    const items = await ContinueWatching.find(query)
       .sort({ updatedAt: -1 })
       .limit(20);
 
@@ -24,14 +29,14 @@ router.get('/', async (req, res) => {
 // POST / — Add or update a continue watching item (upsert)
 router.post('/', async (req, res) => {
   try {
-    const { mediaId, mediaType, title, posterPath, backdropPath, season, episode } = req.body;
+    const { mediaId, mediaType, title, posterPath, backdropPath, season, episode, isAnime = false } = req.body;
 
     if (!mediaId || !mediaType) {
       return res.status(400).json({ error: 'mediaId and mediaType are required' });
     }
 
     const item = await ContinueWatching.findOneAndUpdate(
-      { userId: req.user._id, mediaId: String(mediaId) },
+      { userId: req.user._id, mediaId: String(mediaId), isAnime },
       {
         userId: req.user._id,
         mediaId: String(mediaId),
@@ -40,7 +45,8 @@ router.post('/', async (req, res) => {
         posterPath: posterPath || null,
         backdropPath: backdropPath || null,
         season: season ? parseInt(season) : null,
-        episode: episode ? parseInt(episode) : null
+        episode: episode ? parseInt(episode) : null,
+        isAnime
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
@@ -55,7 +61,9 @@ router.post('/', async (req, res) => {
 // DELETE /clear/all — Clear all continue watching history for the user
 router.delete('/clear/all', async (req, res) => {
   try {
-    await ContinueWatching.deleteMany({ userId: req.user._id });
+    const isAnime = req.query.anime === 'true';
+    const query = { userId: req.user._id, isAnime: isAnime ? true : { $ne: true } };
+    await ContinueWatching.deleteMany(query);
     res.json({ message: 'Watch history cleared' });
   } catch (error) {
     console.error('Error clearing watch history:', error);
@@ -67,7 +75,9 @@ router.delete('/clear/all', async (req, res) => {
 router.delete('/:mediaId', async (req, res) => {
   try {
     const { mediaId } = req.params;
-    await ContinueWatching.findOneAndDelete({ userId: req.user._id, mediaId: String(mediaId) });
+    const isAnime = req.query.anime === 'true';
+    const query = { userId: req.user._id, mediaId: String(mediaId), isAnime: isAnime ? true : { $ne: true } };
+    await ContinueWatching.findOneAndDelete(query);
     res.json({ message: 'Removed from continue watching' });
   } catch (error) {
     console.error('Error removing continue watching item:', error);

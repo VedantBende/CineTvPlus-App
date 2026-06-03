@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { fetchContinueWatchingList, removeItem } from '../../utils/continueWatchingStore';
+import { useTheme } from '../../context/ThemeContext';
 import ContentRow from './ContentRow';
 import ContinueWatchingCard from './ContinueWatchingCard';
 
@@ -12,8 +13,9 @@ function ContinueWatching() {
   const navigate = useNavigate();
   const location = useLocation();
   const { getToken, isSignedIn } = useAuth();
+  const { isAnimeMode } = useTheme();
 
-  // Fetch from DB on mount and on route change
+  // Fetch from DB on mount, route change, and theme change
   useEffect(() => {
     let cancelled = false;
 
@@ -27,7 +29,7 @@ function ContinueWatching() {
       }
 
       setLoading(true);
-      const list = await fetchContinueWatchingList(getToken);
+      const list = await fetchContinueWatchingList(getToken, isAnimeMode);
       if (!cancelled) {
         setItems(list);
         setIsVisible(list.length > 0);
@@ -38,7 +40,7 @@ function ContinueWatching() {
     loadItems();
 
     return () => { cancelled = true; };
-  }, [location.pathname, isSignedIn, getToken]);
+  }, [location.pathname, isSignedIn, getToken, isAnimeMode]);
 
   // Optimistic remove with revert on failure
   const handleRemove = useCallback(async (id) => {
@@ -55,13 +57,13 @@ function ContinueWatching() {
     }
 
     try {
-      await removeItem(getToken, id);
+      await removeItem(getToken, id, isAnimeMode);
     } catch {
       // Revert on failure
       setItems(previousItems);
       setIsVisible(true);
     }
-  }, [items, getToken]);
+  }, [items, getToken, isAnimeMode]);
 
   const handleContinueWatching = (item) => {
     const params = new URLSearchParams({

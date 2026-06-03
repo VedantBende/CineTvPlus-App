@@ -7,6 +7,7 @@ import axios from 'axios';
 import useAuthStore from './store/authStore';
 import UpdatePrompt from './components/pwa/UpdatePrompt';
 import OfflineIndicator from './components/pwa/OfflineIndicator';
+import TransitionOverlay from './components/common/TransitionOverlay';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -135,6 +136,7 @@ function App() {
   return (
     <ClerkProvider publishableKey={clerkPubKey}>
       <ThemeProvider>
+        <TransitionOverlay />
         <OfflineIndicator />
         <UpdatePrompt />
         <UserSync />

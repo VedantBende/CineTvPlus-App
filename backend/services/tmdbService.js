@@ -271,8 +271,73 @@ export async function discoverByProvider(mediaType, providerId, page = 1) {
     language: 'en-US',
     page,
     with_watch_providers: providerId,
-    watch_region: 'IN',
+    with_watch_monetization_types: 'flatrate', // Only show content available for streaming, not rent/buy
+    watch_region: 'US',
     sort_by: 'popularity.desc'
+  }, {
+    cacheTTL: CACHE_TTLS.list
+  });
+}
+
+// ─── ANIME TV+ ───────────────────────────────────────────────
+
+// Anime Discover
+export async function fetchAnimeDiscover(mediaType, category, page = 1) {
+  let sortBy = 'popularity.desc';
+  if (category === 'top_rated') sortBy = 'vote_average.desc';
+  else if (category === 'now_playing' || category === 'upcoming') sortBy = 'primary_release_date.desc';
+  
+  // Discover doesn't support 'all', fallback to 'tv' since anime is mostly TV
+  const targetType = mediaType === 'all' ? 'tv' : mediaType;
+  
+  const data = await tmdbFetch(`/discover/${targetType}`, {
+    language: 'en-US',
+    page,
+    with_genres: '16',
+    with_original_language: 'ja',
+    sort_by: sortBy,
+    'vote_count.gte': category === 'top_rated' ? 200 : 0
+  }, {
+    cacheTTL: CACHE_TTLS.list
+  });
+  
+  // Inject media_type since TMDB's discover endpoint omits it, 
+  // but frontend /trending/all expects it.
+  if (data && data.results) {
+    data.results = data.results.map(item => ({
+      ...item,
+      media_type: targetType
+    }));
+  }
+  
+  return data;
+}
+
+// Anime Search Filter
+export async function searchAnimeMulti(query, page = 1) {
+  const data = await tmdbFetch('/search/multi', { language: 'en-US', query, page }, {
+    cacheTTL: CACHE_TTLS.search
+  });
+  
+  // Local filter for anime (Japanese Animation)
+  data.results = data.results.filter(item => {
+    return item.original_language === 'ja' && item.genre_ids?.includes(16);
+  });
+  return data;
+}
+
+// Anime Discover by provider
+export async function discoverAnimeByProvider(mediaType, providerId, page = 1) {
+  const targetType = mediaType === 'all' ? 'tv' : mediaType;
+  return tmdbFetch(`/discover/${targetType}`, {
+    language: 'en-US',
+    page,
+    with_watch_providers: providerId,
+    with_watch_monetization_types: 'flatrate', // Only show streaming content
+    watch_region: 'US', // TMDB requires watch_region for with_watch_providers to work!
+    sort_by: 'popularity.desc',
+    with_genres: '16',
+    with_original_language: 'ja'
   }, {
     cacheTTL: CACHE_TTLS.list
   });
@@ -298,5 +363,8 @@ export default {
   fetchDetails,
   searchMulti,
   discoverByProvider,
+  fetchAnimeDiscover,
+  searchAnimeMulti,
+  discoverAnimeByProvider,
   getCacheStats
 };

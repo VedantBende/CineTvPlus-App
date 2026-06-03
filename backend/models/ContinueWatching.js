@@ -36,15 +36,19 @@ const continueWatchingSchema = new mongoose.Schema({
   episode: {
     type: Number,
     default: null
+  },
+  isAnime: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true // createdAt + updatedAt
 });
 
-// Unique constraint: one entry per user per media
-continueWatchingSchema.index({ userId: 1, mediaId: 1 }, { unique: true });
-// Fast sort query for fetching user's list
-continueWatchingSchema.index({ userId: 1, updatedAt: -1 });
+// Unique constraint: one entry per user per media per mode
+continueWatchingSchema.index({ userId: 1, mediaId: 1, isAnime: 1 }, { unique: true });
+// Fast sort query for fetching user's list (partitioned by isAnime)
+continueWatchingSchema.index({ userId: 1, isAnime: 1, updatedAt: -1 });
 
 const ContinueWatching = mongoose.model('ContinueWatching', continueWatchingSchema);
 

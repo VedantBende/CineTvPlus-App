@@ -46,6 +46,11 @@ A dedicated `ProviderPage` and interactive `ProvidersRow` to help users discover
 ### 8. Continue Watching
 A dynamic `ContinueWatching` component that fetches user's watch history seamlessly and presents a responsive carousel to resume playback right from the home screen, utilizing optimistic UI updates for instant interaction feedback.
 
+### 9. AniTv+ Mode & Holographic Transitions
+- **AniTv+ Mode**: A dedicated mode for Anime content.
+- **Holographic Video Transitions**: Toggling between CineTv+ and AniTv+ modes triggers a stunning, full-screen video animation tailored for desktop and mobile orientations.
+- **Zero-Wait Mode Swapping**: While the transition video plays, the application intelligently fetches and renders the new mode's data completely hidden in the background, resulting in a perfect 0-loading-screen switch.
+
 ---
 
 ## ⚙️ Local Development Setup
@@ -91,6 +96,12 @@ VITE_PLAYER_ZETA_TV=disabled
 
 # TMDB Cast Image
 VITE_TMDB_CAST_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w185
+
+# Transition Videos
+VITE_TRANSITION_VIDEO_DESKTOP_TO_ANIME=your_desktop_video_url
+VITE_TRANSITION_VIDEO_DESKTOP_TO_STANDARD=your_desktop_video_url
+VITE_TRANSITION_VIDEO_MOBILE_TO_ANIME=your_mobile_video_url
+VITE_TRANSITION_VIDEO_MOBILE_TO_STANDARD=your_mobile_video_url
 ```
 
 3. **Start the Development Server**:

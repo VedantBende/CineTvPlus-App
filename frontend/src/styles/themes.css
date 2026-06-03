@@ -94,6 +94,19 @@
   --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.25);
 }
 
+/* Anime Theme (AniTv+) */
+.anime-theme {
+  /* Anime Vibrant Colors */
+  --netflix-red: #ff2a6d;
+  --color-primary: #ff2a6d;
+  --color-primary-dark: #d11a55;
+  --color-primary-light: #ff5e91;
+  
+  /* Borders */
+  --border-focus: #ff2a6d;
+}
+
+
 /* Apply theme colors */
 .bg-theme-primary {
   background-color: var(--bg-primary);
