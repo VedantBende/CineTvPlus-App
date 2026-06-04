@@ -2,17 +2,14 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchMovieDetails } from '../utils/tmdbApi';
 import { formatRating } from '../utils/formatters';
-import Loader from '../components/ui/Loader';
+import MovieCard from '../components/media/MovieCard';
+import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
-
-
 const API_URL = import.meta.env.VITE_API_URL;
 const TMDB_IMAGE_BASE = import.meta.env.VITE_TMDB_CAST_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/w185';
-
-
 
 function MovieDetails() {
   const { id } = useParams();
@@ -22,7 +19,6 @@ function MovieDetails() {
   
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showLoader, setShowLoader] = useState(false);
   const [error, setError] = useState(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
@@ -58,9 +54,6 @@ function MovieDetails() {
       setLoading(true);
       setError(null);
 
-      // Only show the loader if the fetch takes longer than 300ms
-      loaderTimerRef.current = setTimeout(() => setShowLoader(true), 300);
-
       const movieData = await fetchMovieDetails(id);
       if (!movieData) {
         throw new Error('Movie not found');
@@ -70,7 +63,6 @@ function MovieDetails() {
       setError(err.message);
     } finally {
       clearTimeout(loaderTimerRef.current);
-      setShowLoader(false);
       setLoading(false);
     }
   };
@@ -154,17 +146,8 @@ function MovieDetails() {
 
 
 
-  if (loading && showLoader) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-        <Loader text="Loading movie details..." />
-      </div>
-    );
-  }
-
   if (loading) {
-    // Still loading but too early to show spinner — render empty shell to avoid flash
-    return <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300" />;
+    return <PageSkeleton type="details" />;
   }
 
 

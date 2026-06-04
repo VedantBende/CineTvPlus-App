@@ -15,7 +15,7 @@ import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
 import ProvidersRow from '../components/media/ProvidersRow';
 import ContinueWatching from '../components/media/ContinueWatching';
-import Loader from '../components/ui/Loader';
+import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 import { useUser } from '@clerk/clerk-react';
@@ -310,11 +310,7 @@ function HomePage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition">
-        <Loader text="Loading awesome content..." />
-      </div>
-    );
+    return <PageSkeleton type="home" />;
   }
 
   if (error) {
@@ -598,7 +594,7 @@ function HomePage() {
         {/* Infinite Scroll Target */}
         {hasMore && (
           <div ref={lastElementRef} className="w-full flex justify-center py-6 mt-4">
-            {loadingMore && <Loader text="Loading more rows..." />}
+            {loadingMore && <PageSkeleton type="cards" />}
           </div>
         )}
       </div>

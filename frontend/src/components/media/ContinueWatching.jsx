@@ -1,21 +1,23 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { fetchContinueWatchingList, removeItem } from '../../utils/continueWatchingStore';
+import { fetchContinueWatchingList, removeItem, touchItem } from '../../utils/continueWatchingStore';
 import { useTheme } from '../../context/ThemeContext';
 import ContentRow from './ContentRow';
 import ContinueWatchingCard from './ContinueWatchingCard';
 
 function ContinueWatching() {
   const [items, setItems] = useState([]);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false); 
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { getToken, isSignedIn } = useAuth();
   const { isAnimeMode } = useTheme();
+  // Tracks the id of the item just clicked so we can promote it on re-fetch
+  const lastClickedIdRef = useRef(null);
 
-  // Fetch from DB on mount, route change, and theme change
+  // Fetch from DB on mount and after every navigation (including returning from /watch)
   useEffect(() => {
     let cancelled = false;
 
@@ -28,9 +30,18 @@ function ContinueWatching() {
         return;
       }
 
-      setLoading(true);
       const list = await fetchContinueWatchingList(getToken, isAnimeMode);
       if (!cancelled) {
+        
+        if (lastClickedIdRef.current) {
+          const clickedId = String(lastClickedIdRef.current);
+          const clickedIndex = list.findIndex(i => String(i.mediaId) === clickedId);
+          if (clickedIndex > 0) {
+            const promoted = list.splice(clickedIndex, 1)[0];
+            list.unshift(promoted);
+          }
+          lastClickedIdRef.current = null;
+        }
         setItems(list);
         setIsVisible(list.length > 0);
         setLoading(false);
@@ -66,6 +77,22 @@ function ContinueWatching() {
   }, [items, getToken, isAnimeMode]);
 
   const handleContinueWatching = (item) => {
+    const clickedId = String(item.mediaId);
+
+    // current before the user even finishes navigating. No race condition.
+    touchItem(getToken, clickedId, isAnimeMode);
+
+    // Optimistically move this item to the top of the list immediately
+    lastClickedIdRef.current = clickedId;
+    setItems(prev => {
+      const idx = prev.findIndex(i => String(i.mediaId) === clickedId);
+      if (idx <= 0) return prev; // already first or not found
+      const next = [...prev];
+      const [moved] = next.splice(idx, 1);
+      next.unshift(moved);
+      return next;
+    });
+
     const params = new URLSearchParams({
       id: item.mediaId,
       type: item.mediaType
@@ -79,12 +106,13 @@ function ContinueWatching() {
     navigate(`/watch?${params.toString()}`);
   };
 
-  // Don't render anything while loading or if no items and not visible
-  if (loading || (!isVisible && items.length === 0)) {
+  // While loading the very first time (no items yet), hide the row
+  if (loading && items.length === 0) {
     return null;
   }
 
-  if (items.length === 0 && !isVisible) {
+  // If we've confirmed there are no items and it's not visible, hide
+  if (!loading && items.length === 0 && !isVisible) {
     return null;
   }
 
@@ -95,13 +123,13 @@ function ContinueWatching() {
       }`}
     >
       <ContentRow title="Continue Watching" icon="play_arrow">
-        {items.map((item, index) => (
-          <div 
-            key={`${item.mediaId}-${index}`}
+        {items.map((item) => (
+          <div
+            key={item.mediaId}
             className="flex-shrink-0 snap-start w-[75vw] xs:w-[60vw] sm:w-[45vw] md:w-[32vw] lg:w-[26vw] xl:w-[22vw] transition-transform duration-300 ease-out"
           >
             <ContinueWatchingCard
-              tmdbId={item.mediaId}
+              mediaId={item.mediaId}
               title={item.title}
               backdrop={item.backdropPath || item.posterPath}
               type={item.mediaType}

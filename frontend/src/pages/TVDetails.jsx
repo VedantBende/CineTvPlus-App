@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchTVShowDetails } from '../utils/tmdbApi';
 import { formatRating } from '../utils/formatters';
-import Loader from '../components/ui/Loader';
+
+import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
@@ -160,17 +161,8 @@ function TVDetails() {
 
 
 
-  if (loading && showLoader) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-        <Loader text="Loading show details..." />
-      </div>
-    );
-  }
-
   if (loading) {
-    // Still loading but too early to show spinner — render empty shell to avoid flash
-    return <div className="min-h-screen bg-white dark:bg-netflix-black transition-colors duration-300" />;
+    return <PageSkeleton type="details" />;
   }
 
 

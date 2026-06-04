@@ -2,7 +2,7 @@ import { ClerkProvider, useUser, useAuth } from '@clerk/clerk-react';
 import { RouterProvider } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import router from './router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import useAuthStore from './store/authStore';
 import UpdatePrompt from './components/pwa/UpdatePrompt';
@@ -25,14 +25,16 @@ function UserSync() {
     setSyncing, 
     setSyncError 
   } = useAuthStore();
-  
+  const hasSynced = useRef(false);
+
   useEffect(() => {
     let isMounted = true;
 
     const syncUser = async () => {
-      // ONLY sync if: isSignedIn, NOT already syncing, NO user loaded yet, and NO persistent error
-      if (!isLoaded || !isSignedIn || isSyncing || mongoUser || syncError) return;
+      // ONLY sync if: isSignedIn, NOT already syncing, NO persistent error, and NOT already synced this session
+      if (!isLoaded || !isSignedIn || isSyncing || syncError || hasSynced.current) return;
 
+      hasSynced.current = true;
       console.log('🔄 UserSync starting...');
       setSyncing(true);
 

@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import Loader from '../components/ui/Loader';
+
+import PageSkeleton from '../components/ui/PageSkeleton';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
@@ -158,7 +159,7 @@ export default function AdminPage() {
     });
   }, [users, searchQuery, statusFilter]);
 
-  if (loading && users.length === 0) return <div className="min-h-screen pt-20 bg-gray-50 dark:bg-netflix-black"><Loader text="Loading admin dashboard..." /></div>;
+  if (loading && users.length === 0) return <PageSkeleton type="admin" />;
   if (error) return <div className="min-h-screen pt-20 bg-gray-50 dark:bg-netflix-black text-gray-900 dark:text-white text-center">{error}</div>;
 
   return (

@@ -67,6 +67,23 @@ export const removeItem = async (getToken, mediaId, isAnime = false) => {
 };
 
 /**
+ * Bump a continue watching item's updatedAt to move it to position 1.
+ * Fire-and-forget — called the instant the user clicks a CW card.
+ * @param {Function} getToken - Clerk getToken function
+ * @param {string} mediaId - TMDB media ID
+ */
+export const touchItem = async (getToken, mediaId, isAnime = false) => {
+  if (!getToken || !mediaId) return;
+
+  try {
+    const headers = await getAuthHeaders(getToken);
+    await axios.patch(`${API_URL}/continue-watching/${mediaId}/touch`, { isAnime }, { headers });
+  } catch (error) {
+    console.error('Failed to touch continue watching item:', error);
+  }
+};
+
+/**
  * Clear all continue watching history from the database.
  * @param {Function} getToken - Clerk getToken function
  */

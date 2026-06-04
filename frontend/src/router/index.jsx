@@ -5,7 +5,7 @@ import { lazy, Suspense } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import AccessGate from '../pages/AccessGate';
 import PublicGate from '../components/common/PublicGate';
-import Loader from '../components/ui/Loader';
+
 
 // Lazy-loaded Pages
 const HomePage = lazy(() => import('../pages/HomePage'));
@@ -22,13 +22,11 @@ const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 const AdminPage = lazy(() => import('../pages/AdminPage'));
 const ProviderPage = lazy(() => import('../pages/ProviderPage'));
 
+import PageSkeleton from '../components/ui/PageSkeleton';
+
 // Helper for top-level lazy routes (Auth, Welcome)
 const SuspenseLayout = ({ children }) => (
-  <Suspense fallback={
-    <div className="h-screen w-screen flex items-center justify-center bg-netflix-black">
-      <Loader size="lg" />
-    </div>
-  }>
+  <Suspense fallback={<PageSkeleton type="home" />}>
     {children}
   </Suspense>
 );

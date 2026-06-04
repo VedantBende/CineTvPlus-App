@@ -3,7 +3,8 @@ import { Suspense, useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import AccessBlocker from '../components/common/AccessBlocker';
-import Loader from '../components/ui/Loader';
+import PageSkeleton from '../components/ui/PageSkeleton';
+
 
 function MainLayout() {
   const location = useLocation();
@@ -23,11 +24,7 @@ function MainLayout() {
       <Navbar />
       <AccessBlocker>
         <main className="flex-1">
-          <Suspense fallback={
-            <div className="flex h-[50vh] items-center justify-center">
-              <Loader size="lg" />
-            </div>
-          }>
+          <Suspense fallback={<PageSkeleton type="home" />}>
             {/* Position 1: The main route (WatchPage/HomePage). Wrapped in a div so it doesn't unmount when display changes. */}
             <div style={{ display: isSettings ? 'none' : 'block' }}>
               {isSettings ? backgroundOutlet : currentOutlet}

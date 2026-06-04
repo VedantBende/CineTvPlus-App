@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { fetchByProvider } from '../utils/tmdbApi';
 import MovieCard from '../components/media/MovieCard';
-import Loader from '../components/ui/Loader';
+
+import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import { PROVIDERS } from '../components/media/ProvidersRow';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
@@ -196,11 +197,7 @@ function ProviderPage() {
   };
 
   if (loading && page === 1) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-        <Loader text={`Loading ${provider.name} content...`} />
-      </div>
-    );
+    return <PageSkeleton type="home" />;
   }
 
   if (error) {
@@ -419,13 +416,22 @@ function ProviderPage() {
                   type={mediaType}
                 />
               ))}
+              {/* Infinite Scroll Loader appended inside grid */}
+              {loadingMore && (
+                <>
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                </>
+              )}
             </div>
             
-            {/* Infinite Scroll Target */}
+            {/* Infinite Scroll Target (invisible trigger) */}
             {hasMore ? (
-              <div ref={lastElementRef} className="w-full flex justify-center py-6 sm:py-10 mt-4">
-                {loadingMore && <Loader text="Loading more..." />}
-              </div>
+              <div ref={lastElementRef} className="w-full h-10 mt-4"></div>
             ) : (
               <div className="w-full text-center text-gray-400 py-8 mt-4 text-sm sm:text-base">
                 End of results

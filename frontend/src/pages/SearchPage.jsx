@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { searchMulti } from '../utils/tmdbApi';
 import MovieCard from '../components/media/MovieCard';
-import Loader from '../components/ui/Loader';
+
+import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
 
 function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -101,7 +102,7 @@ function SearchPage() {
 
         {/* First Load Spinner */}
         {loading && page === 1 ? (
-          <Loader text="Searching..." />
+          <PageSkeleton type="grid" />
         ) : results.length > 0 ? (
           <>
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
@@ -117,13 +118,22 @@ function SearchPage() {
                   type={item.type}
                 />
               ))}
+              {/* Infinite Scroll Loader appended inside grid */}
+              {loading && (
+                <>
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                  <GridCardSkeleton />
+                </>
+              )}
             </div>
             
-            {/* Infinite Scroll Target */}
+            {/* Infinite Scroll Target (invisible trigger) */}
             {hasMore ? (
-              <div ref={lastElementRef} className="w-full flex justify-center py-6 sm:py-10 mt-4">
-                {loading && <Loader text="Loading more..." />}
-              </div>
+              <div ref={lastElementRef} className="w-full h-10 mt-4"></div>
             ) : (
               <div className="w-full text-center text-gray-400 py-8 mt-4 text-sm sm:text-base">
                 End of results

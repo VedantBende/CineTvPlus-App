@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from '../components/media/MovieCard';
-import Loader from '../components/ui/Loader';
+import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
 
@@ -78,11 +78,7 @@ function FavoritesPage() {
     : watchlist.filter(item => (item.mediaType || item.type) === activeFilter);
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-        <Loader text="Loading your favorites..." />
-      </div>
-    );
+    return <PageSkeleton type="grid" />;
   }
 
   if (error) {

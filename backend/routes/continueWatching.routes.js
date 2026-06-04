@@ -85,4 +85,29 @@ router.delete('/:mediaId', async (req, res) => {
   }
 });
 
+// PATCH /:mediaId/touch — Bump updatedAt only, to move the item to position 1.
+// Called the instant the user clicks a Continue Watching card, before navigating.
+router.patch('/:mediaId/touch', async (req, res) => {
+  try {
+    const { mediaId } = req.params;
+    const isAnime = req.body?.isAnime ?? false;
+    const query = { userId: req.user._id, mediaId: String(mediaId), isAnime: isAnime ? true : { $ne: true } };
+
+    const item = await ContinueWatching.findOneAndUpdate(
+      query,
+      { $set: { updatedAt: new Date() } },
+      { new: true }
+    );
+
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found in continue watching' });
+    }
+
+    res.json({ message: 'Item promoted to top', item });
+  } catch (error) {
+    console.error('Error touching continue watching item:', error);
+    res.status(500).json({ error: 'Failed to touch item' });
+  }
+});
+
 export default router;

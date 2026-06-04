@@ -8,7 +8,8 @@ import {
 import MovieCard from '../components/media/MovieCard';
 import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
-import Loader from '../components/ui/Loader';
+
+import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 import { useTheme } from '../context/ThemeContext';
@@ -190,11 +191,7 @@ function TVShowsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-14 sm:pt-16 md:pt-20 bg-white dark:bg-netflix-black transition-colors duration-300">
-        <Loader text="Loading TV shows..." />
-      </div>
-    );
+    return <PageSkeleton type="home" />;
   }
 
   if (error) {
@@ -420,7 +417,7 @@ function TVShowsPage() {
         {/* Infinite Scroll Target */}
         {hasMore && (
           <div ref={lastElementRef} className="w-full flex justify-center py-6 mt-4">
-            {loadingMore && <Loader text="Loading more TV shows..." />}
+            {loadingMore && <PageSkeleton type="cards" />}
           </div>
         )}
       </div>

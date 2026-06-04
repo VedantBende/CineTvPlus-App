@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function ContinueWatchingCard({ title, backdrop, season, episode, mediaId, tmdbId, type = 'movie', onRemove, onClick }) {
+function ContinueWatchingCard({ title, backdrop, season, episode, mediaId, type = 'movie', onRemove, onClick }) {
   const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
@@ -9,7 +9,7 @@ function ContinueWatchingCard({ title, backdrop, season, episode, mediaId, tmdbI
 
   const handleRemove = (e) => {
     e.stopPropagation();
-    if (onRemove) onRemove(tmdbId || mediaId);
+    if (onRemove) onRemove(mediaId);
   };
 
   const subtitle = type === 'tv' && season && episode 
