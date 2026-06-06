@@ -47,7 +47,7 @@ A dedicated `ProviderPage` and interactive `ProvidersRow` to help users discover
 A dynamic `ContinueWatching` component that fetches user's watch history seamlessly and presents a responsive carousel to resume playback right from the home screen, utilizing optimistic UI updates for instant interaction feedback.
 
 ### 9. AniTv+ Mode & Holographic Transitions
-- **AniTv+ Mode**: A dedicated mode for Anime content.
+- **AniTv+ Mode**: A dedicated mode for Anime content, completely powered by the robust AniList GraphQL API.
 - **Holographic Video Transitions**: Toggling between CineTv+ and AniTv+ modes triggers a stunning, full-screen video animation tailored for desktop and mobile orientations.
 - **Zero-Wait Mode Swapping**: While the transition video plays, the application intelligently fetches and renders the new mode's data completely hidden in the background, resulting in a perfect 0-loading-screen switch.
 
@@ -102,6 +102,9 @@ VITE_TRANSITION_VIDEO_DESKTOP_TO_ANIME=your_desktop_video_url
 VITE_TRANSITION_VIDEO_DESKTOP_TO_STANDARD=your_desktop_video_url
 VITE_TRANSITION_VIDEO_MOBILE_TO_ANIME=your_mobile_video_url
 VITE_TRANSITION_VIDEO_MOBILE_TO_STANDARD=your_mobile_video_url
+
+# Otaku Link
+VITE_OTAKU_LIST_URL=your_link
 ```
 
 3. **Start the Development Server**:

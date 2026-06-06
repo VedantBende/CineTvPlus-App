@@ -8,7 +8,8 @@ function Top10Card({ item, index, type }) {
   const mediaType = item.media_type || type || 'movie';
 
   const handleClick = () => {
-    navigate(`/${mediaType}/${item.tmdbId}`);
+    const routeType = mediaType === 'anime' ? 'tv' : mediaType;
+    navigate(`/${routeType}/${item.tmdbId}`);
   };
 
   return (

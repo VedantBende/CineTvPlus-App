@@ -6,7 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import ContentRow from './ContentRow';
 import ContinueWatchingCard from './ContinueWatchingCard';
 
-function ContinueWatching() {
+function ContinueWatching({ filterType }) {
   const [items, setItems] = useState([]);
   const [isVisible, setIsVisible] = useState(false); 
   const [loading, setLoading] = useState(true);
@@ -33,17 +33,24 @@ function ContinueWatching() {
       const list = await fetchContinueWatchingList(getToken, isAnimeMode);
       if (!cancelled) {
         
+        let filteredList = list;
+        if (filterType === 'movie') {
+          filteredList = list.filter(item => isAnimeMode ? !item.season : item.mediaType === 'movie');
+        } else if (filterType === 'tv') {
+          filteredList = list.filter(item => isAnimeMode ? !!item.season : item.mediaType === 'tv');
+        }
+
         if (lastClickedIdRef.current) {
           const clickedId = String(lastClickedIdRef.current);
-          const clickedIndex = list.findIndex(i => String(i.mediaId) === clickedId);
+          const clickedIndex = filteredList.findIndex(i => String(i.mediaId) === clickedId);
           if (clickedIndex > 0) {
-            const promoted = list.splice(clickedIndex, 1)[0];
-            list.unshift(promoted);
+            const promoted = filteredList.splice(clickedIndex, 1)[0];
+            filteredList.unshift(promoted);
           }
           lastClickedIdRef.current = null;
         }
-        setItems(list);
-        setIsVisible(list.length > 0);
+        setItems(filteredList);
+        setIsVisible(filteredList.length > 0);
         setLoading(false);
       }
     };
@@ -51,7 +58,7 @@ function ContinueWatching() {
     loadItems();
 
     return () => { cancelled = true; };
-  }, [location.pathname, isSignedIn, getToken, isAnimeMode]);
+  }, [location.pathname, isSignedIn, getToken, isAnimeMode, filterType]);
 
   // Optimistic remove with revert on failure
   const handleRemove = useCallback(async (id) => {

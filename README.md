@@ -27,7 +27,7 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Watch History & Continue Watching**: Automatically tracks the content you interact with for easy resume viewing right from the home screen.
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
-- **AniTv+ Mode**: A dedicated Anime-centric viewing mode toggled seamlessly via the Navbar.
+- **AniTv+ Mode**: A dedicated Anime-centric viewing mode toggled seamlessly via the Navbar, completely powered by the robust AniList GraphQL API.
 - **Holographic Video Transitions**: Toggling between CineTv+ and AniTv+ modes triggers a stunning, full-screen video animation tailored for desktop and mobile orientations. 
 - **Zero-Wait Mode Swapping**: While the transition video plays, the application intelligently fetches and renders the new mode's data completely hidden in the background, resulting in a perfect 0-loading-screen switch.
 - **📱 Progressive Web App (PWA)**: Installable as a standalone app with offline support, intelligent caching, and a custom UI update prompt.
@@ -206,6 +206,9 @@ PLAYER_GAMMA_BASE_URL=disabled
 PLAYER_GAMMA_EMBED_MOVIE=disabled
 PLAYER_GAMMA_EMBED_TV=disabled
 PLAYER_DELTA_EPSILON_BASE_URL=disabled
+
+# Anime Server
+OTAKU_BASE_URL=disabled
 ```
 Start the backend development server:
 ```bash
@@ -253,6 +256,9 @@ VITE_TRANSITION_VIDEO_DESKTOP_TO_ANIME=your_desktop_video_url
 VITE_TRANSITION_VIDEO_DESKTOP_TO_STANDARD=your_desktop_video_url
 VITE_TRANSITION_VIDEO_MOBILE_TO_ANIME=your_mobile_video_url
 VITE_TRANSITION_VIDEO_MOBILE_TO_STANDARD=your_mobile_video_url
+
+# Otaku Link
+VITE_OTAKU_LIST_URL=your_link
 ```
 Start the frontend development server:
 ```bash

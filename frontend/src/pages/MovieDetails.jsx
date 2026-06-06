@@ -6,6 +6,7 @@ import MovieCard from '../components/media/MovieCard';
 import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth, useUser } from '@clerk/clerk-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,6 +17,8 @@ function MovieDetails() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
+  
+  const { isAnimeMode } = useTheme();
   
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +75,7 @@ function MovieDetails() {
   const checkWatchlist = async () => {
     try {
       const token = await getToken();
-      const response = await axios.get(`${API_URL}/favorites/check/${id}`, {
+      const response = await axios.get(`${API_URL}/favorites/check/${id}?anime=${isAnimeMode}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -116,7 +119,7 @@ function MovieDetails() {
 
 
       if (isInWatchlist) {
-        await axios.delete(`${API_URL}/favorites/remove/${id}`, config);
+        await axios.delete(`${API_URL}/favorites/remove/${id}?anime=${isAnimeMode}`, config);
         setIsInWatchlist(false);
       } else {
         await axios.post(`${API_URL}/favorites/add`, {
@@ -125,7 +128,8 @@ function MovieDetails() {
           posterPath: movie.url,
           rating: movie.rating,
           year: movie.year,
-          mediaType: 'movie'
+          mediaType: 'movie',
+          isAnime: isAnimeMode
         }, config);
         setIsInWatchlist(true);
       }
@@ -281,7 +285,7 @@ function MovieDetails() {
                       <div className="w-full aspect-square rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 mb-2 ring-2 ring-transparent group-hover:ring-netflix-red transition-all">
                         {member.profile_path ? (
                           <img
-                            src={`${TMDB_IMAGE_BASE}${member.profile_path}`}
+                            src={member.profile_path.startsWith('http') ? member.profile_path : `${TMDB_IMAGE_BASE}${member.profile_path}`}
                             alt={member.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             loading="lazy"
@@ -312,7 +316,7 @@ function MovieDetails() {
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0 ring-2 ring-gray-200 dark:ring-gray-600 transition-colors">
                     {movie.director.profile_path ? (
                       <img
-                        src={`${TMDB_IMAGE_BASE}${movie.director.profile_path}`}
+                        src={movie.director.profile_path.startsWith('http') ? movie.director.profile_path : `${TMDB_IMAGE_BASE}${movie.director.profile_path}`}
                         alt={movie.director.name}
                         className="w-full h-full object-cover"
                         loading="lazy"

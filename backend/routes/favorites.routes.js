@@ -10,7 +10,8 @@ router.use(requireAuth, requireMongoUser, requireApproved);
 // Get all favorites
 router.get('/', async (req, res) => {
   try {
-    const favorites = await Favorite.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const isAnime = req.query.anime === 'true';
+    const favorites = await Favorite.find({ userId: req.user._id, isAnime }).sort({ createdAt: -1 });
     res.json({ favorites });
   } catch (error) {
     console.error('Error fetching favorites:', error);
@@ -21,7 +22,7 @@ router.get('/', async (req, res) => {
 // Add a favorite
 router.post('/add', async (req, res) => {
   try {
-    const { mediaId, mediaType, title, posterPath } = req.body;
+    const { mediaId, mediaType, title, posterPath, isAnime = false } = req.body;
     
     if (!mediaId || !mediaType) {
       return res.status(400).json({ error: 'mediaId and mediaType are required' });
@@ -29,8 +30,8 @@ router.post('/add', async (req, res) => {
 
     // Upsert to handle unique constraint safely
     const favorite = await Favorite.findOneAndUpdate(
-      { userId: req.user._id, mediaId },
-      { userId: req.user._id, mediaId, mediaType, title, posterPath },
+      { userId: req.user._id, mediaId, isAnime },
+      { userId: req.user._id, mediaId, mediaType, title, posterPath, isAnime },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -45,7 +46,8 @@ router.post('/add', async (req, res) => {
 router.delete('/remove/:mediaId', async (req, res) => {
   try {
     const { mediaId } = req.params;
-    await Favorite.findOneAndDelete({ userId: req.user._id, mediaId });
+    const isAnime = req.query.anime === 'true';
+    await Favorite.findOneAndDelete({ userId: req.user._id, mediaId, isAnime });
     res.json({ message: 'Removed from favorites' });
   } catch (error) {
     console.error('Error removing favorite:', error);
@@ -57,7 +59,8 @@ router.delete('/remove/:mediaId', async (req, res) => {
 router.get('/check/:mediaId', async (req, res) => {
   try {
     const { mediaId } = req.params;
-    const favorite = await Favorite.findOne({ userId: req.user._id, mediaId });
+    const isAnime = req.query.anime === 'true';
+    const favorite = await Favorite.findOne({ userId: req.user._id, mediaId, isAnime });
     res.json({ isFavorite: !!favorite });
   } catch (error) {
     console.error('Error checking favorite:', error);

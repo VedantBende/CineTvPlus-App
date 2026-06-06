@@ -10,6 +10,11 @@ import {
   fetchTopRatedTVShows,
   fetchTrendingAll
 } from '../utils/tmdbApi';
+import {
+  fetchTrendingAnime,
+  fetchPopularAnime,
+  fetchTopRatedAnime
+} from '../utils/otakuApi';
 import MovieCard from '../components/media/MovieCard';
 import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
@@ -98,7 +103,7 @@ function HomePage() {
     setCurrentHeroIndex(0);
 
     // Skip fetch if cache is fresh (within TTL) for current mode
-    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL) && activeData.heroMovies?.length > 0;
     
     if (isCacheFresh) {
       setLoading(false);
@@ -131,16 +136,34 @@ function HomePage() {
       setLoading(true);
       setError(null);
 
-      const [trending, trendingShows, popularMoviesData, nowPlaying, topRatedMoviesData, mixedTop10, popularShows, topRatedShows] = await Promise.all([
-        fetchTrendingMovies('day', 1),
-        fetchTrendingTVShows('day', 1),
-        fetchPopularMovies(1),
-        fetchNowPlayingMovies(1),
-        fetchTopRatedMovies(1),
-        fetchTrendingAll('day', 1),
-        fetchPopularTVShows(1),
-        fetchTopRatedTVShows(1)
-      ]);
+      let trending, trendingShows, popularMoviesData, nowPlaying, topRatedMoviesData, mixedTop10, popularShows, topRatedShows;
+
+      if (isAnimeMode) {
+        const [trendingAnime, popularAnime, topRatedAnime] = await Promise.all([
+          fetchTrendingAnime(1),
+          fetchPopularAnime(1),
+          fetchTopRatedAnime(1)
+        ]);
+        trending = [];
+        trendingShows = trendingAnime;
+        popularMoviesData = [];
+        nowPlaying = [];
+        topRatedMoviesData = [];
+        mixedTop10 = trendingAnime; // use trending as mixed top 10
+        popularShows = popularAnime;
+        topRatedShows = topRatedAnime;
+      } else {
+        [trending, trendingShows, popularMoviesData, nowPlaying, topRatedMoviesData, mixedTop10, popularShows, topRatedShows] = await Promise.all([
+          fetchTrendingMovies('day', 1),
+          fetchTrendingTVShows('day', 1),
+          fetchPopularMovies(1),
+          fetchNowPlayingMovies(1),
+          fetchTopRatedMovies(1),
+          fetchTrendingAll('day', 1),
+          fetchPopularTVShows(1),
+          fetchTopRatedTVShows(1)
+        ]);
+      }
 
       let finalTrending = trending;
       let finalPopular = popularMoviesData;
@@ -175,10 +198,10 @@ function HomePage() {
         }
       }
 
-      // Set hero movies (top 5 mixed content with backdrops)
-      const heroMoviesData = mixedTop10
-        .filter(movie => movie.backdrop)
-        .slice(0, 5);
+        // Set hero movies (top 5 mixed content with backdrops)
+        const heroMoviesData = mixedTop10
+          .filter(movie => isAnimeMode ? movie.hasBannerImage : movie.backdrop)
+          .slice(0, 5);
 
       // Persist to global cache so data survives route changes
       // This will trigger a re-render and the useEffect will sync the local state
@@ -211,14 +234,28 @@ function HomePage() {
       setLoadingMore(true);
       const activeMode = currentModeRef.current;
       
-      // Fetch a mix of popular and top rated movies/shows for subsequent pages
-      const [popularMoviesData, topRatedMoviesData, trendingTv, popularShows, topRatedShows] = await Promise.all([
-        fetchPopularMovies(pageNum),
-        fetchTopRatedMovies(pageNum),
-        fetchTrendingTVShows('week', pageNum),
-        fetchPopularTVShows(pageNum),
-        fetchTopRatedTVShows(pageNum)
-      ]);
+      let popularMoviesData, topRatedMoviesData, trendingTv, popularShows, topRatedShows;
+      
+      if (activeMode) {
+        const [popularAnime, topRatedAnime, trendingAnime] = await Promise.all([
+          fetchPopularAnime(pageNum),
+          fetchTopRatedAnime(pageNum),
+          fetchTrendingAnime(pageNum)
+        ]);
+        popularMoviesData = [];
+        topRatedMoviesData = [];
+        trendingTv = trendingAnime;
+        popularShows = popularAnime;
+        topRatedShows = topRatedAnime;
+      } else {
+        [popularMoviesData, topRatedMoviesData, trendingTv, popularShows, topRatedShows] = await Promise.all([
+          fetchPopularMovies(pageNum),
+          fetchTopRatedMovies(pageNum),
+          fetchTrendingTVShows('week', pageNum),
+          fetchPopularTVShows(pageNum),
+          fetchTopRatedTVShows(pageNum)
+        ]);
+      }
 
       if (activeMode !== currentModeRef.current) return;
 
@@ -261,6 +298,11 @@ function HomePage() {
       }
       if (trendingTv.length > 0 && !activeMode) {
         newRows.push({ title: `More Trending TV Shows`, icon: 'trending_up', data: trendingTv, type: 'tv' });
+      }
+
+      if (newRows.length === 0) {
+        setHasMore(false);
+        return;
       }
 
       setDynamicRows(prev => [...prev, ...newRows]);
@@ -392,16 +434,43 @@ function HomePage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
               <div className="absolute bottom-0 left-0 right-0 h-24 xs:h-28 sm:h-32 md:h-40 lg:h-48 bg-gradient-to-t from-netflix-black dark:from-netflix-black via-netflix-black/80 to-transparent z-10" />
-              {movie.backdrop && (
-                <img
-                  src={movie.backdrop}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  style={{ objectPosition: 'center center' }}
-                />
-              )}
+                {isAnimeMode ? (
+                  <>
+                    {movie.backdrop && (
+                      <img
+                        src={movie.backdrop}
+                        alt={movie.title}
+                        className="w-full h-full object-cover blur-md opacity-50 scale-110"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        style={{ objectPosition: 'center center' }}
+                      />
+                    )}
+                    {movie.url && (
+                      <div className="absolute inset-y-0 right-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
+                        <div className="relative h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
+                          <img
+                            src={movie.url}
+                            alt={movie.title}
+                            className="w-full h-full object-cover"
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  movie.backdrop && (
+                    <img
+                      src={movie.backdrop}
+                      alt={movie.title}
+                      className="w-full h-full object-cover"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      style={{ objectPosition: 'center center' }}
+                    />
+                  )
+                )}
             </div>
           ))}
         </div>
@@ -471,7 +540,10 @@ function HomePage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button 
-                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=${movie.media_type || 'movie'}${(movie.media_type === 'tv' || movie.type === 'tv') ? '&season=1&episode=1' : ''}`)}
+                    onClick={() => {
+                      const isEpisodic = movie.media_type === 'tv' || movie.type === 'tv' || movie.media_type === 'anime' || movie.type === 'anime';
+                      navigate(`/watch?id=${movie.tmdbId}&type=${movie.media_type || 'movie'}${isEpisodic ? '&season=1&episode=1' : ''}`);
+                    }}
                     className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -480,7 +552,7 @@ function HomePage() {
                     <span>Play</span>
                   </button>
                   <button 
-                    onClick={() => navigate(`/${movie.media_type || 'movie'}/${movie.tmdbId}`)}
+                    onClick={() => navigate(`/${movie.media_type === 'anime' ? 'tv' : (movie.media_type || 'movie')}/${movie.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

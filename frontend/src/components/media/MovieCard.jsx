@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
-function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie', onRemove }) {
+function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie', format, onRemove }) {
   const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
+  const { isAnimeMode } = useTheme();
 
   const handleClick = () => {
     const id = tmdbId || mediaId;
-    const route = type === 'movie' ? `/movie/${id}` : `/tv/${id}`;
+    const route = (type === 'movie' && !isAnimeMode) ? `/movie/${id}` : `/tv/${id}`;
     navigate(route);
   };
+
+  const displayType = type === 'anime' 
+    ? (format ? (format === 'MOVIE' ? 'Movie' : format === 'TV' ? 'TV Show' : format.replace('_', ' ')) : 'Anime')
+    : (type === 'tv' ? 'TV Show' : 'Movie');
 
   return (
     <div className="px-1.5 py-1">
@@ -88,7 +94,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
           {year && (
             <span className="text-gray-600 dark:text-gray-400 text-xs">{year}</span>
           )}
-          <span className="text-gray-600 dark:text-gray-400 text-xs capitalize">{type === 'tv' ? 'TV Show' : 'Movie'}</span>
+          <span className="text-gray-600 dark:text-gray-400 text-xs capitalize truncate max-w-[80px] text-right" title={displayType}>{displayType}</span>
         </div>
       </div>
       </div>

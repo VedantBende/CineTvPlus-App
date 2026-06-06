@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import axios from 'axios';
 import { useAuth } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { updateProgress } from '../../utils/progressTracker';
@@ -24,10 +25,17 @@ function PlayerFrame({
   // Player selection — null means no player chosen yet (show modal)
   const [selectedPlayer, setSelectedPlayer] = useState(() => getSavedPlayer(tmdbId, mediaType));
   const [animateButtons, setAnimateButtons] = useState(false);
+  
+  // Anime Server states
+  const [animeLang, setAnimeLang] = useState(() => localStorage.getItem('cinetv_anime_lang') || 'sub');
+  const [animeEmbedUrl, setAnimeEmbedUrl] = useState(null);
+  const [isResolvingAnime, setIsResolvingAnime] = useState(false);
+  const [animeResolveError, setAnimeResolveError] = useState(null);
 
   // Derive season/episode from URL props directly instead of syncing via useEffect
-  const activeSeason = mediaType === 'tv' ? (season || 1) : null;
-  const activeEpisode = mediaType === 'tv' ? (episode || 1) : null;
+  const isTVOrAnime = mediaType === 'tv' || mediaType === 'anime';
+  const activeSeason = isTVOrAnime ? (season || 1) : null;
+  const activeEpisode = isTVOrAnime ? (episode || 1) : null;
 
   // Sync selected player when tmdbId or mediaType changes
   useEffect(() => {
@@ -35,13 +43,64 @@ function PlayerFrame({
   }, [tmdbId, mediaType]);
 
 
-  // Build embed URL (only when a player is selected)
-  const embedUrl = selectedPlayer
+  // Build embed URL (only when a player is selected and not anime)
+  const defaultEmbedUrl = selectedPlayer && selectedPlayer !== 'anime'
     ? getEmbedUrl(selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, {
         autoplay,
         resumeTime,
       })
     : null;
+
+  const embedUrl = selectedPlayer === 'anime' ? animeEmbedUrl : defaultEmbedUrl;
+
+  // Resolve Anime Server URL
+  useEffect(() => {
+    if (selectedPlayer === 'anime') {
+      const controller = new AbortController();
+      const resolveUrl = async () => {
+        setIsResolvingAnime(true);
+        setAnimeResolveError(null);
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || '/api';
+          const res = await axios.get(`${API_URL}/anime/embed`, {
+            params: {
+              otakuId: tmdbId, // In anime mode, tmdbId actually holds the Otaku ID
+              type: mediaType,
+              season: activeSeason,
+              episode: activeEpisode,
+              lang: animeLang
+            },
+            signal: controller.signal
+          });
+          
+          if (res.data && res.data.success) {
+            setAnimeEmbedUrl(res.data.url);
+          } else {
+            setAnimeResolveError(res.data.error || 'Failed to resolve episode');
+          }
+        } catch (error) {
+          if (!axios.isCancel(error)) {
+            console.error('Failed to resolve anime embed:', error);
+            setAnimeResolveError('Failed to load anime server. Please try another server.');
+          }
+        } finally {
+          if (!controller.signal.aborted) {
+            setIsResolvingAnime(false);
+          }
+        }
+      };
+      resolveUrl();
+      
+      return () => controller.abort();
+    }
+  }, [selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, animeLang]);
+
+  const handleLanguageToggle = useCallback((lang) => {
+    if (animeLang === lang) return;
+    setIsResolvingAnime(true); // Force loading state immediately
+    setAnimeLang(lang);
+    localStorage.setItem('cinetv_anime_lang', lang);
+  }, [animeLang]);
 
 
   // Handle player selection (from modal or buttons)
@@ -95,7 +154,7 @@ function PlayerFrame({
             const currentSeconds = Math.floor(payload.currentTime);
 
             // Store in backend every 10 seconds
-            if (currentSeconds % 10 === 0 && currentSeconds > 0) {
+            if (selectedPlayer !== 'anime' && currentSeconds % 10 === 0 && currentSeconds > 0) {
               updateProgress(getToken, progressData).catch(err => console.error('Failed to save progress:', err));
             }
           }
@@ -134,8 +193,8 @@ function PlayerFrame({
         if (message.type === 'MEDIA_DATA') {
           try {
             const existing = JSON.parse(localStorage.getItem('deltaEpsilonProgress') || '{}');
-            const key = mediaType === 'tv'
-              ? `tv_${tmdbId}_s${activeSeason}_e${activeEpisode}`
+            const key = mediaType === 'tv' || mediaType === 'anime'
+              ? `${mediaType}_${tmdbId}_s${activeSeason}_e${activeEpisode}`
               : `movie_${tmdbId}`;
 
             localStorage.setItem('deltaEpsilonProgress', JSON.stringify({
@@ -229,8 +288,8 @@ function PlayerFrame({
         if (message.type === 'MEDIA_DATA') {
           try {
             const existing = JSON.parse(localStorage.getItem('gammaProgress') || '{}');
-            const key = mediaType === 'tv'
-              ? `tv_${tmdbId}_s${activeSeason}_e${activeEpisode}`
+            const key = mediaType === 'tv' || mediaType === 'anime'
+              ? `${mediaType}_${tmdbId}_s${activeSeason}_e${activeEpisode}`
               : `movie_${tmdbId}`;
 
             localStorage.setItem('gammaProgress', JSON.stringify({
@@ -339,29 +398,78 @@ function PlayerFrame({
   return (
     <div>
       {/* Player Container */}
-      <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg" style={{ paddingBottom: '56.25%' }}>
-        <iframe
-          key={`${selectedPlayer}-${tmdbId}-${activeSeason}-${activeEpisode}`}
-          ref={iframeRef}
-          src={embedUrl}
-          className="absolute top-0 left-0 w-full h-full border-0"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-          title="Video Player"
-          referrerPolicy={iframeReferrer}
-          loading="eager"
-        />
+      <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg bg-zinc-900/50" style={{ paddingBottom: '56.25%' }}>
+        {selectedPlayer === 'anime' && isResolvingAnime ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto mb-3"></div>
+              <p className="text-zinc-400 text-xs sm:text-sm">Resolving Anime Server...</p>
+            </div>
+          </div>
+        ) : selectedPlayer === 'anime' && animeResolveError ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center px-4">
+              <svg className="w-10 h-10 text-red-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p className="text-zinc-300 text-sm font-medium">{animeResolveError}</p>
+            </div>
+          </div>
+        ) : (
+          <iframe
+            key={`${selectedPlayer}-${tmdbId}-${activeSeason}-${activeEpisode}-${animeLang}`}
+            ref={iframeRef}
+            src={embedUrl}
+            className="absolute top-0 left-0 w-full h-full border-0"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            title="Video Player"
+            referrerPolicy={iframeReferrer}
+            loading="eager"
+          />
+        )}
       </div>
 
-      {/* Player Selector (server buttons) */}
-      <PlayerSelector
-        selectedPlayer={selectedPlayer}
-        onSelect={handlePlayerSelect}
-        animate={animateButtons}
-      />
+      {/* Controls Container */}
+      <div className="flex flex-col sm:flex-row items-center mt-3 sm:mt-4 gap-3 sm:gap-4 px-1 relative w-full">
+        {/* Sub/Dub Toggle for Anime Server */}
+        {selectedPlayer === 'anime' && (
+          <div className="flex sm:absolute sm:left-1 bg-zinc-800/80 rounded-lg p-1 border border-zinc-700/50 shadow-inner z-10">
+            <button
+              onClick={() => handleLanguageToggle('sub')}
+              className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-all duration-300 ${
+                animeLang === 'sub'
+                  ? 'bg-red-600 text-white shadow-md scale-[1.02]'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50'
+              }`}
+            >
+              SUB
+            </button>
+            <button
+              onClick={() => handleLanguageToggle('dub')}
+              className={`px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-all duration-300 ${
+                animeLang === 'dub'
+                  ? 'bg-blue-600 text-white shadow-md scale-[1.02]'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50'
+              }`}
+            >
+              DUB
+            </button>
+          </div>
+        )}
+
+        {/* Player Selector (server buttons) */}
+        <div className="flex-1 w-full flex justify-center">
+          <PlayerSelector
+            selectedPlayer={selectedPlayer}
+            onSelect={handlePlayerSelect}
+            animate={animateButtons}
+          />
+        </div>
+      </div>
 
       {/* Episode Selector (TV shows only) */}
-      {mediaType === 'tv' && seasons && seasons.length > 0 && (
+      {(mediaType === 'tv' || mediaType === 'anime') && seasons && seasons.length > 0 && (
         <EpisodeSelector
           seasons={seasons}
           currentSeason={activeSeason}

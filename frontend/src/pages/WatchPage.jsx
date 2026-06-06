@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getProgress } from '../utils/progressTracker';
 import { addOrUpdateItem } from '../utils/continueWatchingStore';
+import { fetchAnimeDetails } from '../utils/otakuApi';
 import PlayerFrame from '../components/media/PlayerFrame';
 import DevToolsErrorScreen from '../components/ui/DevToolsErrorScreen';
 import { useDevToolsDetector } from '../utils/devtoolsDetector';
@@ -33,7 +34,7 @@ function WatchPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTips, setShowTips] = useState(() => !localStorage.getItem('helpfulTipsAccepted'));
   const [tvSeasons, setTvSeasons] = useState(null);
-
+  const [isUnreleased, setIsUnreleased] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -50,27 +51,48 @@ function WatchPage() {
     if (isSignedIn) {
       (async () => {
         try {
-          const res = await fetch(`${API_URL}/tmdb/${mediaType}/${tmdbId}?language=en-US`);
-          if (res.ok) {
-            const data = await res.json();
-            const title = data.title || data.name || 'Unknown Title';
-            const posterPath = data.poster_path
-              ? `${POSTER_BASE}${data.poster_path}`
-              : null;
-            const backdropPath = data.backdrop_path
-              ? `${BACKDROP_BASE}${data.backdrop_path}`
-              : null;
+          if (mediaType === 'anime') {
+            const data = await fetchAnimeDetails(tmdbId);
+            if (data) {
+              if (data.status === 'NOT_YET_RELEASED') {
+                setIsUnreleased(true);
+              }
 
-            addOrUpdateItem(getToken, {
-              tmdbId,
-              type: mediaType,
-              title,
-              posterPath,
-              backdropPath,
-              season,
-              episode,
-              isAnime: isAnimeMode
-            });
+              addOrUpdateItem(getToken, {
+                tmdbId: tmdbId.toString(),
+                type: mediaType,
+                title: data.title || data.title?.english || data.title?.romaji || 'Unknown Anime',
+                posterPath: data.coverImage?.extraLarge || data.coverImage?.large || data.url,
+                backdropPath: data.bannerImage || data.coverImage?.extraLarge || data.backdrop,
+                season,
+                episode,
+                isAnime: isAnimeMode,
+                timestamp: Date.now()
+              });
+            }
+          } else {
+            const res = await fetch(`${API_URL}/tmdb/${mediaType}/${tmdbId}?language=en-US`);
+            if (res.ok) {
+              const data = await res.json();
+              const title = data.title || data.name || 'Unknown Title';
+              const posterPath = data.poster_path
+                ? `${POSTER_BASE}${data.poster_path}`
+                : null;
+              const backdropPath = data.backdrop_path
+                ? `${BACKDROP_BASE}${data.backdrop_path}`
+                : null;
+
+              addOrUpdateItem(getToken, {
+                tmdbId,
+                type: mediaType,
+                title,
+                posterPath,
+                backdropPath,
+                season,
+                episode,
+                isAnime: isAnimeMode
+              });
+            }
           }
         } catch (err) {
           console.error('Continue watching tracking failed:', err);
@@ -85,7 +107,14 @@ function WatchPage() {
     }
 
     // Fetch TV show seasons data for episode selector
-    if (mediaType === 'tv' && tmdbId) {
+    if (isAnimeMode) {
+      fetchAnimeDetails(tmdbId).then(data => {
+        // Do not show seasons/episodes for Anime Movies
+        if (data && data.episodes && data.format !== 'MOVIE') {
+          setTvSeasons([{ season_number: 1, episode_count: data.episodes, name: "Season 1" }]);
+        }
+      }).catch(err => console.error("Failed to fetch anime episodes:", err));
+    } else if (mediaType === 'tv' && tmdbId) {
       fetchTVSeasons();
     }
   }, [tmdbId, mediaType, season, episode, isSignedIn, isAnimeMode]);
@@ -216,9 +245,11 @@ function WatchPage() {
 
       {/* Info Banner - Responsive */}
       {!isFullscreen && (
-        <div className="fixed top-14 right-2 sm:top-20 sm:right-3 md:top-24 md:right-4 z-40 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg">
+        <div className={`fixed top-14 right-2 sm:top-20 sm:right-3 md:top-24 z-40 bg-black bg-opacity-80 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-md sm:rounded-lg shadow-lg ${
+          (mediaType === 'tv' || mediaType === 'anime') && season && episode ? 'md:right-7' : 'md:right-0'
+        }`}>
           <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
-            {mediaType === 'tv' && season && episode ? (
+            {(mediaType === 'tv' || mediaType === 'anime') && season && episode ? (
               <span>S{season} E{episode}</span>
             ) : (
               <span>Now Playing</span>
@@ -231,16 +262,50 @@ function WatchPage() {
       {/* Player Container - Fully Responsive */}
       <div className="flex items-center justify-center min-h-screen sm:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)] w-full p-0 sm:p-2 md:p-3 lg:p-4">
         <div className="w-full max-w-7xl">
-          <PlayerFrame
-            tmdbId={tmdbId}
-            mediaType={mediaType}
-            season={season ? parseInt(season) : null}
-            episode={episode ? parseInt(episode) : null}
-            seasons={tvSeasons}
-            resumeTime={resumeTime}
-            autoplay={true}
-            quality="auto"
-          />
+          {mediaType === 'anime' && !isAnimeMode ? (
+            <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg bg-zinc-900/50 flex flex-col items-center justify-center border border-zinc-800" style={{ paddingBottom: '56.25%' }}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                <svg className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2">
+                  AniTv+ Mode Required
+                </h3>
+                <p className="text-sm sm:text-base text-zinc-400 max-w-md mx-auto">
+                  This anime is an exclusive AniTv+ title. Please enable AniTv+ mode using the toggle in the header to watch this content.
+                </p>
+              </div>
+            </div>
+          ) : isUnreleased ? (
+            <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg bg-zinc-900/50 flex flex-col items-center justify-center border border-zinc-800" style={{ paddingBottom: '56.25%' }}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                <svg className="w-16 h-16 text-zinc-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Not Yet Released</h2>
+                <p className="text-zinc-400 max-w-md">
+                  This media has not been released yet. Please check back later once it officially airs!
+                </p>
+                <button
+                  onClick={handleBack}
+                  className="mt-6 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          ) : (
+            <PlayerFrame
+              tmdbId={tmdbId}
+              mediaType={mediaType}
+              season={season ? parseInt(season) : null}
+              episode={episode ? parseInt(episode) : null}
+              seasons={tvSeasons}
+              resumeTime={resumeTime}
+              autoplay={true}
+              quality="auto"
+            />
+          )}
         </div>
       </div>
 

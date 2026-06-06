@@ -5,6 +5,7 @@ import MovieCard from '../components/media/MovieCard';
 import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,6 +13,7 @@ function FavoritesPage() {
   const { getToken } = useAuth();
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
+  const { isAnimeMode } = useTheme();
   
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ function FavoritesPage() {
     }
     
     loadWatchlist();
-  }, [isSignedIn, navigate]);
+  }, [isSignedIn, navigate, isAnimeMode]);
 
   const loadWatchlist = async () => {
     try {
@@ -34,7 +36,7 @@ function FavoritesPage() {
       
       const token = await getToken();
       
-      const response = await axios.get(`${API_URL}/favorites`, {
+      const response = await axios.get(`${API_URL}/favorites?anime=${isAnimeMode}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -55,7 +57,7 @@ function FavoritesPage() {
       setWatchlist(prev => prev.filter(item => item.mediaId !== mediaId));
       
       const token = await getToken();
-      await axios.delete(`${API_URL}/favorites/remove/${mediaId}`, {
+      await axios.delete(`${API_URL}/favorites/remove/${mediaId}?anime=${isAnimeMode}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

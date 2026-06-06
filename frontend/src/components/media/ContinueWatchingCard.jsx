@@ -12,7 +12,7 @@ function ContinueWatchingCard({ title, backdrop, season, episode, mediaId, type 
     if (onRemove) onRemove(mediaId);
   };
 
-  const subtitle = type === 'tv' && season && episode 
+  const subtitle = (type === 'tv' || type === 'anime') && season && episode 
     ? `Continue S${season} E${episode}`
     : 'Continue Movie';
 

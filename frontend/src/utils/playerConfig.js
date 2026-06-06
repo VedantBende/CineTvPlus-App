@@ -136,6 +136,15 @@ export const PLAYERS = {
       return `${ZETA_MOVIE}/${tmdbId}`;
     },
   },
+
+  anime: {
+    id: 'anime',
+    label: 'Anime Server',
+    description: 'Dedicated Anime Source (Sub/Dub)',
+    // The actual URL fetching for Anime Server is asynchronous
+    // so we return null here and let PlayerFrame handle it via backend proxy
+    getUrl: () => null,
+  },
 };
 
 // ─── Constants ────────────────────────────────────────────────────────
@@ -149,6 +158,10 @@ export const PLAYER_LIST = Object.values(PLAYERS);
  * Defaults to 'alpha' (Server Alpha) if no specific player is saved.
  */
 export function getSavedPlayer(tmdbId, mediaType) {
+  if (mediaType === 'anime') {
+    return 'anime';
+  }
+
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {

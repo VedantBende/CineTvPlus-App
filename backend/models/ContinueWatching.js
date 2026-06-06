@@ -14,7 +14,7 @@ const continueWatchingSchema = new mongoose.Schema({
   },
   mediaType: {
     type: String,
-    enum: ['movie', 'tv'],
+    enum: ['movie', 'tv', 'anime'],
     required: true
   },
   title: {

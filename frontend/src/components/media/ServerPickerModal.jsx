@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
 import { PLAYER_LIST } from '../../utils/playerConfig';
+import { useTheme } from '../../context/ThemeContext';
 
 function ServerPickerModal({ onSelect }) {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const { isAnimeMode } = useTheme();
+
+  // Filter out Anime Server if not in Anime Mode
+  const availablePlayers = PLAYER_LIST.filter(player => {
+    if (isAnimeMode) return player.id === 'anime';
+    if (player.id === 'anime') return false;
+    return true;
+  });
 
   // Trigger entrance animation on mount
   useEffect(() => {
@@ -55,7 +64,7 @@ function ServerPickerModal({ onSelect }) {
 
         {/* Server Options */}
         <div className="space-y-2.5 sm:space-y-3">
-          {PLAYER_LIST.map((player, index) => {
+          {availablePlayers.map((player, index) => {
             const isSelected = selectedId === player.id;
 
             return (

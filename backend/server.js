@@ -23,6 +23,7 @@ import favoritesRoutes from './routes/favorites.routes.js';
 import historyRoutes from './routes/history.routes.js';
 import tmdbRoutes from './routes/tmdb.routes.js';
 import continueWatchingRoutes from './routes/continueWatching.routes.js';
+import animeRoutes from './routes/anime.routes.js';
 import { initDatabaseKeepAlive, checkDatabaseHealth } from './utils/dbHealth.js';
 import { globalLimiter, tmdbLimiter, dbWriteLimiter } from './middleware/rateLimiter.middleware.js';
 
@@ -127,6 +128,7 @@ app.use('/api/favorites', dbWriteLimiter, favoritesRoutes);
 app.use('/api/history', dbWriteLimiter, historyRoutes);
 app.use('/api/tmdb', tmdbLimiter, tmdbRoutes);
 app.use('/api/continue-watching', dbWriteLimiter, continueWatchingRoutes);
+app.use('/api/anime', tmdbLimiter, animeRoutes);
 
 // 404 Handler
 app.use((req, res) => {

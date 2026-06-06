@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { searchMulti } from '../utils/tmdbApi';
+import { searchAnime } from '../utils/otakuApi';
+import { useTheme } from '../context/ThemeContext';
 import MovieCard from '../components/media/MovieCard';
 
 import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
@@ -8,6 +10,7 @@ import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
 function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q');
+  const { isAnimeMode } = useTheme();
   
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,7 +52,7 @@ function SearchPage() {
   const performSearch = async (searchQuery, pageNum) => {
     try {
       setLoading(true);
-      const data = await searchMulti(searchQuery, pageNum);
+      const data = isAnimeMode ? await searchAnime(searchQuery, pageNum) : await searchMulti(searchQuery, pageNum);
       
       if (pageNum === 1) {
         setResults(data.results);
@@ -58,6 +61,12 @@ function SearchPage() {
         setResults(prev => {
           const existingIds = new Set(prev.map(r => r.tmdbId));
           const freshResults = data.results.filter(r => !existingIds.has(r.tmdbId));
+          
+          if (freshResults.length === 0) {
+            setHasMore(false);
+            return prev;
+          }
+          
           return [...prev, ...freshResults];
         });
       }
@@ -115,7 +124,8 @@ function SearchPage() {
                   year={item.year}
                   mediaId={item.mediaId}
                   tmdbId={item.tmdbId}
-                  type={item.type}
+                  type={isAnimeMode ? 'anime' : item.type}
+                  format={item.format}
                 />
               ))}
               {/* Infinite Scroll Loader appended inside grid */}

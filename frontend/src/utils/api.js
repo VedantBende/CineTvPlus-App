@@ -15,12 +15,12 @@ export const getAuthHeaders = async (getToken) => {
 // Watchlist API
 export const watchlistApi = {
   // Add to watchlist
-  add: async (getToken, mediaData) => {
+  add: async (getToken, mediaData, isAnime = false) => {
     const headers = await getAuthHeaders(getToken);
     const response = await fetch(`${API_URL}/favorites/add`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(mediaData)
+      body: JSON.stringify({ ...mediaData, isAnime })
     });
     
     if (!response.ok) {
@@ -32,9 +32,9 @@ export const watchlistApi = {
   },
 
   // Remove from watchlist
-  remove: async (getToken, mediaId) => {
+  remove: async (getToken, mediaId, isAnime = false) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/favorites/remove/${mediaId}`, {
+    const response = await fetch(`${API_URL}/favorites/remove/${mediaId}?anime=${isAnime}`, {
       method: 'DELETE',
       headers
     });
@@ -48,9 +48,9 @@ export const watchlistApi = {
   },
 
   // Get watchlist
-  get: async (getToken) => {
+  getAll: async (getToken, isAnime = false) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/favorites`, {
+    const response = await fetch(`${API_URL}/favorites?anime=${isAnime}`, {
       method: 'GET',
       headers
     });
@@ -63,9 +63,9 @@ export const watchlistApi = {
   },
 
   // Check if in watchlist
-  check: async (getToken, mediaId) => {
+  check: async (getToken, mediaId, isAnime = false) => {
     const headers = await getAuthHeaders(getToken);
-    const response = await fetch(`${API_URL}/favorites/check/${mediaId}`, {
+    const response = await fetch(`${API_URL}/favorites/check/${mediaId}?anime=${isAnime}`, {
       method: 'GET',
       headers
     });

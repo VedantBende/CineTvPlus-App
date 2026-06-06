@@ -14,7 +14,7 @@ const favoriteSchema = new mongoose.Schema({
   },
   mediaType: {
     type: String,
-    enum: ['movie', 'tv'],
+    enum: ['movie', 'tv', 'anime'],
     required: true
   },
   title: {
@@ -22,14 +22,18 @@ const favoriteSchema = new mongoose.Schema({
   },
   posterPath: {
     type: String
+  },
+  isAnime: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true // adds createdAt
 });
 
-// Compound index to ensure a user only favorites a piece of media once
-favoriteSchema.index({ userId: 1, mediaId: 1 }, { unique: true });
-favoriteSchema.index({ userId: 1, createdAt: -1 });
+// Compound index to ensure a user only favorites a piece of media once per mode
+favoriteSchema.index({ userId: 1, mediaId: 1, isAnime: 1 }, { unique: true });
+favoriteSchema.index({ userId: 1, isAnime: 1, createdAt: -1 });
 
 const Favorite = mongoose.model('Favorite', favoriteSchema);
 

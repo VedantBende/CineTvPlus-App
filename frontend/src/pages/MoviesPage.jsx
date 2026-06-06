@@ -7,9 +7,17 @@ import {
   fetchTrendingMovies,
   fetchUpcomingMovies
 } from '../utils/tmdbApi';
+import {
+  fetchPopularAnime,
+  fetchTopRatedAnime,
+  fetchNowPlayingAnime,
+  fetchTrendingAnime,
+  fetchUpcomingAnime
+} from '../utils/otakuApi';
 import MovieCard from '../components/media/MovieCard';
 import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
+import ContinueWatching from '../components/media/ContinueWatching';
 
 import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
@@ -86,7 +94,7 @@ function MoviesPage() {
     setHasMore(true);
 
     // Skip fetch if cache is fresh (within TTL) for current mode
-    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL) && activeData.heroMovies?.length > 0;
     if (isCacheFresh) {
       setLoading(false);
       return;
@@ -116,13 +124,25 @@ function MoviesPage() {
       setLoading(true);
       setError(null);
 
-      const [popular, topRated, nowPlaying, trending, upcoming] = await Promise.all([
-        fetchPopularMovies(1),
-        fetchTopRatedMovies(1),
-        fetchNowPlayingMovies(1),
-        fetchTrendingMovies('week', 1),
-        fetchUpcomingMovies(1)
-      ]);
+      let popular, topRated, nowPlaying, trending, upcoming;
+
+      if (isAnimeMode) {
+        [popular, topRated, nowPlaying, trending, upcoming] = await Promise.all([
+          fetchPopularAnime(1, 'MOVIE'),
+          fetchTopRatedAnime(1, 'MOVIE'),
+          fetchNowPlayingAnime(1, 'MOVIE'),
+          fetchTrendingAnime(1, 'MOVIE'),
+          fetchUpcomingAnime(1, 'MOVIE')
+        ]);
+      } else {
+        [popular, topRated, nowPlaying, trending, upcoming] = await Promise.all([
+          fetchPopularMovies(1),
+          fetchTopRatedMovies(1),
+          fetchNowPlayingMovies(1),
+          fetchTrendingMovies('week', 1),
+          fetchUpcomingMovies(1)
+        ]);
+      }
 
       const heroes = trending.filter(m => m.backdrop).slice(0, 5);
 
@@ -154,11 +174,20 @@ function MoviesPage() {
       setLoadingMore(true);
       const activeMode = currentModeRef.current;
       
-      const [popular, topRated, upcoming] = await Promise.all([
-        fetchPopularMovies(pageNum),
-        fetchTopRatedMovies(pageNum),
-        fetchUpcomingMovies(pageNum)
-      ]);
+      let popular, topRated, upcoming;
+      if (activeMode) {
+        [popular, topRated, upcoming] = await Promise.all([
+          fetchPopularAnime(pageNum, 'MOVIE'),
+          fetchTopRatedAnime(pageNum, 'MOVIE'),
+          fetchUpcomingAnime(pageNum, 'MOVIE')
+        ]);
+      } else {
+        [popular, topRated, upcoming] = await Promise.all([
+          fetchPopularMovies(pageNum),
+          fetchTopRatedMovies(pageNum),
+          fetchUpcomingMovies(pageNum)
+        ]);
+      }
 
       if (activeMode !== currentModeRef.current) return;
 
@@ -177,6 +206,11 @@ function MoviesPage() {
       }
       if (upcoming.length > 0) {
         newRows.push({ title: `More Upcoming Releases`, icon: 'upcoming', data: upcoming });
+      }
+
+      if (newRows.length === 0) {
+        setHasMore(false);
+        return;
       }
 
       setDynamicRows(prev => [...prev, ...newRows]);
@@ -238,15 +272,42 @@ function MoviesPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
               <div className="absolute bottom-0 left-0 right-0 h-24 xs:h-28 sm:h-32 md:h-40 lg:h-48 bg-gradient-to-t from-netflix-black dark:from-netflix-black via-netflix-black/80 to-transparent z-10" />
-              {movie.backdrop && (
-                <img
-                  src={movie.backdrop}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  style={{ objectPosition: 'center center' }}
-                />
+              {isAnimeMode ? (
+                <>
+                  {movie.backdrop && (
+                    <img
+                      src={movie.backdrop}
+                      alt={movie.title}
+                      className="w-full h-full object-cover blur-md opacity-50 scale-110"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      style={{ objectPosition: 'center center' }}
+                    />
+                  )}
+                  {movie.url && (
+                    <div className="absolute inset-y-0 right-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
+                      <div className="relative h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
+                        <img
+                          src={movie.url}
+                          alt={movie.title}
+                          className="w-full h-full object-cover"
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                movie.backdrop && (
+                  <img
+                    src={movie.backdrop}
+                    alt={movie.title}
+                    className="w-full h-full object-cover"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    style={{ objectPosition: 'center center' }}
+                  />
+                )
               )}
             </div>
           ))}
@@ -256,7 +317,7 @@ function MoviesPage() {
         <div className="hidden lg:flex absolute left-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-start opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={prevSlide}
-            className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
+            className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 bg-gray-200/70 hover:bg-gray-300/90 dark:bg-black/50 dark:hover:bg-black/80 text-gray-900 dark:text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Previous slide"
           >
             <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +328,7 @@ function MoviesPage() {
         <div className="hidden lg:flex absolute right-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-end opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={nextSlide}
-            className="mr-1.5 sm:mr-2 md:mr-3 lg:mr-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
+            className="mr-1.5 sm:mr-2 md:mr-3 lg:mr-4 bg-gray-200/70 hover:bg-gray-300/90 dark:bg-black/50 dark:hover:bg-black/80 text-gray-900 dark:text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Next slide"
           >
             <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,8 +377,11 @@ function MoviesPage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button
-                    onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=movie`)}
-                    className="bg-white hover:bg-gray-200 text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
+                    onClick={() => {
+                      const isEpisodic = movie.media_type === 'tv' || movie.type === 'tv' || movie.media_type === 'anime' || movie.type === 'anime' || isAnimeMode;
+                      navigate(`/watch?id=${movie.tmdbId}&type=${isAnimeMode ? 'anime' : (movie.media_type || 'movie')}${isEpisodic ? '&season=1&episode=1' : ''}`);
+                    }}
+                    className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -325,7 +389,7 @@ function MoviesPage() {
                     <span>Play</span>
                   </button>
                   <button
-                    onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+                    onClick={() => navigate(`/${isAnimeMode ? 'tv' : 'movie'}/${movie.tmdbId}`)}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -358,8 +422,10 @@ function MoviesPage() {
 
       {/* Content Rows (Deduplicated) */}
       <div className="container-custom py-4 xs:py-5 sm:py-6 md:py-8 lg:py-10 xl:py-12 space-y-6 xs:space-y-7 sm:space-y-8 md:space-y-10 lg:space-y-12">
+        <ContinueWatching filterType="movie" />
+
         {trendingMovies.length > 0 && (
-          <Top10Row items={trendingMovies} type="movie" />
+          <Top10Row items={trendingMovies} type={isAnimeMode ? "anime" : "movie"} />
         )}
 
         {(() => {
@@ -382,7 +448,7 @@ function MoviesPage() {
                 <ContentRow title="Trending Now" icon="trending_up">
                   {uniqueTrending.map((movie) => (
                     <ContentRowItem key={movie.tmdbId}>
-                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -392,7 +458,7 @@ function MoviesPage() {
                 <ContentRow title="Top Picks for You" icon="thumb_up">
                   {uniquePopular.map((movie) => (
                     <ContentRowItem key={movie.tmdbId}>
-                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -402,7 +468,7 @@ function MoviesPage() {
                 <ContentRow title="Now Playing" icon="theaters">
                   {uniqueNowPlaying.map((movie) => (
                     <ContentRowItem key={movie.tmdbId}>
-                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -412,7 +478,7 @@ function MoviesPage() {
                 <ContentRow title="Critically Acclaimed" icon="star">
                   {uniqueTopRated.map((movie) => (
                     <ContentRowItem key={movie.tmdbId}>
-                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -422,7 +488,7 @@ function MoviesPage() {
                 <ContentRow title="Coming Soon" icon="upcoming">
                   {uniqueUpcoming.map((movie) => (
                     <ContentRowItem key={movie.tmdbId}>
-                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                      <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -443,7 +509,8 @@ function MoviesPage() {
                   year={item.year} 
                   mediaId={item.mediaId} 
                   tmdbId={item.tmdbId} 
-                  type="movie" 
+                  type={isAnimeMode ? "anime" : "movie"} 
+                  format={item.format}
                 />
               </ContentRowItem>
             ))}

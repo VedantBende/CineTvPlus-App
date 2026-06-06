@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from './MovieCard';
 import { fetchByProvider } from '../../utils/tmdbApi';
+import { fetchAnimeByProvider } from '../../utils/otakuApi';
 import { useTheme } from '../../context/ThemeContext';
 
 // Provider data with TMDB IDs and clean public logos
@@ -10,6 +11,7 @@ export const PROVIDERS = [
   {
     id: 8,
     name: 'Netflix',
+    otakuName: 'Netflix',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
     invert: false
   },
@@ -22,12 +24,14 @@ export const PROVIDERS = [
   {
     id: 9,
     name: 'Amazon Prime',
+    otakuName: 'Amazon Prime Video',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Prime_Video.png',
     invert: false
   },
   {
     id: 15,
     name: 'Hulu',
+    otakuName: 'Hulu',
     logo: 'https://api.iconify.design/simple-icons:hulu.svg?color=%231ce783&width=120',
     invert: false
   },
@@ -46,26 +50,35 @@ export const PROVIDERS = [
   {
     id: 337,
     name: 'Disney+',
+    otakuName: 'Disney Plus',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg',
     invert: true
   },
   {
     id: 283,
     name: 'Crunchyroll',
+    otakuName: 'Crunchyroll',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Crunchyroll_Logo.png',
+    invert: false
+  },
+  {
+    id: 430,
+    name: 'HIDIVE',
+    otakuName: 'HIDIVE',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Hidive_text_logo.svg/250px-Hidive_text_logo.svg.png',
     invert: false
   }
 ];
 
-// Anime heavy providers: Netflix (8), Prime (9), Hulu (15), Crunchyroll (283)
-const ANIME_PROVIDERS = [8, 9, 15, 283];
+// Anime heavy providers: Netflix (8), Prime (9), Hulu (15), Crunchyroll (283), Disney+ (337), HIDIVE (430)
+const ANIME_PROVIDERS = [8, 9, 15, 283, 337, 430];
 
 function ProvidersRow() {
   const { isAnimeMode } = useTheme();
   
   const visibleProviders = isAnimeMode 
     ? PROVIDERS.filter(p => ANIME_PROVIDERS.includes(p.id))
-    : PROVIDERS;
+    : PROVIDERS.filter(p => p.id !== 283 && p.id !== 430);
 
   const [mediaType, setMediaType] = useState('movie');
   const [activeProvider, setActiveProvider] = useState(visibleProviders[0]);
@@ -122,7 +135,12 @@ function ProvidersRow() {
     let isMounted = true;
     const loadContent = async () => {
       setLoading(true);
-      const data = await fetchByProvider(mediaType, activeProvider.id, 1);
+      let data = [];
+      if (isAnimeMode) {
+        data = await fetchAnimeByProvider(activeProvider.otakuName || activeProvider.name, mediaType, 1);
+      } else {
+        data = await fetchByProvider(mediaType, activeProvider.id, 1);
+      }
       if (isMounted) {
         setContent(data);
         setLoading(false);

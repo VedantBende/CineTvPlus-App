@@ -1,6 +1,16 @@
 import { PLAYER_LIST } from '../../utils/playerConfig';
+import { useTheme } from '../../context/ThemeContext';
 
 function PlayerSelector({ selectedPlayer, onSelect, animate = false }) {
+  const { isAnimeMode } = useTheme();
+  
+  // Filter out Anime Server if not in Anime Mode
+  const availablePlayers = PLAYER_LIST.filter(player => {
+    if (isAnimeMode) return player.id === 'anime';
+    if (player.id === 'anime') return false;
+    return true;
+  });
+
   return (
     <div
       className={`
@@ -18,7 +28,7 @@ function PlayerSelector({ selectedPlayer, onSelect, animate = false }) {
         Server:
       </span>
 
-      {PLAYER_LIST.map((player) => {
+      {availablePlayers.map((player) => {
         const isActive = selectedPlayer === player.id;
 
         return (

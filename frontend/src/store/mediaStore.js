@@ -97,7 +97,7 @@ const useMediaStore = create(
       })
     }),
     {
-      name: 'cinetv-media-cache-v4', // unique name
+      name: 'cinetv-media-cache-v5', // unique name
       storage: createJSONStorage(() => localStorage),
       // Only persist the cache fields, not the runtime/session state (like currentMedia or searchResults)
       partialize: (state) => ({

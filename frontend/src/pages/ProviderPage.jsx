@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { fetchByProvider } from '../utils/tmdbApi';
+import { fetchAnimeByProvider } from '../utils/otakuApi';
 import MovieCard from '../components/media/MovieCard';
 
 import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
@@ -77,7 +78,7 @@ function ProviderPage() {
     window.scrollTo(0, 0);
 
     const fetchedAt = providerCacheFetchedAt[cacheKey];
-    const isCacheFresh = providerCache[cacheKey] && fetchedAt && (Date.now() - fetchedAt < CACHE_TTL);
+    const isCacheFresh = providerCache[cacheKey] && fetchedAt && (Date.now() - fetchedAt < CACHE_TTL) && providerCache[cacheKey].heroMovies?.length > 0;
 
     if (isCacheFresh) {
       setLoading(false);
@@ -114,7 +115,12 @@ function ProviderPage() {
       setLoading(true);
       setError(null);
 
-      const results = await fetchByProvider(mediaType, provider.id, 1);
+      let results = [];
+      if (isAnimeMode) {
+        results = await fetchAnimeByProvider(provider.otakuName || provider.name, mediaType, 1);
+      } else {
+        results = await fetchByProvider(mediaType, provider.id, 1);
+      }
       
       if (results.length === 0) {
         setHasMore(false);
@@ -156,7 +162,12 @@ function ProviderPage() {
     try {
       setLoadingMore(true);
       const activeMode = currentModeRef.current;
-      const results = await fetchByProvider(mediaType, provider.id, pageNum);
+      let results = [];
+      if (activeMode) {
+        results = await fetchAnimeByProvider(provider.otakuName || provider.name, mediaType, pageNum);
+      } else {
+        results = await fetchByProvider(mediaType, provider.id, pageNum);
+      }
 
       if (activeMode !== currentModeRef.current) return;
 
@@ -168,6 +179,12 @@ function ProviderPage() {
       setGridContent(prev => {
         const existingIds = new Set(prev.map(r => r.tmdbId));
         const freshResults = results.filter(r => !existingIds.has(r.tmdbId));
+        
+        if (freshResults.length === 0) {
+          setHasMore(false);
+          return prev;
+        }
+        
         return [...prev, ...freshResults];
       });
       
@@ -232,15 +249,42 @@ function ProviderPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
                 <div className="absolute bottom-0 left-0 right-0 h-24 xs:h-28 sm:h-32 md:h-40 lg:h-48 bg-gradient-to-t from-netflix-black dark:from-netflix-black via-netflix-black/80 to-transparent z-10" />
-                {movie.backdrop && (
-                  <img
-                    src={movie.backdrop}
-                    alt={movie.title}
-                    className="w-full h-full object-cover"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={index === 0 ? 'high' : 'auto'}
-                    style={{ objectPosition: 'center center' }}
-                  />
+                {isAnimeMode ? (
+                  <>
+                    {movie.backdrop && (
+                      <img
+                        src={movie.backdrop}
+                        alt={movie.title}
+                        className="w-full h-full object-cover blur-md opacity-50 scale-110"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        style={{ objectPosition: 'center center' }}
+                      />
+                    )}
+                    {movie.url && (
+                      <div className="absolute inset-y-0 right-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
+                        <div className="relative h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
+                          <img
+                            src={movie.url}
+                            alt={movie.title}
+                            className="w-full h-full object-cover"
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  movie.backdrop && (
+                    <img
+                      src={movie.backdrop}
+                      alt={movie.title}
+                      className="w-full h-full object-cover"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      style={{ objectPosition: 'center center' }}
+                    />
+                  )
                 )}
               </div>
             ))}
@@ -323,8 +367,11 @@ function ProviderPage() {
 
                   <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                     <button
-                      onClick={() => navigate(`/watch?id=${movie.tmdbId}&type=${mediaType}`)}
-                      className="bg-white hover:bg-gray-200 text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
+                      onClick={() => {
+                        const isEpisodic = mediaType === 'tv' || movie.media_type === 'tv' || movie.type === 'tv' || mediaType === 'anime' || movie.media_type === 'anime' || movie.type === 'anime' || isAnimeMode;
+                        navigate(`/watch?id=${movie.tmdbId}&type=${isAnimeMode ? 'anime' : (mediaType || movie.media_type || 'movie')}${isEpisodic ? '&season=1&episode=1' : ''}`);
+                      }}
+                      className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                     >
                       <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
@@ -332,7 +379,7 @@ function ProviderPage() {
                       <span>Play</span>
                     </button>
                     <button
-                      onClick={() => navigate(`/${mediaType}/${movie.tmdbId}`)}
+                      onClick={() => navigate(`/${isAnimeMode ? 'tv' : mediaType}/${movie.tmdbId}`)}
                       className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                     >
                       <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,9 +5,15 @@ import {
   fetchTrendingTVShows, 
   fetchTopRatedTVShows 
 } from '../utils/tmdbApi';
+import {
+  fetchPopularAnime,
+  fetchTopRatedAnime,
+  fetchTrendingAnime
+} from '../utils/otakuApi';
 import MovieCard from '../components/media/MovieCard';
 import ContentRow, { ContentRowItem } from '../components/media/ContentRow';
 import Top10Row from '../components/media/Top10Row';
+import ContinueWatching from '../components/media/ContinueWatching';
 
 import PageSkeleton from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
@@ -80,7 +86,7 @@ function TVShowsPage() {
     setHasMore(true);
 
     // Skip fetch if cache is fresh (within TTL) for current mode
-    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL);
+    const isCacheFresh = activeData && activeFetchedAt && (Date.now() - activeFetchedAt < CACHE_TTL) && activeData.heroShows?.length > 0;
     if (isCacheFresh) {
       setLoading(false);
       return;
@@ -110,11 +116,21 @@ function TVShowsPage() {
       setLoading(true);
       setError(null);
 
-      const [popular, trending, topRated] = await Promise.all([
-        fetchPopularTVShows(1),
-        fetchTrendingTVShows('week', 1),
-        fetchTopRatedTVShows(1)
-      ]);
+      let popular, trending, topRated;
+
+      if (isAnimeMode) {
+        [popular, trending, topRated] = await Promise.all([
+          fetchPopularAnime(1, 'TV, TV_SHORT, ONA, OVA'),
+          fetchTrendingAnime(1, 'TV, TV_SHORT, ONA, OVA'),
+          fetchTopRatedAnime(1, 'TV, TV_SHORT, ONA, OVA')
+        ]);
+      } else {
+        [popular, trending, topRated] = await Promise.all([
+          fetchPopularTVShows(1),
+          fetchTrendingTVShows('week', 1),
+          fetchTopRatedTVShows(1)
+        ]);
+      }
 
       const heroes = trending.filter(s => s.backdrop).slice(0, 5);
 
@@ -144,10 +160,18 @@ function TVShowsPage() {
       setLoadingMore(true);
       const activeMode = currentModeRef.current;
       
-      const [popular, topRated] = await Promise.all([
-        fetchPopularTVShows(pageNum),
-        fetchTopRatedTVShows(pageNum)
-      ]);
+      let popular, topRated;
+      if (activeMode) {
+        [popular, topRated] = await Promise.all([
+          fetchPopularAnime(pageNum, 'TV, TV_SHORT, ONA, OVA'),
+          fetchTopRatedAnime(pageNum, 'TV, TV_SHORT, ONA, OVA')
+        ]);
+      } else {
+        [popular, topRated] = await Promise.all([
+          fetchPopularTVShows(pageNum),
+          fetchTopRatedTVShows(pageNum)
+        ]);
+      }
 
       if (activeMode !== currentModeRef.current) return;
 
@@ -163,6 +187,11 @@ function TVShowsPage() {
       }
       if (topRated.length > 0) {
         newRows.push({ title: `More Top Rated Series`, icon: 'star', data: topRated });
+      }
+
+      if (newRows.length === 0) {
+        setHasMore(false);
+        return;
       }
 
       setDynamicRows(prev => [...prev, ...newRows]);
@@ -224,15 +253,42 @@ function TVShowsPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
               <div className="absolute bottom-0 left-0 right-0 h-24 xs:h-28 sm:h-32 md:h-40 lg:h-48 bg-gradient-to-t from-netflix-black dark:from-netflix-black via-netflix-black/80 to-transparent z-10" />
-              {show.backdrop && (
-                <img
-                  src={show.backdrop}
-                  alt={show.title}
-                  className="w-full h-full object-cover"
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  style={{ objectPosition: 'center center' }}
-                />
+              {isAnimeMode ? (
+                <>
+                  {show.backdrop && (
+                    <img
+                      src={show.backdrop}
+                      alt={show.title}
+                      className="w-full h-full object-cover blur-md opacity-50 scale-110"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      style={{ objectPosition: 'center center' }}
+                    />
+                  )}
+                  {show.url && (
+                    <div className="absolute inset-y-0 right-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
+                      <div className="relative h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
+                        <img
+                          src={show.url}
+                          alt={show.title}
+                          className="w-full h-full object-cover"
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                show.backdrop && (
+                  <img
+                    src={show.backdrop}
+                    alt={show.title}
+                    className="w-full h-full object-cover"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    style={{ objectPosition: 'center center' }}
+                  />
+                )
               )}
             </div>
           ))}
@@ -242,7 +298,7 @@ function TVShowsPage() {
         <div className="hidden lg:flex absolute left-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-start opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={prevSlide}
-            className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
+            className="ml-1.5 sm:ml-2 md:ml-3 lg:ml-4 bg-gray-200/70 hover:bg-gray-300/90 dark:bg-black/50 dark:hover:bg-black/80 text-gray-900 dark:text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Previous slide"
           >
             <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,7 +309,7 @@ function TVShowsPage() {
         <div className="hidden lg:flex absolute right-0 top-0 bottom-0 w-12 sm:w-16 md:w-20 lg:w-28 z-30 items-center justify-end opacity-0 hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={nextSlide}
-            className="mr-1.5 sm:mr-2 md:mr-3 lg:mr-4 bg-black/50 hover:bg-black/80 text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
+            className="mr-1.5 sm:mr-2 md:mr-3 lg:mr-4 bg-gray-200/70 hover:bg-gray-300/90 dark:bg-black/50 dark:hover:bg-black/80 text-gray-900 dark:text-white p-2 sm:p-2.5 md:p-3 lg:p-4 rounded-full transition-all backdrop-blur-sm group/btn touch-target"
             aria-label="Next slide"
           >
             <svg className="w-7 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 lg:w-6 lg:h-6 group-hover/btn:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,8 +358,11 @@ function TVShowsPage() {
 
                 <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   <button
-                    onClick={() => navigate(`/watch?id=${show.tmdbId}&type=tv`)}
-                    className="bg-white hover:bg-gray-200 text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
+                    onClick={() => {
+                      const isEpisodic = show.media_type === 'tv' || show.type === 'tv' || show.media_type === 'anime' || show.type === 'anime' || isAnimeMode;
+                      navigate(`/watch?id=${show.tmdbId}&type=${isAnimeMode ? 'anime' : (show.media_type || 'tv')}${isEpisodic ? '&season=1&episode=1' : ''}`);
+                    }}
+                    className="bg-netflix-red text-white hover:bg-red-700 dark:bg-white dark:hover:bg-gray-200 dark:text-black px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl transform hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
@@ -344,8 +403,10 @@ function TVShowsPage() {
 
       {/* Content Rows (Deduplicated) */}
       <div className="container-custom py-4 xs:py-5 sm:py-6 md:py-8 lg:py-10 xl:py-12 space-y-6 xs:space-y-7 sm:space-y-8 md:space-y-10 lg:space-y-12">
+        <ContinueWatching filterType="tv" />
+
         {trendingShows.length > 0 && (
-          <Top10Row items={trendingShows} type="tv" />
+          <Top10Row items={trendingShows} type={isAnimeMode ? "anime" : "tv"} />
         )}
 
         {(() => {
@@ -366,7 +427,7 @@ function TVShowsPage() {
                 <ContentRow title="Trending TV Shows" icon="trending_up">
                   {uniqueTrending.map((show) => (
                     <ContentRowItem key={show.tmdbId}>
-                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type="tv" />
+                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type={isAnimeMode ? "anime" : "tv"} format={show.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -376,7 +437,7 @@ function TVShowsPage() {
                 <ContentRow title="Top Rated Series" icon="star">
                   {uniqueTopRated.map((show) => (
                     <ContentRowItem key={show.tmdbId}>
-                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type="tv" />
+                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type={isAnimeMode ? "anime" : "tv"} format={show.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -386,7 +447,7 @@ function TVShowsPage() {
                 <ContentRow title="Popular TV Shows" icon="whatshot">
                   {uniquePopular.map((show) => (
                     <ContentRowItem key={show.tmdbId}>
-                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type="tv" />
+                      <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type={isAnimeMode ? "anime" : "tv"} format={show.format} />
                     </ContentRowItem>
                   ))}
                 </ContentRow>
@@ -407,7 +468,8 @@ function TVShowsPage() {
                   year={item.year} 
                   mediaId={item.mediaId} 
                   tmdbId={item.tmdbId} 
-                  type="tv" 
+                  type={isAnimeMode ? "anime" : "tv"} 
+                  format={item.format}
                 />
               </ContentRowItem>
             ))}
