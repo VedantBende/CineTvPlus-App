@@ -52,6 +52,8 @@ export default function AdminPage() {
   const [toast, setToast] = useState(null);
   const [userActivity, setUserActivity] = useState(null);
   const [activityLoading, setActivityLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
 
   useEffect(() => {
     if (!isSignedIn) {
@@ -137,6 +139,24 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       showToast(`Failed to ${action} user`, 'error');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    try {
+      const token = await getToken();
+      await axios.delete(`${API_URL}/admin/users/${selectedUser._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showToast('User deleted successfully', 'success');
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+      setDeleteConfirmationText('');
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.error || 'Failed to delete user', 'error');
     }
   };
 
@@ -233,8 +253,16 @@ export default function AdminPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex bg-gray-100 dark:bg-black/50 p-1 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-x-auto w-full md:w-auto hide-scrollbar">
-            {['all', 'pending', 'approved', 'revoked', 'rejected'].map(filter => (
+          <div className="flex items-stretch gap-2 w-full md:w-auto">
+            <button
+              onClick={fetchUsers}
+              className={`flex items-center justify-center px-3 rounded-lg bg-gray-100 dark:bg-black/50 border border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 shadow-sm transition-all flex-shrink-0 ${loading ? 'text-accent-red' : ''}`}
+              title="Refresh users list"
+            >
+              <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </button>
+            <div className="flex bg-gray-100 dark:bg-black/50 p-1 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-x-auto w-full md:w-auto hide-scrollbar">
+              {['all', 'pending', 'approved', 'revoked', 'rejected'].map(filter => (
               <button
                 key={filter}
                 onClick={() => setStatusFilter(filter)}
@@ -247,6 +275,7 @@ export default function AdminPage() {
                 {filter}
               </button>
             ))}
+            </div>
           </div>
         </div>
 
@@ -381,6 +410,51 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* --- DELETE USER MODAL --- */}
+      {showDeleteModal && selectedUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-gray-900/50 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-up">
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-500 mb-2">Delete User?</h3>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mb-4">
+              This action is <span className="font-bold text-red-500">irreversible</span>. It will permanently delete <span className="text-gray-900 dark:text-zinc-200 font-semibold">{selectedUser.email}</span>'s account, including it's all data.
+            </p>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mb-2">
+              Type <strong className="text-gray-900 dark:text-white">DELETE</strong> to confirm.
+            </p>
+            <input
+              type="text"
+              className="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block p-2.5 mb-6"
+              placeholder="DELETE"
+              value={deleteConfirmationText}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[A-Z]*$/.test(val)) {
+                  setDeleteConfirmationText(val);
+                }
+              }}
+            />
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmationText('');
+                }}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteUser}
+                disabled={deleteConfirmationText !== 'DELETE'}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition shadow-lg bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed dark:disabled:bg-red-800/50"
+              >
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- USER DETAILS DRAWER --- */}
       {selectedUser && (
         <div className="fixed inset-0 z-[90] flex justify-end">
@@ -506,7 +580,7 @@ export default function AdminPage() {
                                 <div className="relative w-[90px] h-[135px] rounded-lg overflow-hidden border border-gray-200 dark:border-zinc-700 shadow-sm mb-1.5">
                                   {item.posterPath ? (
                                     <img
-                                      src={`${TMDB_IMG}/w185${item.posterPath}`}
+                                      src={item.posterPath.startsWith('http') ? item.posterPath : `${TMDB_IMG}/w185${item.posterPath}`}
                                       alt={item.title}
                                       className="w-full h-full object-cover"
                                       loading="lazy"
@@ -518,7 +592,7 @@ export default function AdminPage() {
                                   )}
                                   {/* Media type badge */}
                                   <div className="absolute top-1 left-1 bg-black/70 backdrop-blur-sm text-[8px] font-bold uppercase text-white px-1.5 py-0.5 rounded">
-                                    {item.mediaType === 'tv' ? 'TV' : 'MOV'}
+                                    {item.mediaType === 'anime' || item.isAnime ? 'ANIME' : item.mediaType === 'tv' ? 'TV' : 'MOV'}
                                   </div>
                                 </div>
                                 <p className="text-[11px] font-medium text-gray-800 dark:text-zinc-300 truncate leading-tight" title={item.title}>{item.title || 'Unknown'}</p>
@@ -573,6 +647,16 @@ export default function AdminPage() {
                     <XIcon /> Reject
                   </button>
                 )}
+                <button 
+                  onClick={() => {
+                    setDeleteConfirmationText('');
+                    setShowDeleteModal(true);
+                  }}
+                  disabled={selectedUser.role === 'admin'}
+                  className="bg-red-500 hover:bg-red-600 disabled:opacity-30 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 col-span-2"
+                >
+                  <ShieldExclamationIcon /> Delete User Permanently
+                </button>
               </div>
             </div>
           </div>

@@ -2,8 +2,11 @@ import express from 'express';
 import { requireAuth, requireMongoUser, requireAdmin } from '../middleware/auth.middleware.js';
 import User from '../models/User.js';
 import ContinueWatching from '../models/ContinueWatching.js';
+import Favorite from '../models/Favorite.js';
+import WatchHistory from '../models/WatchHistory.js';
 import { sendEmail } from '../utils/email.js';
 import { getStatusEmailContent } from '../utils/emailTemplates.js';
+import { clerkClient } from '@clerk/clerk-sdk-node';
 
 const isValidEmail = (email) => {
   return typeof email === 'string' && email.includes('@') && email.includes('.');
@@ -123,6 +126,36 @@ router.get('/users/:id/activity', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user activity:', error);
     res.status(500).json({ error: 'Server error fetching user activity' });
+  }
+});
+
+// Delete user
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(403).json({ error: 'Cannot delete admin users' });
+    }
+
+    // Delete ContinueWatching history & Favorites
+    await ContinueWatching.deleteMany({ userId: req.params.id });
+    await Favorite.deleteMany({ userId: req.params.id });
+    await WatchHistory.deleteMany({ userId: req.params.id });
+
+    // Delete from Clerk
+    await clerkClient.users.deleteUser(user.clerkUserId);
+
+    // Delete from MongoDB
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'User and associated data deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Server error deleting user' });
   }
 });
 
