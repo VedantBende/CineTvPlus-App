@@ -116,7 +116,7 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
 
   if (!top10Items.length) return null;
 
-  const displaySubtitle = isAnimeMode ? "CONTENT TODAY " : subtitle;
+  const displaySubtitle = isAnimeMode ? "CONTENT TODAY" : subtitle;
 
   return (
     <section className="space-y-4 sm:space-y-6 md:space-y-8 my-8 sm:my-10 lg:my-16">
