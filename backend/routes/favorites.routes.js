@@ -32,7 +32,7 @@ router.post('/add', async (req, res) => {
     const favorite = await Favorite.findOneAndUpdate(
       { userId: req.user._id, mediaId, isAnime },
       { userId: req.user._id, mediaId, mediaType, title, posterPath, isAnime },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
     res.json({ message: 'Added to favorites', favorite });

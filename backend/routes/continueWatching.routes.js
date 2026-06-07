@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
         episode: episode ? parseInt(episode) : null,
         isAnime
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
     res.json({ message: 'Continue watching updated', item });
@@ -96,7 +96,7 @@ router.patch('/:mediaId/touch', async (req, res) => {
     const item = await ContinueWatching.findOneAndUpdate(
       query,
       { $set: { updatedAt: new Date() } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!item) {

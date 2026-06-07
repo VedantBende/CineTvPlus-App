@@ -552,7 +552,7 @@ function HomePage() {
                     <span>Play</span>
                   </button>
                   <button 
-                    onClick={() => navigate(`/${movie.media_type === 'anime' ? 'tv' : (movie.media_type || 'movie')}/${movie.tmdbId}`)}
+                    onClick={() => navigate(`/${movie.media_type === 'anime' ? 'tv' : (movie.media_type || 'movie')}/${movie.tmdbId}`, { state: { isAnimeMovie: movie.media_type === 'anime' && movie.format === 'MOVIE' } })}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -598,7 +598,7 @@ function HomePage() {
           <ContentRow title="Trending Now" icon="local_fire_department">
             {uniqueTrending.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : (movie.media_type || "movie")} format={movie.format} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -608,7 +608,7 @@ function HomePage() {
           <ContentRow title="Top Picks for You" icon="thumb_up">
             {uniquePopular.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : (movie.media_type || "movie")} format={movie.format} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -618,7 +618,7 @@ function HomePage() {
           <ContentRow title="Trending TV Shows" icon="trending_up">
             {uniqueTrendingTV.map((show) => (
               <ContentRowItem key={show.tmdbId}>
-                <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type="tv" />
+                <MovieCard title={show.title} poster={show.url} rating={show.rating} year={show.year} mediaId={show.mediaId} tmdbId={show.tmdbId} type={isAnimeMode ? "anime" : "tv"} format={show.format} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -628,7 +628,7 @@ function HomePage() {
           <ContentRow title="Now Playing in Theaters" icon="theaters">
             {uniqueNowPlaying.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type="movie" />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : "movie"} format={movie.format} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -638,7 +638,7 @@ function HomePage() {
           <ContentRow title="Critically Acclaimed" icon="star">
             {uniqueTopRated.map((movie) => (
               <ContentRowItem key={movie.tmdbId}>
-                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={movie.media_type || "movie"} />
+                <MovieCard title={movie.title} poster={movie.url} rating={movie.rating} year={movie.year} mediaId={movie.mediaId} tmdbId={movie.tmdbId} type={isAnimeMode ? "anime" : (movie.media_type || "movie")} format={movie.format} />
               </ContentRowItem>
             ))}
           </ContentRow>
@@ -656,7 +656,8 @@ function HomePage() {
                   year={item.year} 
                   mediaId={item.mediaId} 
                   tmdbId={item.tmdbId} 
-                  type={row.type} 
+                  type={isAnimeMode ? 'anime' : (row.type === 'mixed' ? (item.media_type || 'movie') : row.type)}
+                  format={item.format}
                 />
               </ContentRowItem>
             ))}

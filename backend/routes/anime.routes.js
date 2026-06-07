@@ -12,10 +12,11 @@ const VALID_MEDIA_TYPES = ['movie', 'tv', 'anime'];
  * - season: number
  * - episode: number
  * - lang: 'sub' | 'dub'
+ * - server: 'otaku1' | 'otaku2' | 'otaku3'
  */
 router.get('/embed', async (req, res) => {
   try {
-    const { otakuId, type, season, episode, lang = 'sub' } = req.query;
+    const { otakuId, type, season, episode, lang = 'sub', server = 'otaku1' } = req.query;
 
     if (!otakuId || !type) {
       return res.status(400).json({ success: false, error: 'Missing otakuId or type parameter' });
@@ -26,24 +27,33 @@ router.get('/embed', async (req, res) => {
     }
 
     // Generate Otaku URL
-    // Expected format based on Otaku public route
-    // Allow overriding via environment variable
-    const OTAKU_BASE_URL = process.env.OTAKU_BASE_URL;
-    
-    // Construct the Otaku URL based on the known Otaku ID path format:
     let embedUrl = '';
-    
-    if (type === 'tv' || type === 'anime') {
-      const epNum = episode || 1;
-      embedUrl = `${OTAKU_BASE_URL}/stream/ani/${otakuId}/${epNum}/${lang}`;
+    const epNum = episode || 1;
+    let origin = null;
+
+    if (server === 'otaku2') {
+      const OTAKU_2_URL = process.env.OTAKU_2_URL;
+      embedUrl = `${OTAKU_2_URL}/${otakuId}/${epNum}/${lang}`;
+      origin = process.env.OTAKU_ORIGIN;
+    } else if (server === 'otaku3') {
+      const OTAKU_3_URL = process.env.OTAKU_3_URL;
+      embedUrl = `${OTAKU_3_URL}/${otakuId}/${epNum}/${lang}`;
+      origin = process.env.OTAKU_ORIGIN;
     } else {
-      // For movies, ep is usually 1
-      embedUrl = `${OTAKU_BASE_URL}/stream/ani/${otakuId}/1/${lang}`;
+      // Default: otaku1
+      const OTAKU_1_URL = process.env.OTAKU_1_URL;
+      if (type === 'tv' || type === 'anime') {
+        embedUrl = `${OTAKU_1_URL}/stream/ani/${otakuId}/${epNum}/${lang}`;
+      } else {
+        // For movies, ep is usually 1
+        embedUrl = `${OTAKU_1_URL}/stream/ani/${otakuId}/1/${lang}`;
+      }
     }
 
     return res.json({
       success: true,
       url: embedUrl,
+      origin,
       otakuId
     });
 

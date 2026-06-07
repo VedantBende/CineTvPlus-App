@@ -137,12 +137,24 @@ export const PLAYERS = {
     },
   },
 
-  anime: {
-    id: 'anime',
-    label: 'Anime Server',
-    description: 'Dedicated Anime Source (Sub/Dub)',
-    // The actual URL fetching for Anime Server is asynchronous
-    // so we return null here and let PlayerFrame handle it via backend proxy
+  otaku1: {
+    id: 'otaku1',
+    label: 'Otaku Server 1',
+    description: 'Stable Anime Source (Sub/Dub)',
+    getUrl: () => null,
+  },
+
+  otaku2: {
+    id: 'otaku2',
+    label: 'Otaku Server 2',
+    description: 'Premium Anime Source (Sub/Dub)',
+    getUrl: () => null,
+  },
+
+  otaku3: {
+    id: 'otaku3',
+    label: 'Otaku Server 3',
+    description: 'Fast Anime Source (Sub/Dub)',
     getUrl: () => null,
   },
 };
@@ -159,7 +171,21 @@ export const PLAYER_LIST = Object.values(PLAYERS);
  */
 export function getSavedPlayer(tmdbId, mediaType) {
   if (mediaType === 'anime') {
-    return 'anime';
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (tmdbId) {
+          const key = `anime_${tmdbId}`;
+          if (parsed[key] && ['otaku1', 'otaku2', 'otaku3'].includes(parsed[key])) {
+            return parsed[key];
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return 'otaku1';
   }
 
   try {

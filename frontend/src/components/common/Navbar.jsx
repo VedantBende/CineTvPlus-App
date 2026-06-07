@@ -14,7 +14,16 @@ function Navbar() {
 
   // Check if a path is the active route
   const isActive = (path) => {
+    if (location.state?.hideNavHighlight && path !== '/') return false;
+    
+    // If it's an anime movie that was forced to the /tv route, keep "Movies" highlighted
+    if (location.state?.isAnimeMovie) {
+      if (path === '/movies') return true;
+      if (path === '/tv') return false;
+    }
+
     if (path === '/') return location.pathname === '/';
+    if (path === '/movies') return location.pathname.startsWith('/movie');
     return location.pathname.startsWith(path);
   };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

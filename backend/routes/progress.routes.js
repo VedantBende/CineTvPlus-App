@@ -74,7 +74,7 @@ router.post('/update', requireAuth, syncUser, async (req, res) => {
     const progress = await WatchProgress.findOneAndUpdate(
       query,
       progressData,
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     res.json({ 

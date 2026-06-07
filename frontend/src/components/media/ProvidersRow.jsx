@@ -276,6 +276,7 @@ function ProvidersRow() {
                   mediaId={item.mediaId}
                   tmdbId={item.tmdbId}
                   type={mediaType}
+                  navState={{ hideNavHighlight: true }}
                 />
               </div>
             ))

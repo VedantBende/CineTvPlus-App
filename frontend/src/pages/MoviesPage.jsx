@@ -389,7 +389,7 @@ function MoviesPage() {
                     <span>Play</span>
                   </button>
                   <button
-                    onClick={() => navigate(`/${isAnimeMode ? 'tv' : 'movie'}/${movie.tmdbId}`)}
+                    onClick={() => navigate(`/${isAnimeMode ? 'tv' : 'movie'}/${movie.tmdbId}`, { state: { isAnimeMovie: isAnimeMode && movie.format === 'MOVIE' } })}
                     className="bg-transparent hover:bg-gray-100 dark:hover:bg-white/10 text-white hover:text-gray-900 dark:hover:text-white border border-white/50 px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-semibold transition-all flex items-center space-x-1.5 xs:space-x-2 sm:space-x-2.5 shadow-xl hover:scale-105 active:scale-95 touch-target"
                   >
                     <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

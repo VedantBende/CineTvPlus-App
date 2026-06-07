@@ -211,6 +211,7 @@ function MovieDetails() {
             {movie.runtime && (
               <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm backdrop-blur-sm">{movie.runtime} min</span>
             )}
+            <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm backdrop-blur-sm">Movie</span>
             {movie.genres && movie.genres.length > 0 && (
               <span className="text-white bg-white/20 px-2 py-1 sm:px-3 rounded text-xs sm:text-sm line-clamp-1 backdrop-blur-sm">
                 {movie.genres.slice(0, 2).map(g => g.name).join(', ')}

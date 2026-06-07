@@ -28,6 +28,7 @@ function PlayerFrame({
   
   // Anime Server states
   const [animeLang, setAnimeLang] = useState(() => localStorage.getItem('cinetv_anime_lang') || 'sub');
+  const [animeOrigin, setAnimeOrigin] = useState('');
   const [animeEmbedUrl, setAnimeEmbedUrl] = useState(null);
   const [isResolvingAnime, setIsResolvingAnime] = useState(false);
   const [animeResolveError, setAnimeResolveError] = useState(null);
@@ -42,20 +43,22 @@ function PlayerFrame({
     setSelectedPlayer(getSavedPlayer(tmdbId, mediaType));
   }, [tmdbId, mediaType]);
 
+  const isAnimeServer = ['otaku1', 'otaku2', 'otaku3'].includes(selectedPlayer);
+
 
   // Build embed URL (only when a player is selected and not anime)
-  const defaultEmbedUrl = selectedPlayer && selectedPlayer !== 'anime'
+  const defaultEmbedUrl = selectedPlayer && !isAnimeServer
     ? getEmbedUrl(selectedPlayer, tmdbId, mediaType, activeSeason, activeEpisode, {
         autoplay,
         resumeTime,
       })
     : null;
 
-  const embedUrl = selectedPlayer === 'anime' ? animeEmbedUrl : defaultEmbedUrl;
+  const embedUrl = isAnimeServer ? animeEmbedUrl : defaultEmbedUrl;
 
   // Resolve Anime Server URL
   useEffect(() => {
-    if (selectedPlayer === 'anime') {
+    if (isAnimeServer) {
       const controller = new AbortController();
       const resolveUrl = async () => {
         setIsResolvingAnime(true);
@@ -68,13 +71,15 @@ function PlayerFrame({
               type: mediaType,
               season: activeSeason,
               episode: activeEpisode,
-              lang: animeLang
+              lang: animeLang,
+              server: selectedPlayer
             },
             signal: controller.signal
           });
           
           if (res.data && res.data.success) {
             setAnimeEmbedUrl(res.data.url);
+            if (res.data.origin) setAnimeOrigin(res.data.origin);
           } else {
             setAnimeResolveError(res.data.error || 'Failed to resolve episode');
           }
@@ -130,6 +135,13 @@ function PlayerFrame({
   useEffect(() => {
     const handleMessage = (event) => {
       try {
+        // (Otaku 2 & 3) MEDIA_DATA event
+        if (animeOrigin && event.origin === animeOrigin && event.data?.type === 'MEDIA_DATA') {
+          const mediaData = event.data.data;
+          localStorage.setItem('otakuProgress', JSON.stringify(mediaData));
+          return;
+        }
+
         if (event.data && typeof event.data === 'object') {
           // If the message is wrapped in a "PLAYER_EVENT", extract the inner payload
           const payload = event.data.type === 'PLAYER_EVENT' && event.data.data 
@@ -154,7 +166,7 @@ function PlayerFrame({
             const currentSeconds = Math.floor(payload.currentTime);
 
             // Store in backend every 10 seconds
-            if (selectedPlayer !== 'anime' && currentSeconds % 10 === 0 && currentSeconds > 0) {
+            if (!isAnimeServer && currentSeconds % 10 === 0 && currentSeconds > 0) {
               updateProgress(getToken, progressData).catch(err => console.error('Failed to save progress:', err));
             }
           }
@@ -171,7 +183,7 @@ function PlayerFrame({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [tmdbId, mediaType, activeSeason, activeEpisode, getToken]);
+  }, [tmdbId, mediaType, activeSeason, activeEpisode, getToken, animeOrigin, isAnimeServer]);
 
 
   // ─── Shared Event Handler (Delta + Epsilon) ─────────────────────
@@ -392,21 +404,23 @@ function PlayerFrame({
   // Restore fallback logic: strictly no sandbox parameters to prevent Server Zeta issues.
   const iframeReferrer = selectedPlayer === 'zeta'
     ? 'no-referrer'
-    : 'origin';
+    : isAnimeServer
+      ? undefined
+      : 'origin';
 
 
   return (
     <div>
       {/* Player Container */}
       <div className="relative w-full overflow-hidden rounded-none sm:rounded-md md:rounded-lg bg-zinc-900/50" style={{ paddingBottom: '56.25%' }}>
-        {selectedPlayer === 'anime' && isResolvingAnime ? (
+        {isAnimeServer && isResolvingAnime ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600 mx-auto mb-3"></div>
               <p className="text-zinc-400 text-xs sm:text-sm">Resolving Anime Server...</p>
             </div>
           </div>
-        ) : selectedPlayer === 'anime' && animeResolveError ? (
+        ) : isAnimeServer && animeResolveError ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <svg className="w-10 h-10 text-red-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -422,7 +436,7 @@ function PlayerFrame({
             src={embedUrl}
             className="absolute top-0 left-0 w-full h-full border-0"
             frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen *"
             title="Video Player"
             referrerPolicy={iframeReferrer}
             loading="eager"
@@ -433,7 +447,7 @@ function PlayerFrame({
       {/* Controls Container */}
       <div className="flex flex-col sm:flex-row items-center mt-3 sm:mt-4 gap-3 sm:gap-4 px-1 relative w-full">
         {/* Sub/Dub Toggle for Anime Server */}
-        {selectedPlayer === 'anime' && (
+        {isAnimeServer && (
           <div className="flex sm:absolute sm:left-1 bg-zinc-800/80 rounded-lg p-1 border border-zinc-700/50 shadow-inner z-10">
             <button
               onClick={() => handleLanguageToggle('sub')}

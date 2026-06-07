@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
-function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie', format, onRemove }) {
+function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie', format, onRemove, navState }) {
   const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
   const { isAnimeMode } = useTheme();
@@ -10,7 +10,7 @@ function MovieCard({ title, poster, rating, year, mediaId, tmdbId, type = 'movie
   const handleClick = () => {
     const id = tmdbId || mediaId;
     const route = (type === 'movie' && !isAnimeMode) ? `/movie/${id}` : `/tv/${id}`;
-    navigate(route);
+    navigate(route, { state: { ...navState, isAnimeMovie: isAnimeMode && format === 'MOVIE' } });
   };
 
   const displayType = type === 'anime' 

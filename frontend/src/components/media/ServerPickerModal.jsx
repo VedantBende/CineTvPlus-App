@@ -9,9 +9,9 @@ function ServerPickerModal({ onSelect }) {
 
   // Filter out Anime Server if not in Anime Mode
   const availablePlayers = PLAYER_LIST.filter(player => {
-    if (isAnimeMode) return player.id === 'anime';
-    if (player.id === 'anime') return false;
-    return true;
+    const isOtakuServer = ['otaku1', 'otaku2', 'otaku3'].includes(player.id);
+    if (isAnimeMode) return isOtakuServer;
+    return !isOtakuServer;
   });
 
   // Trigger entrance animation on mount
