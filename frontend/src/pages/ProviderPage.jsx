@@ -262,8 +262,8 @@ function ProviderPage() {
                       />
                     )}
                     {movie.url && (
-                      <div className="absolute inset-y-0 right-0 w-1/2 hidden md:flex items-center justify-end pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
-                        <div className="relative h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
+                      <div className="absolute inset-0 md:inset-y-0 md:inset-x-auto md:right-0 md:w-1/2 flex items-center justify-center md:justify-end md:pr-8 lg:pr-16 xl:pr-24 z-0 pointer-events-none">
+                        <div className="relative w-[85%] xs:w-[80%] sm:w-[70%] md:w-auto md:h-[75%] lg:h-[85%] aspect-[2/3] rounded-xl overflow-hidden shadow-2xl transform rotate-3 transition-transform duration-500 ring-4 ring-white/10">
                           <img
                             src={movie.url}
                             alt={movie.title}

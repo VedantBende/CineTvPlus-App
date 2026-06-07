@@ -131,6 +131,8 @@ function Navbar() {
                 }`}
               >
                 <input
+                  id="global-search-input"
+                  name="searchQuery"
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
