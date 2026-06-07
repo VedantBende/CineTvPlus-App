@@ -272,8 +272,8 @@ npm run dev
 
 ## 🌍 Deployment
 
-- **Backend (Render)**: The ackend/ directory is deployed as a Web Service on Render. The FRONTEND_URL environment variable is strictly set to the Vercel app domain to enforce secure CORS policies. The proxy streaming variables (PLAYER_ALPHA_BASE_URL, etc.) map securely into Helmet's Content Security Policy.
-- **Frontend (Vercel)**: The rontend/ directory is deployed seamlessly via Vercel. VITE_API_URL points directly to the live Render backend URL (https://your-backend.onrender.com/api). Requires setting all VITE_PLAYER_... environment variables inside the Vercel dashboard.
+- **Backend (Render)**: The Backend/ directory is deployed as a Web Service on Render. The FRONTEND_URL environment variable is strictly set to the Vercel app domain to enforce secure CORS policies. The proxy streaming variables (PLAYER_ALPHA_BASE_URL, etc.) map securely into Helmet's Content Security Policy.
+- **Frontend (Vercel)**: The Frontend/ directory is deployed seamlessly via Vercel. VITE_API_URL points directly to the live Render backend URL (https://your-backend.onrender.com/api). Requires setting all VITE_PLAYER_... environment variables inside the Vercel dashboard.
 
 ---
 
@@ -290,7 +290,7 @@ npm run dev
 
 ## 🔒 Security & Access Control
 
-- **Role-Based Middlewares**: Express routes verifying `req.user.role === 'admin'` before allowing data mutations to sensitive endpoints (like modifying other users' access statuses).
+- **Role-Based Middlewares**: Express routes verifying `role === 'admin'` before allowing data mutations to sensitive endpoints (like modifying other users' access statuses).
 - **Hardened Preflights**: The production backend enforces an explicit loopback array rejecting any traffic that does not originate organically from the authenticated Vercel frontend.
 - **Token Verification**: Database mutations verify Clerk session tokens natively on the backend to prevent malicious client-side data tampering.
 
@@ -304,9 +304,9 @@ npm run dev
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Author & Maintainer
 
-**Vedant Bende**
+Created and maintained by **Vedant Bende**.
 - [GitHub](https://github.com/VedantBende)
 - [Portfolio](https://vedantbende.vercel.app/)
 - [LinkedIn](https://www.linkedin.com/in/vedant-bende-3aa28b2a8/)
