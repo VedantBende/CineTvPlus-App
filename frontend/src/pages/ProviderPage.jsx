@@ -6,7 +6,7 @@ import MovieCard from '../components/media/MovieCard';
 
 import PageSkeleton, { GridCardSkeleton } from '../components/ui/PageSkeleton';
 import ErrorMessage from '../components/ui/ErrorMessage';
-import { PROVIDERS } from '../components/media/ProvidersRow';
+import { PROVIDERS } from '../utils/providersData';
 import useMediaStore, { CACHE_TTL } from '../store/mediaStore';
 import { useTheme } from '../context/ThemeContext';
 
