@@ -232,7 +232,7 @@ function WatchPage() {
       {!isFullscreen && (
         <button
           onClick={handleBack}
-          className="fixed top-14 left-2 sm:top-20 sm:left-3 md:top-24 md:left-4 z-40 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
+          className="fixed top-14 left-2 sm:top-20 sm:left-3 md:top-24 md:left-10 z-40 bg-black bg-opacity-80 hover:bg-opacity-100 text-white p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg transition shadow-lg touch-target"
           title="Exit player"
           aria-label="Go back"
         >
