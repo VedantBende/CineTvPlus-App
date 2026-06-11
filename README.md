@@ -28,6 +28,7 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 - **Admin Dashboard**: A dedicated, role-based control panel to monitor platform metrics and moderate the user base.
 - **Light & Dark Modes**: Complete styling overhauls specifically crafted for both light mode enthusiasts and dark cinematic experiences.
 - **AniTv+ Mode**: A dedicated Anime-centric viewing mode toggled seamlessly via the Navbar, completely powered by the robust AniList GraphQL API.
+- **Graceful Maintenance Mode**: If third-party services (like AniList) experience downtime, the platform gracefully intercepts the failure and displays a branded, non-intrusive "Service Notice" maintenance screen rather than generic error traces.
 - **Holographic Video Transitions**: Toggling between CineTv+ and AniTv+ modes triggers a stunning, full-screen video animation tailored for desktop and mobile orientations. 
 - **Zero-Wait Mode Swapping**: While the transition video plays, the application intelligently fetches and renders the new mode's data completely hidden in the background, resulting in a perfect 0-loading-screen switch.
 - **📱 Progressive Web App (PWA)**: Installable as a standalone app with offline support, intelligent caching, and a custom UI update prompt.

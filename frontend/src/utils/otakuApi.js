@@ -17,7 +17,7 @@ async function queryOtaku(query, variables) {
     return response.data.data;
   } catch (error) {
     console.error('Otaku GraphQL Error:', error.response?.data || error.message);
-    throw error;
+    throw new Error("AniTv+ is currently under maintainance, please try again later");
   }
 }
 
