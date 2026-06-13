@@ -409,6 +409,10 @@ function PlayerFrame({
       : 'origin';
 
 
+  const iframeSandbox = selectedPlayer === 'beta'
+    ? "allow-scripts allow-same-origin allow-forms allow-presentation"
+    : undefined;
+
   return (
     <div>
       {/* Player Container */}
@@ -439,6 +443,7 @@ function PlayerFrame({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen *"
             title="Video Player"
             referrerPolicy={iframeReferrer}
+            sandbox={iframeSandbox}
             loading="eager"
           />
         )}

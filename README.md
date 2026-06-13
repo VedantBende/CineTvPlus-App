@@ -52,6 +52,7 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
   - Server Delta → Standard · Fast
   - Server Epsilon → Enhanced · Reliable
   - Server Zeta → Alternative Source
+  - Server Eta → Alternative Source
 
 ### 🔐 First-Time Player Selection
 - Users must select a server before playback for a personalized experience.
@@ -251,6 +252,8 @@ VITE_PLAYER_EPSILON_TV=disabled
 VITE_PLAYER_DELTA_EPSILON_ORIGIN=disabled
 VITE_PLAYER_ZETA_MOVIE=disabled
 VITE_PLAYER_ZETA_TV=disabled
+VITE_PLAYER_ETA_MOVIE=disabled
+VITE_PLAYER_ETA_TV=disabled
 
 # TMDB Cast Image
 VITE_TMDB_CAST_IMAGE_BASE_URL=https://image.tmdb.org/t/p/w185

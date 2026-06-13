@@ -14,6 +14,8 @@ const ALPHA_MOVIE = import.meta.env.VITE_PLAYER_ALPHA_MOVIE;
 const ALPHA_TV    = import.meta.env.VITE_PLAYER_ALPHA_TV;
 const BETA_MOVIE  = import.meta.env.VITE_PLAYER_BETA_MOVIE;
 const BETA_TV     = import.meta.env.VITE_PLAYER_BETA_TV;
+const ETA_MOVIE   = import.meta.env.VITE_PLAYER_ETA_MOVIE;
+const ETA_TV      = import.meta.env.VITE_PLAYER_ETA_TV;
 const GAMMA_MOVIE   = import.meta.env.VITE_PLAYER_GAMMA_MOVIE;
 const GAMMA_TV      = import.meta.env.VITE_PLAYER_GAMMA_TV;
 const DELTA_MOVIE   = import.meta.env.VITE_PLAYER_DELTA_MOVIE;
@@ -42,33 +44,22 @@ export const PLAYERS = {
     id: 'beta',
     label: 'Server Beta',
     description: 'Premium Quality',
-    getUrl: (tmdbId, mediaType, season, episode, { autoplay = true, resumeTime = 0 } = {}) => {
-      let url = mediaType === 'tv'
-        ? `${BETA_TV}/${tmdbId}`
-        : `${BETA_MOVIE}/${tmdbId}`;
-
-      if (mediaType === 'tv' && season && episode) {
-        url += `/${season}/${episode}`;
-      }
-
-      const params = ['color=e50914'];
-
-      if (autoplay) {
-        params.push('autoPlay=true');
-      }
-
-      // Resume time — only if greater than 10 seconds
-      if (resumeTime && resumeTime > 10) {
-        const timeInSeconds = Math.floor(resumeTime);
-        params.push(`t=${timeInSeconds}`);
-      }
-
+    getUrl: (tmdbId, mediaType, season, episode, options = {}) => {
+      let url;
       if (mediaType === 'tv') {
-        params.push('nextEpisode=true');
-        params.push('episodeSelector=true');
+        if (!season || !episode) return null;
+        url = `${BETA_TV}/${tmdbId}/${season}/${episode}`;
+      } else {
+        url = `${BETA_MOVIE}/${tmdbId}`;
       }
 
-      return params.length > 0 ? `${url}?${params.join('&')}` : url;
+      let queryString = 'server=MbPly-[Multi-Lang]&sub=en&lang=hi';
+      
+      if (options.one_server) {
+        queryString += '&one_server=true';
+      }
+
+      return `${url}?${queryString}`;
     },
   },
 
@@ -136,6 +127,39 @@ export const PLAYERS = {
       return `${ZETA_MOVIE}/${tmdbId}`;
     },
   },
+
+  eta: {
+    id: 'eta',
+    label: 'Server Eta',
+    description: 'Alternative Source',
+    getUrl: (tmdbId, mediaType, season, episode, { autoplay = true, resumeTime = 0 } = {}) => {
+      let url = mediaType === 'tv'
+        ? `${ETA_TV}/${tmdbId}`
+        : `${ETA_MOVIE}/${tmdbId}`;
+
+      if (mediaType === 'tv' && season && episode) {
+        url += `/${season}/${episode}`;
+      }
+
+      const params = ['color=e50914'];
+
+      if (autoplay) {
+        params.push('autoPlay=true');
+      }
+
+      if (resumeTime && resumeTime > 10) {
+        const timeInSeconds = Math.floor(resumeTime);
+        params.push(`t=${timeInSeconds}`);
+      }
+
+      if (mediaType === 'tv') {
+        params.push('nextEpisode=true');
+        params.push('episodeSelector=true');
+      }
+
+      return params.length > 0 ? `${url}?${params.join('&')}` : url;
+    },
+  },  
 
   otaku1: {
     id: 'otaku1',
