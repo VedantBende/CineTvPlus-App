@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { fetchContinueWatchingList, removeItem, touchItem } from '../../utils/continueWatchingStore';
+import { removeSavedPlayer } from '../../utils/playerConfig';
 import { useTheme } from '../../context/ThemeContext';
 import ContentRow from './ContentRow';
 import ContinueWatchingCard from './ContinueWatchingCard';
@@ -62,6 +63,11 @@ function ContinueWatching({ filterType }) {
 
   // Optimistic remove with revert on failure
   const handleRemove = useCallback(async (id) => {
+    const itemToRemove = items.find(item => String(item.mediaId) === String(id));
+    if (itemToRemove) {
+      removeSavedPlayer(id, itemToRemove.mediaType);
+    }
+
     const previousItems = [...items];
     const updatedItems = items.filter(item => String(item.mediaId) !== String(id));
 
