@@ -1,4 +1,4 @@
-# ⚠️ Educational Purpose Only
+# ⚠️ Educational Purpose Only ⚠️
 
 **This project is built strictly for educational and demonstration purposes.**
 
