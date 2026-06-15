@@ -272,6 +272,27 @@ export function savePlayer(playerId, tmdbId, mediaType) {
 }
 
 /**
+ * Remove the saved player for this specific media from localStorage.
+ */
+export function removeSavedPlayer(tmdbId, mediaType) {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      let data = JSON.parse(saved);
+      if (tmdbId && mediaType) {
+        const key = `${mediaType}_${tmdbId}`;
+        if (data[key]) {
+          delete data[key];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+      }
+    }
+  } catch {
+    // Silently fail if localStorage unavailable
+  }
+}
+
+/**
  * Build embed URL for the given player and content.
  * Falls back to alpha if invalid player ID.
  */
