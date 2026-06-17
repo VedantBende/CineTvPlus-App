@@ -70,8 +70,11 @@ function Top10Card({ item, index, type }) {
 
 function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = "movie" }) {
   const scrollRef = useRef(null);
+  const rafRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
   const { isAnimeMode } = useTheme();
 
   // Take only top 10
@@ -81,10 +84,15 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
   }, [items]);
 
   const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 10);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) {
+        setCanScrollLeft(el.scrollLeft > 10);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+      }
+      rafRef.current = null;
+    });
   };
 
   useEffect(() => {
@@ -96,6 +104,8 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
     }
     return () => {
       clearTimeout(timer);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (el) el.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
     };
@@ -105,6 +115,10 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
     const el = scrollRef.current;
     if (!el) return;
     
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 500);
+
     // Smooth Native Scrolling logic for Top 10 rows (no infinite loops)
     const scrollAmount = el.clientWidth * 0.8;
     
@@ -163,11 +177,10 @@ function Top10Row({ items, title = "TOP 10", subtitle = "CONTENT TODAY", type = 
           </div>
         </button>
 
-        {/* Content */}
         <div
           ref={scrollRef}
-          className="flex gap-8 xs:gap-12 sm:gap-16 lg:gap-20 overflow-x-auto overflow-y-visible no-scrollbar scroll-smooth snap-x snap-mandatory py-6 -my-6 px-4 sm:px-8"
-          style={{ scrollPaddingLeft: '2rem', scrollPaddingRight: '1rem' }}
+          className={`flex gap-8 xs:gap-12 sm:gap-16 lg:gap-20 overflow-x-auto overflow-y-visible no-scrollbar snap-x py-6 -my-6 px-4 sm:px-8 ${isScrolling ? 'pointer-events-none' : ''}`}
+          style={{ scrollPaddingLeft: '2rem', scrollPaddingRight: '1rem', willChange: 'transform, scroll-position' }}
         >
           {top10Items.map((item, index) => (
             <Top10Card key={item.tmdbId} item={item} index={index} type={type} />
