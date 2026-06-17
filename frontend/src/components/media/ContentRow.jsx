@@ -2,14 +2,22 @@ import { useRef, useState, useEffect } from 'react';
 
 function ContentRow({ title, icon, children, className = '' }) {
   const scrollRef = useRef(null);
+  const rafRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 10);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) {
+        setCanScrollLeft(el.scrollLeft > 10);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+      }
+      rafRef.current = null;
+    });
   };
 
   useEffect(() => {
@@ -22,6 +30,8 @@ function ContentRow({ title, icon, children, className = '' }) {
     }
     return () => {
       clearTimeout(timer);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (el) el.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
     };
@@ -30,6 +40,12 @@ function ContentRow({ title, icon, children, className = '' }) {
   const scroll = (direction) => {
     const el = scrollRef.current;
     if (!el) return;
+    
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    // Re-enable pointer events after scroll animation finishes (typically 400-500ms)
+    scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 500);
+
     const scrollAmount = el.clientWidth * 0.8;
     
     // Utilize native smooth scrolling for better hardware-accelerated performance
@@ -84,8 +100,8 @@ function ContentRow({ title, icon, children, className = '' }) {
         {/* Content */}
         <div
           ref={scrollRef}
-          className="flex gap-2 xs:gap-3 sm:gap-4 overflow-x-auto overflow-y-visible no-scrollbar snap-x snap-mandatory py-4 -my-4"
-          style={{ scrollPaddingLeft: '4px', scrollPaddingRight: '4px' }}
+          className={`flex gap-2 xs:gap-3 sm:gap-4 overflow-x-auto overflow-y-visible no-scrollbar snap-x py-4 -my-4 ${isScrolling ? 'pointer-events-none' : ''}`}
+          style={{ scrollPaddingLeft: '4px', scrollPaddingRight: '4px', willChange: 'transform, scroll-position' }}
         >
           {children}
         </div>

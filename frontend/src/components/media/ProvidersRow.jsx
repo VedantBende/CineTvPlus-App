@@ -28,16 +28,24 @@ function ProvidersRow() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const scrollRef = useRef(null);
+  const rafRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
 
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   // Scroll checking for the content row
   const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 10);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (el) {
+        setCanScrollLeft(el.scrollLeft > 10);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+      }
+      rafRef.current = null;
+    });
   };
 
   useEffect(() => {
@@ -49,6 +57,8 @@ function ProvidersRow() {
     }
     return () => {
       clearTimeout(timer);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (el) el.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
     };
@@ -57,6 +67,11 @@ function ProvidersRow() {
   const scroll = (direction) => {
     const el = scrollRef.current;
     if (!el) return;
+    
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 500);
+
     const scrollAmount = el.clientWidth * 0.75;
     el.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -192,7 +207,8 @@ function ProvidersRow() {
         {/* Scrollable Container */}
         <div
           ref={scrollRef}
-          className="flex overflow-x-auto no-scrollbar gap-2 xs:gap-3 sm:gap-4 snap-x scroll-smooth py-4 -my-4"
+          className={`flex overflow-x-auto no-scrollbar gap-2 xs:gap-3 sm:gap-4 snap-x py-4 -my-4 ${isScrolling ? 'pointer-events-none' : ''}`}
+          style={{ willChange: 'transform, scroll-position' }}
         >
           {loading ? (
             // Loading Skeletons
