@@ -33,12 +33,16 @@ const DURATION_LABELS = {
       `;
     } else {
       const dateObj = new Date(user.expiresAt);
-      const dd = String(dateObj.getDate()).padStart(2, '0');
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const yyyy = dateObj.getFullYear();
-      const hours = String(dateObj.getHours()).padStart(2, '0');
-      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-      const formattedDate = `${dd}-${mm}-${yyyy} at ${hours}:${minutes}`;
+      const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      const formattedDate = formatter.format(dateObj).replace(',', ' at').replace(/\//g, '-');
       
       const rawDuration = user.accessDuration || 'temporary';
       const durationText = DURATION_LABELS[rawDuration] || rawDuration;
