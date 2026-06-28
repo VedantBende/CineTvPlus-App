@@ -68,6 +68,14 @@ const AccessBlocker = ({ children }) => {
     return children;
   }
 
+  // Real-time frontend expiry block
+  if (mongoUser.status === 'approved' && !mongoUser.isPermanent && mongoUser.expiresAt) {
+    if (new Date(mongoUser.expiresAt) < new Date()) {
+      mongoUser.status = 'revoked';
+      mongoUser.revokedReason = 'auto-expired';
+    }
+  }
+
   if (mongoUser.status === 'pending') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-white px-4 text-center mt-12">

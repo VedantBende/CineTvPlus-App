@@ -24,23 +24,26 @@ const timeAgo = (date) => {
 
 // Access timer helper
 const getAccessRemaining = (expiresAt, isPermanent) => {
-  if (isPermanent || !expiresAt) return { text: 'Permanent', type: 'permanent' };
+  if (isPermanent) return { text: 'Permanent', type: 'permanent' };
+  if (!expiresAt) return { text: '-', type: 'none' };
   
   const now = new Date();
   const expiry = new Date(expiresAt);
   
-  if (expiry < now && expiry.toDateString() !== now.toDateString()) return { text: 'Expired', type: 'expired' };
+  if (expiry < now) return { text: 'Expired', type: 'expired' };
   
-  // Reset both dates to midnight local time to get exact whole days difference
-  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const expiryDate = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+  const diffTime = expiry.getTime() - now.getTime();
+  const totalMinutes = Math.floor(diffTime / (1000 * 60));
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
   
-  const diffTime = expiryDate.getTime() - todayDate.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays <= 0 || (diffDays === 1 && expiry.toDateString() === now.toDateString())) return { text: 'Expires Today', type: 'warning' };
-  if (diffDays === 1) return { text: '1 Day Left', type: 'warning' };
-  return { text: `${diffDays} Days Left`, type: 'normal' };
+  if (totalDays > 0) {
+    const remainingHours = totalHours % 24;
+    return { text: `${totalDays}d ${remainingHours}h Left`, type: 'normal' };
+  } else {
+    const remainingMinutes = totalMinutes % 60;
+    return { text: `${totalHours}h ${remainingMinutes}m Left`, type: 'warning' };
+  }
 };
 
 const DURATION_OPTIONS = [

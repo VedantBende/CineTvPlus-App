@@ -135,6 +135,9 @@ router.patch('/users/:id/revoke', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     user.status = 'revoked';
+    user.accessDuration = null;
+    user.expiresAt = null;
+    user.isPermanent = false;
     await user.save();
 
     res.json({ message: 'User revoked', user });

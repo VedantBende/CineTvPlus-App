@@ -36,7 +36,9 @@ const DURATION_LABELS = {
       const dd = String(dateObj.getDate()).padStart(2, '0');
       const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
       const yyyy = dateObj.getFullYear();
-      const formattedDate = `${dd}-${mm}-${yyyy}`;
+      const hours = String(dateObj.getHours()).padStart(2, '0');
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      const formattedDate = `${dd}-${mm}-${yyyy} at ${hours}:${minutes}`;
       
       const rawDuration = user.accessDuration || 'temporary';
       const durationText = DURATION_LABELS[rawDuration] || rawDuration;
@@ -107,7 +109,11 @@ const DURATION_LABELS = {
           <div style="padding:32px 24px;">
             <h2 style="margin:0 0 16px;color:#f87171;">Hello, ${name}</h2>
             <p style="font-size:16px;line-height:1.6;color:#ccc;">
-              We're writing to inform you that your access to CineTv+ has been <strong style="color:#f87171;">revoked</strong>.
+              ${
+                user && user.revokedReason === 'auto-expired' 
+                  ? `We're writing to inform you that your <strong>${user.accessDuration ? DURATION_LABELS[user.accessDuration] || user.accessDuration : 'temporary'}</strong> access to CineTv+ has <strong style="color:#f87171;">ended.</strong>` 
+                  : `We're writing to inform you that your access to CineTv+ has been <strong style="color:#f87171;">revoked</strong>.`
+              }
             </p>
             <p style="font-size:16px;line-height:1.6;color:#ccc;">
               If you have any questions, please reach out to our support team.
