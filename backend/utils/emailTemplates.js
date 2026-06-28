@@ -6,8 +6,49 @@ const APP_URL = process.env.FRONTEND_URL || 'https://cinetvplus.vercel.app';
  * @param {string} userName
  * @returns {{ subject: string, html: string }}
  */
-export function getStatusEmailContent(status, userName) {
+export function getStatusEmailContent(status, userName, user = null) {
   const name = userName || 'User';
+
+const DURATION_LABELS = {
+  '12h': '12 Hours',
+  '24h': '24 Hours',
+  '3d': '3 Days',
+  '7d': '7 Days',
+  '15d': '15 Days',
+  '30d': '30 Days',
+  '3m': '3 Months',
+  '6m': '6 Months',
+  '1y': '1 Year',
+  'permanent': 'Permanent'
+};
+
+  let accessDetailsHtml = '';
+  if (user && status === 'approved') {
+    if (user.isPermanent || !user.expiresAt) {
+      accessDetailsHtml = `
+        <div style="background:#222;padding:16px;border-radius:8px;margin:20px 0;">
+          <p style="margin:0 0 8px;font-size:15px;color:#ccc;"><strong>Access Duration:</strong> Permanent</p>
+          <p style="margin:0;font-size:15px;color:#ccc;"><strong>Access Expiry:</strong> Never</p>
+        </div>
+      `;
+    } else {
+      const dateObj = new Date(user.expiresAt);
+      const dd = String(dateObj.getDate()).padStart(2, '0');
+      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const yyyy = dateObj.getFullYear();
+      const formattedDate = `${dd}-${mm}-${yyyy}`;
+      
+      const rawDuration = user.accessDuration || 'temporary';
+      const durationText = DURATION_LABELS[rawDuration] || rawDuration;
+      accessDetailsHtml = `
+        <div style="background:#222;padding:16px;border-radius:8px;margin:20px 0;">
+          <p style="margin:0 0 8px;font-size:15px;color:#ccc;"><strong>Access Duration:</strong> ${durationText}</p>
+          <p style="margin:0 0 12px;font-size:15px;color:#ccc;"><strong>Access Ends:</strong> ${formattedDate}</p>
+          <p style="margin:0;font-size:13px;color:#f87171;">After this date, your account access will automatically be revoked.</p>
+        </div>
+      `;
+    }
+  }
 
   const templates = {
     approved: {
@@ -23,6 +64,7 @@ export function getStatusEmailContent(status, userName) {
               Great news! Your CineTv+ access request has been <strong style="color:#4ade80;">approved</strong>. 
               You now have full access to our premium streaming content.
             </p>
+            ${accessDetailsHtml}
             <div style="text-align:center;margin:28px 0;">
               <a href="${APP_URL}" style="background:#e50914;color:#fff;text-decoration:none;padding:14px 36px;border-radius:6px;font-weight:bold;font-size:16px;display:inline-block;">
                 Start Watching Now

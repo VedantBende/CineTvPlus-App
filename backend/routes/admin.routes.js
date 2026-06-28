@@ -7,6 +7,7 @@ import WatchHistory from '../models/WatchHistory.js';
 import { sendEmail } from '../utils/email.js';
 import { getStatusEmailContent } from '../utils/emailTemplates.js';
 import { clerkClient } from '@clerk/clerk-sdk-node';
+import { calculateExpiryDate } from '../utils/dateUtils.js';
 
 const isValidEmail = (email) => {
   return typeof email === 'string' && email.includes('@') && email.includes('.');
@@ -31,18 +32,30 @@ router.get('/users', async (req, res) => {
 // Approve user
 router.patch('/users/:id/approve', async (req, res) => {
   try {
+    const { accessDuration } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     user.status = 'approved';
+    
+    if (accessDuration && accessDuration !== 'permanent') {
+      user.accessDuration = accessDuration;
+      user.expiresAt = calculateExpiryDate(accessDuration);
+      user.isPermanent = false;
+    } else {
+      user.accessDuration = 'permanent';
+      user.expiresAt = null;
+      user.isPermanent = true;
+    }
+    
     await user.save();
 
     res.json({ message: 'User approved', user });
 
     // Trigger notification email (async background task)
-    const emailContent = getStatusEmailContent('approved', user.name);
+    const emailContent = getStatusEmailContent('approved', user.name, user);
     if (emailContent && isValidEmail(user.email)) {
       console.log(`✉️ Triggering background email to: ${user.email}`);
       sendEmail(user.email, emailContent.subject, emailContent.html)
@@ -52,6 +65,39 @@ router.patch('/users/:id/approve', async (req, res) => {
   } catch (error) {
     console.error('Error approving user:', error);
     res.status(500).json({ error: 'Server error approving user' });
+  }
+});
+
+// Modify/Extend user access
+router.patch('/users/:id/extend', async (req, res) => {
+  try {
+    const { accessDuration } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Only allow if user is already approved
+    if (user.status !== 'approved') {
+      return res.status(400).json({ error: 'Can only modify access for approved users' });
+    }
+
+    if (accessDuration && accessDuration !== 'permanent') {
+      user.accessDuration = accessDuration;
+      user.expiresAt = calculateExpiryDate(accessDuration);
+      user.isPermanent = false;
+    } else {
+      user.accessDuration = 'permanent';
+      user.expiresAt = null;
+      user.isPermanent = true;
+    }
+    
+    await user.save();
+
+    res.json({ message: 'User access modified', user });
+  } catch (error) {
+    console.error('Error modifying user access:', error);
+    res.status(500).json({ error: 'Server error modifying user access' });
   }
 });
 

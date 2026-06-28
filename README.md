@@ -20,7 +20,8 @@ A full-stack, OTT-style streaming platform designed to provide a premium cinemat
 
 - **Robust Authentication & Sync**: Seamless email and social login via Clerk, instantly synced with a custom MongoDB backend.
 - **Admin-Controlled Access Gate**: New users are placed behind a "Request Access" gate upon signup. An administrative layer must manually approve, reject, or revoke network access.
-- **📧 Email Notification System**: Users receive automatic, branded email updates when their access status changes (Approved, Rejected, or Revoked), ensuring they stay informed about their account status.
+- **Time-Based Access Management**: Administrators can grant users temporary platform access (e.g., 24 Hours, 7 Days, 1 Year). An automated backend cron job perfectly synchronizes with the database to seamlessly revoke access at the exact moment of expiry.
+- **📧 Email Notification System**: Users receive automatic, branded email updates when their access status changes (Approved, Rejected, Revoked, or Auto-Expired), ensuring they stay informed about their account status.
 - **Dynamic Media Browsing**: Explore thousands of movies and TV shows securely via the TMDB API, featuring Trending, Popular, Now Playing, and Top Rated sections.
 - **Watch Providers Integration**: Discover exactly where your favorite movies and shows are available to stream across different platforms.
 - **Personalized Watchlists**: Save and manage a persistent list of favorites scoped directly to your account.
@@ -131,7 +132,7 @@ The platform features a robust, automated email notification system to maintain 
 CineTv+ utilizes a classic decoupled Client-Server architecture:
 1. **Frontend (React)**: Handles all UI visualization, complex state management, and user interaction.
 2. **Backend (Express)**: Acts as a secure intermediary layer, guarding the database and protecting sensitive API keys (like TMDB).
-3. **Database (MongoDB)**: Stores immutable user records, access statuses (pending/approved/revoked), and user preferences (Watchlists/History).
+3. **Database (MongoDB)**: Stores immutable user records, access statuses (pending/approved/revoked), time-based access durations, and user preferences (Watchlists/History).
 
 *Data Flow*: The frontend sends authenticated REST requests using Clerk's JWT tokens. The Express backend validates these tokens before fulfilling requests. When an admin modifies a user's status, the backend triggers the **Gmail API** utility to send a real-time notification via **HTTPS (Port 443)**.
 *Architecture Flow*: Admin Dashboard → Express Backend → Google Gmail API (REST) → User Inbox
