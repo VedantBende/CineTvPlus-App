@@ -29,6 +29,26 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  accessDuration: {
+    type: String,
+    default: 'permanent'
+  },
+  expiresAt: {
+    type: Date,
+    default: null
+  },
+  isPermanent: {
+    type: Boolean,
+    default: true
+  },
+  lastRevokedAt: {
+    type: Date,
+    default: null
+  },
+  revokedReason: {
+    type: String,
+    default: null
+  },
   preferences: {
     theme: {
       type: String,
@@ -55,7 +75,7 @@ const userSchema = new mongoose.Schema({
 
 // Extra indexes if needed (clerkUserId and email are already unique/indexed in field definitions)
 // userSchema.index({...}); 
-
+userSchema.index({ expiresAt: 1 });
 
 const User = mongoose.model('User', userSchema);
 

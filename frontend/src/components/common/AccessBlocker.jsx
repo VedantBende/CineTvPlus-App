@@ -68,6 +68,14 @@ const AccessBlocker = ({ children }) => {
     return children;
   }
 
+  // Real-time frontend expiry block
+  if (mongoUser.status === 'approved' && !mongoUser.isPermanent && mongoUser.expiresAt) {
+    if (new Date(mongoUser.expiresAt) < new Date()) {
+      mongoUser.status = 'revoked';
+      mongoUser.revokedReason = 'auto-expired';
+    }
+  }
+
   if (mongoUser.status === 'pending') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-white px-4 text-center mt-12">
@@ -103,9 +111,15 @@ const AccessBlocker = ({ children }) => {
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-white px-4 text-center mt-12">
         <div className="bg-black/60 border border-zinc-800 p-8 rounded-lg max-w-md w-full backdrop-blur-sm">
           <svg className="w-16 h-16 text-orange-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-          <h2 className="text-2xl font-bold mb-2 text-orange-400">Access Revoked</h2>
-          <p className="text-gray-400 mb-6 font-medium">Your account access has been revoked by an administrator.</p>
-          <div className="text-xs text-zinc-500 mb-6 italic">Contact support if you believe this is an error.</div>
+          <h2 className="text-2xl font-bold mb-2 text-orange-400">
+            {mongoUser.revokedReason === 'auto-expired' ? 'Access Expired' : 'Access Revoked'}
+          </h2>
+          <p className="text-gray-400 mb-6 font-medium">
+            {mongoUser.revokedReason === 'auto-expired' 
+              ? 'Your temporary access duration has ended.' 
+              : 'Your account access has been revoked by an administrator.'}
+          </p>
+          <div className="text-xs text-zinc-500 mb-6 italic">Contact support if you believe this is an error or to request an extension.</div>
           <SignOutButton>
              <button className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2 px-6 rounded transition border border-zinc-700">Sign Out</button>
           </SignOutButton>

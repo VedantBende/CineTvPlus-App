@@ -25,6 +25,7 @@ import tmdbRoutes from './routes/tmdb.routes.js';
 import continueWatchingRoutes from './routes/continueWatching.routes.js';
 import animeRoutes from './routes/anime.routes.js';
 import { initDatabaseKeepAlive, checkDatabaseHealth } from './utils/dbHealth.js';
+import { startCronJobs } from './utils/cronJobs.js';
 import { globalLimiter, tmdbLimiter, dbWriteLimiter } from './middleware/rateLimiter.middleware.js';
 
 const app = express();
@@ -38,6 +39,9 @@ connectDB();
 
 // Initialize DB Keep-Alive (runs every 24h)
 initDatabaseKeepAlive();
+
+// Initialize Time-Based Access Revocation Cron Job
+startCronJobs();
 
 // Security middleware
 app.use(helmet({

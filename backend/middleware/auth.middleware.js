@@ -55,5 +55,12 @@ export const requireApproved = (req, res, next) => {
   if (req.user.status !== 'approved') {
     return res.status(403).json({ error: `Access denied. Status: ${req.user.status}`, status: req.user.status });
   }
+
+  // Real-time exact timestamp expiry block
+  if (!req.user.isPermanent && req.user.expiresAt && new Date(req.user.expiresAt) < new Date()) {
+    // Override the response status to pretend they are revoked, even if the cron job hasn't run yet
+    return res.status(403).json({ error: 'Access expired', status: 'revoked', revokedReason: 'auto-expired' });
+  }
+  
   next();
 };

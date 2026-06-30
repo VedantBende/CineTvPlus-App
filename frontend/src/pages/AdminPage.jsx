@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-
 import PageSkeleton from '../components/ui/PageSkeleton';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -21,6 +20,92 @@ const timeAgo = (date) => {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+// Access timer helper
+const getAccessRemaining = (expiresAt, isPermanent) => {
+  if (isPermanent) return { text: 'Permanent', type: 'permanent' };
+  if (!expiresAt) return { text: '-', type: 'none' };
+  
+  const now = new Date();
+  const expiry = new Date(expiresAt);
+  
+  if (expiry < now) return { text: 'Expired', type: 'expired' };
+  
+  const diffTime = expiry.getTime() - now.getTime();
+  const totalMinutes = Math.floor(diffTime / (1000 * 60));
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+  
+  if (totalDays > 0) {
+    const remainingHours = totalHours % 24;
+    return { text: `${totalDays}d ${remainingHours}h Left`, type: 'normal' };
+  } else {
+    const remainingMinutes = totalMinutes % 60;
+    return { text: `${totalHours}h ${remainingMinutes}m Left`, type: 'warning' };
+  }
+};
+
+const DURATION_OPTIONS = [
+  { label: '12 Hours', value: '12h' },
+  { label: '24 Hours', value: '24h' },
+  { label: '3 Days', value: '3d' },
+  { label: '7 Days', value: '7d' },
+  { label: '15 Days', value: '15d' },
+  { label: '30 Days', value: '30d' },
+  { label: '3 Months', value: '3m' },
+  { label: '6 Months', value: '6m' },
+  { label: '1 Year', value: '1y' },
+  { label: 'Permanent', value: 'permanent' }
+];
+
+// Custom Dropdown Component
+const CustomDropdown = ({ value, onChange, options, className = "", buttonClassName = "" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value) || options[0];
+
+  return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        className={buttonClassName || "w-full bg-gray-50 dark:bg-zinc-800/80 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-[11px] font-medium rounded focus:ring-accent-red focus:border-accent-red flex items-center justify-between py-1 px-2 outline-none cursor-pointer transition-colors"}
+      >
+        <span>{selectedOption.label}</span>
+        <svg className={`w-3 h-3 ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full min-w-[120px] bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {options.map((opt) => (
+            <div
+              key={opt.value}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${value === opt.value ? 'bg-red-50 dark:bg-red-500/10 text-accent-red font-semibold' : 'text-gray-700 dark:text-zinc-300'}`}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // Icons
@@ -49,6 +134,8 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState('permanent');
+  const [rowDurations, setRowDurations] = useState({});
   const [toast, setToast] = useState(null);
   const [userActivity, setUserActivity] = useState(null);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -114,18 +201,22 @@ export default function AdminPage() {
     try {
       setConfirmModal(null);
       const token = await getToken();
-      await axios.patch(`${API_URL}/admin/users/${userId}/${action}`, {}, {
+      await axios.patch(`${API_URL}/admin/users/${userId}/${action}`, {
+        accessDuration: action === 'approve' || action === 'extend' ? selectedDuration : undefined
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       await fetchUsers();
       
       const successMessages = {
         approve: 'User approved successfully',
+        extend: 'User access modified',
         reject: 'User request rejected',
         revoke: 'User access revoked'
       };
       const toastTypes = {
         approve: 'success',
+        extend: 'success',
         reject: 'error',
         revoke: 'warning'
       };
@@ -134,7 +225,11 @@ export default function AdminPage() {
       
       // Update selected drawer user if it's open
       if (selectedUser && selectedUser._id === userId) {
-        setSelectedUser(prev => ({ ...prev, status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'revoked' }));
+        if (action === 'extend') {
+           fetchActivity(userId); // Refresh entirely
+        } else {
+           setSelectedUser(prev => ({ ...prev, status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'revoked' }));
+        }
       }
     } catch (err) {
       console.error(err);
@@ -286,8 +381,9 @@ export default function AdminPage() {
               <thead className="bg-gray-50 dark:bg-zinc-900/80 border-b border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-5 font-semibold">User Details</th>
-                  <th className="px-6 py-5 font-semibold">Role</th>
-                  <th className="px-6 py-5 font-semibold">Status</th>
+                  <th className="px-6 py-5 font-semibold text-center">Role</th>
+                  <th className="px-6 py-5 font-semibold text-center">Status</th>
+                  <th className="px-6 py-5 font-semibold text-center">Access Duration</th>
                   <th className="px-6 py-5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
@@ -310,14 +406,14 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                       <span className={`px-2.5 py-1 rounded inline-flex text-[10px] font-bold tracking-wide uppercase ${
                         u.role === 'admin' ? 'bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20' : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700'
                       }`}>
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                       <span className={`px-3 py-1 rounded-full inline-flex items-center gap-1.5 text-xs font-bold shadow-sm transition-all ${
                         u.status === 'approved' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20 dark:ring-1 dark:ring-green-500/30 dark:shadow-[0_0_10px_rgba(34,197,94,0.1)]' : 
                         u.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-500/20 dark:ring-1 dark:ring-yellow-500/30 dark:shadow-[0_0_10px_rgba(234,179,8,0.1)] animate-pulse' : 
@@ -330,9 +426,28 @@ export default function AdminPage() {
                         {u.status.toUpperCase()}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {(() => {
+                        if (u.status === 'pending') {
+                          return <span className="text-gray-400 dark:text-zinc-600">-</span>;
+                        }
+                        if (u.status !== 'approved' && u.status !== 'revoked') return <span className="text-gray-400 dark:text-zinc-600">-</span>;
+                        const access = getAccessRemaining(u.expiresAt, u.isPermanent);
+                        return (
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            access.type === 'permanent' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20' :
+                            access.type === 'expired' ? 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20' :
+                            access.type === 'warning' ? 'bg-orange-100 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20' :
+                            'bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20'
+                          }`}>
+                            {access.text}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap lg:opacity-80 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={(e) => { e.stopPropagation(); setConfirmModal({ userId: u._id, action: 'approve', name: u.email }); }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedDuration(rowDurations[u._id] || u.accessDuration || 'permanent'); setConfirmModal({ userId: u._id, action: 'approve', name: u.email }); }}
                         disabled={(u.status === 'approved' && u.role !== 'admin') || u.role === 'admin'}
                         className="bg-green-50 hover:bg-green-100 dark:bg-green-600/20 dark:hover:bg-green-500 disabled:bg-gray-100 dark:disabled:bg-zinc-800 disabled:text-gray-400 dark:disabled:text-zinc-600 border border-green-200 dark:border-green-500/30 hover:border-green-300 dark:hover:border-green-400 disabled:border-gray-200 dark:disabled:border-zinc-800 text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-white px-3 py-1.5 rounded transition shadow-sm flex inline-flex items-center gap-1 text-xs font-semibold"
                       >
@@ -384,10 +499,23 @@ export default function AdminPage() {
       {confirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-gray-900/50 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-up">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 capitalize">{confirmModal.action} User?</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 capitalize">{confirmModal.action === 'extend' ? 'Modify Access?' : `${confirmModal.action} User?`}</h3>
             <p className="text-gray-500 dark:text-zinc-400 text-sm mb-6">
-              Are you sure you want to {confirmModal.action} the access request for <span className="text-gray-900 dark:text-zinc-200 font-semibold">{confirmModal.name}</span>?
+              Are you sure you want to {confirmModal.action === 'extend' ? 'modify access' : confirmModal.action} for <span className="text-gray-900 dark:text-zinc-200 font-semibold">{confirmModal.name}</span>?
             </p>
+            
+            {(confirmModal.action === 'approve' || confirmModal.action === 'extend') && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Access Duration</label>
+                <CustomDropdown
+                  value={selectedDuration}
+                  onChange={(val) => setSelectedDuration(val)}
+                  options={DURATION_OPTIONS}
+                  className="w-full"
+                  buttonClassName="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-accent-red focus:border-accent-red flex items-center justify-between p-2.5 outline-none cursor-pointer"
+                />
+              </div>
+            )}
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setConfirmModal(null)}
@@ -499,6 +627,23 @@ export default function AdminPage() {
                       }`}>
                         {selectedUser.status}
                       </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-500 dark:text-zinc-400 text-sm">Access Duration</span>
+                      {(() => {
+                        if (selectedUser.status !== 'approved' && selectedUser.status !== 'revoked') return <span className="text-gray-400 dark:text-zinc-600">-</span>;
+                        const access = getAccessRemaining(selectedUser.expiresAt, selectedUser.isPermanent);
+                        return (
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
+                            access.type === 'permanent' ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-500/10' :
+                            access.type === 'expired' ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-500/10' :
+                            access.type === 'warning' ? 'text-orange-700 bg-orange-100 dark:text-orange-400 dark:bg-orange-500/10' :
+                            'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10'
+                          }`}>
+                            {access.text}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500 dark:text-zinc-400 text-sm">Join Date</span>
@@ -624,20 +769,29 @@ export default function AdminPage() {
               <p className="text-xs font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-wider mb-3">Quick Actions</p>
               <div className="grid grid-cols-2 gap-3">
                 <button 
-                  onClick={() => setConfirmModal({ userId: selectedUser._id, action: 'approve', name: selectedUser.email })}
+                  onClick={() => { setSelectedDuration(selectedUser.accessDuration || 'permanent'); setConfirmModal({ userId: selectedUser._id, action: 'approve', name: selectedUser.email }); }}
                   disabled={(selectedUser.status === 'approved' && selectedUser.role !== 'admin') || selectedUser.role === 'admin'}
                   className="bg-green-50 dark:bg-green-600/10 hover:bg-green-100 dark:hover:bg-green-600/20 disabled:opacity-30 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
                 >
                   <CheckIcon /> {selectedUser.status === 'revoked' ? 'Re-Approve' : 'Approve'}
                 </button>
                 {selectedUser.status === 'approved' ? (
-                  <button 
-                    onClick={() => setConfirmModal({ userId: selectedUser._id, action: 'revoke', name: selectedUser.email })}
-                    disabled={selectedUser.role === 'admin'}
-                    className="bg-orange-50 dark:bg-orange-600/10 hover:bg-orange-100 dark:hover:bg-orange-600/20 disabled:opacity-30 border border-orange-200 dark:border-orange-500/20 text-orange-700 dark:text-orange-400 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
-                  >
-                    <AlertIcon /> Revoke
-                  </button>
+                  <>
+                    <button 
+                      onClick={() => { setSelectedDuration(selectedUser.accessDuration || 'permanent'); setConfirmModal({ userId: selectedUser._id, action: 'extend', name: selectedUser.email }); }}
+                      disabled={selectedUser.role === 'admin'}
+                      className="bg-blue-50 dark:bg-blue-600/10 hover:bg-blue-100 dark:hover:bg-blue-600/20 disabled:opacity-30 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
+                    >
+                      <ClockIcon /> Modify Access
+                    </button>
+                    <button 
+                      onClick={() => setConfirmModal({ userId: selectedUser._id, action: 'revoke', name: selectedUser.email })}
+                      disabled={selectedUser.role === 'admin'}
+                      className="bg-orange-50 dark:bg-orange-600/10 hover:bg-orange-100 dark:hover:bg-orange-600/20 disabled:opacity-30 border border-orange-200 dark:border-orange-500/20 text-orange-700 dark:text-orange-400 py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 col-span-2"
+                    >
+                      <AlertIcon /> Revoke Immediately
+                    </button>
+                  </>
                 ) : (
                   <button 
                     onClick={() => setConfirmModal({ userId: selectedUser._id, action: 'reject', name: selectedUser.email })}
